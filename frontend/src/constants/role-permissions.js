@@ -1,0 +1,19 @@
+import { PERMISSIONS } from '@/constants/permissions.js';
+
+export const ROLE_PERMISSIONS = {
+  admin: Object.values(PERMISSIONS),
+  supervisor: [
+    PERMISSIONS.DASHBOARD_READ,
+    PERMISSIONS.MACHINES_READ,
+    PERMISSIONS.MACHINES_WRITE,
+    PERMISSIONS.REPORTS_READ,
+    PERMISSIONS.REPORTS_EXPORT,
+  ],
+  operator: [
+    PERMISSIONS.MACHINES_READ,
+    PERMISSIONS.MACHINES_UPDATE_OWN,
+  ],
+  viewer: [
+    PERMISSIONS.DASHBOARD_READ,
+  ],
+};

@@ -50,10 +50,11 @@ frontend/
 ## 4. Auth & State Yönetimi
 
 - Access token bellek içinde tutulur; refresh token cookie’ye geçene kadar `localStorage`’da saklanır ve uygulama yüklenince `POST /api/auth/refresh` çağrısı yapılır.
-- Auth bilgisi `useSession` (Context + custom hook) ile yönetilir. Gerektiğinde Zustand kullanılabilir, ancak önce bu dosya güncellenecek.
+- Auth bilgisi `SessionProvider + useSession` ile yönetilir. Gerektiğinde Zustand kullanılabilir, ancak önce bu dosya güncellenecek.
 - Route guard’lar:
   - `PrivateRoute`: kimlik doğrulaması gerekli sayfalar.
   - `PermissionGuard`: `requiredPermissions` dizisindeki tüm izinlerin varlığını kontrol eder (backend ile uyumlu).
+- Rollerden izin türetme mantığı merkezî `ROLE_PERMISSIONS` sabiti ile yapılacak; backend’den gelen rol objeleri frontend’de string olarak normalize edilir.
 
 ## 5. Veri Erişimi ve Hata Yönetimi
 

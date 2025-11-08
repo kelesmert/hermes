@@ -1,8 +1,23 @@
-# Frontend
+# Hermes Frontend (Vite + React)
 
-Bu klasör React tabanlı istemci uygulamasını içerecek. Planlanan sayfalar:
-- Auth akışı ve rol bazlı yönlendirmeler
-- Dashboard ve makine kartları
-- Raporlama, AI içgörü paneli ve audit log ekranları
+Bu klasör Hermes MES MVP’nin React tabanlı kullanıcı arayüzünü barındırır. Teknoloji seçimleri ve zorunlu kurallar için `docs/standart/frontend-decisions.md` dosyasını referans alın.
 
-> Not: Proje kurulumu tamamlandığında detaylı komutlar burada belirlenecek.
+## Kurulum
+
+```bash
+cd frontend
+cp .env.example .env
+npm install
+npm run dev
+```
+
+Varsayılan adres: `http://localhost:5173/`
+
+## Yapı
+- `src/app` → Providers, tema ve route guard bileşenleri.
+- `src/components/layout` → Sidebar, header, breadcrumbs ve kabuk bileşenleri.
+- `src/features/*` → Domain odaklı modüller (auth, dashboard, raporlar, kullanıcılar vb.).
+- `src/lib` → axios client, query client ve yardımcılar.
+- `src/styles/global.css` → Global CSS reset/tema ayarları.
+
+`@/` alias’ı `src/` dizinine işaret eder; karmaşık relatif yollar yerine bu alias kullanılmalıdır.

@@ -1,6 +1,6 @@
 # Hermes MES MVP Öğrenim Rehberi
 
-Bu rehber, backend’i MVP hedefiyle nasıl kurduğumuzu öğretici şekilde özetler: tercih edilen teknolojiler, yapı taşları, akışlar, doğrulama ve tipik hataların teşhisi.
+Bu rehber, backend ve frontend’i MVP hedefiyle nasıl kurduğumuzu öğretici şekilde özetler: tercih edilen teknolojiler, yapı taşları, akışlar, doğrulama ve tipik hataların teşhisi.
 
 ## 1) Mimari Genel Bakış
 - Monorepo klasörleri: `backend/`, `frontend/`, `docs/`.
@@ -104,3 +104,10 @@ Bu rehber, backend’i MVP hedefiyle nasıl kurduğumuzu öğretici şekilde öz
 - Import alias: `@/` kök alias’ı hem frontend hem backend’de tanımlanacak; karmaşık relatif yollar yerine bu kısayol tercih edilecek.
 - App layout: Sol sidebar tüm navigasyonu barındıracak, üst header’da kullanıcı menüsü, genel arama ve notifications dropdown bulunacak; breadcrumbs zorunlu, mobil hedef değil fakat tablet uyumu sağlanacak.
 - ESLint + Prettier: Frontend iskeletinin hemen ardından konfigüre edilip script’leri eklenecek; dokümantasyon güncel tutulacak.
+
+## 15) Frontend Öğrenim Notları
+- Detaylı dizin yapısı ve kurulum için `frontend/README.md` dosyasına bak.
+- Auth entegrasyonu:
+  - Login formu `/api/auth/login` endpoint’i ile çalışır; SessionProvider dönen yanıtı normalize eder (roller string olarak saklanır, izinler role-permission haritasından türetilir).
+  - Uygulama açılışında localStorage’daki refresh token ile otomatik `/api/auth/refresh` çağrısı yapılır; başarısız olursa session temizlenir.
+  - Logout sırasında `/api/auth/logout` tetiklenir; axios interceptors 401 durumunda storage’ı silip `hermes:session-expired` event’i yayar.

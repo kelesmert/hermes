@@ -32,13 +32,13 @@
 ## Frontend
 
 - [x] Frontend teknoloji kararları (Vite + React (JS), MUI, React Router v6, TanStack Query, axios, React Hook Form + Zod, TanStack Table + MUI, Recharts, react-hot-toast, Context/Zustand stratejisi)
-- [ ] Import alias konfigürasyonu (`@/` kısayolu hem frontend hem backend)
-- [ ] React (Vite) projesi kurulumu ve temel yapı
-- [ ] UI kit seçimi ve tema ayarları
-- [ ] App layout (sol sidebar + üst header + breadcrumbs + notifications dropdown)
-- [ ] Header genel arama ve bildirim dropdown placeholder bileşenleri
-- [ ] Auth sayfaları (login, logout, rol yönlendirmeleri)
-- [ ] Geçici localStorage tabanlı refresh token yönetimi (cookie geçişine hazırlık)
+- [x] Import alias konfigürasyonu (`@/` kısayolu hem frontend hem backend)
+- [x] React (Vite) projesi kurulumu ve temel yapı
+- [x] UI kit seçimi ve tema ayarları
+- [x] App layout (sol sidebar + üst header + breadcrumbs + notifications dropdown)
+- [x] Header genel arama ve bildirim dropdown placeholder bileşenleri
+- [x] Auth sayfaları (login, logout, rol yönlendirmeleri)
+- [x] Geçici localStorage tabanlı refresh token yönetimi (cookie geçişine hazırlık)
 - [ ] Dashboard layout ve genel metrik kartları
 - [ ] Makine kartları (durum renkleri, aksiyon butonları, polling/WS)
 - [ ] Raporlama sayfası + filtreler

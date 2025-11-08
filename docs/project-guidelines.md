@@ -8,6 +8,7 @@
 - Asla veri tahmini yapılmayacak; belirsizlik durumunda soru sorulacak ve Merte’den onay alınacak.
 - Karar verilmesi gereken konularda her zaman sorgulayıcı olunacak ve netleştirmeden ilerlenmeyecek.
 - API testlerinde varsayılan olarak Postman kullanılacak; farklı araçlara geçilmesi gerekirse önceden belirtilmeli.
+- `docs/logs/chat-summary.md` güncellenirken eski maddeler silinmeyecek; yeni bilgiler sohbet bağlamına uygun başlık açılarak (örn. "Frontend API") eklenir.
 
 ## Teknoloji ve Mimarî Kararlar
 
@@ -29,6 +30,7 @@
 - Kodda `@/` import alias’ı kullanılacak; hem frontend’de Vite alias’ı hem de backend’de Node path alias’ı tanımlanacak, böylece `../../` zincirleri yerine `@/services/token-service` gibi okunabilir yollar tercih edilecek.
 - Layout kararı: Uygulama kabuğu sol sidebar + üst header kombinasyonundan oluşacak; sidebar tüm modül menülerini barındıracak, header içinde kullanıcı menüsü, genel arama alanı ve bildirim (notifications dropdown) bulunacak. Breadcrumbs zorunlu olacak; mobil tam destek zorunlu değil fakat tablet boyutlarında düzgün görünmesi sağlanacak.
 - ESLint ve Prettier iskelet kurulduktan hemen sonra projeye eklenecek; kuralların ve kullanılan komutların dokümantasyonu güncel tutulacak.
+- Frontend iskeleti oluşturuldu: `AppProviders` (QueryClient + MUI Theme + Router + SessionProvider), `AppLayout` (sidebar + header + breadcrumbs), mock login formu ve placeholder dashboard/rapor/kullanıcı sayfaları hazır. Backend API’leri açıldıkça yalnızca ilgili feature modülleri genişletmek yeterli olacak.
 - RBAC yapısı `permissions -> roles -> users` şeklinde organize edilecek; her kullanıcı birden fazla role sahip olabilir, roller izin koleksiyonuna referans verir.
 - Kimlik doğrulama JWT tabanlı olacak, rol bazlı yetkilendirme (RBAC) zorunlu.
 - Makine verisi gerçek cihazlardan değil, simülasyon script’i tarafından üretilecek.
@@ -60,6 +62,7 @@
 - [tasks/project-checklist.md](tasks/project-checklist.md): Somut görevlerin listesi; tamamlananlar işaretlenir, silinmez.
 - [meta/file-overview.md](meta/file-overview.md): Dosya/klasör açıklamaları; hafıza rehberi.
 - [meta/learning-guide.md](meta/learning-guide.md): Öğretici rehber; akışların adım adım açıklaması.
+- `frontend/README.md`: Frontend kurulumu (Vite + React), dizin yapısı ve alias kullanımına dair hızlı rehber.
 
 ## Kod Kalitesi ve Tasarım Prensipleri
 

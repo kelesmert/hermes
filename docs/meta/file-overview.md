@@ -72,7 +72,12 @@ Bu doküman, projedeki önemli dosya ve klasörlerin ne işe yaradığını hız
 
 - `frontend/.env.example`: React/Vite projesi için API adresi, websocket URL’si gibi ortam değişkeni şablonu.
 - `frontend/README.md`: Frontend klasörünün kapsamını ve ileride eklenecek komutları özetler.
-- Planlanan teknoloji seti: Vite + React (JS), MUI, React Router v6, TanStack Query + axios, React Hook Form + Zod, TanStack Table + MUI, Recharts ve react-hot-toast. Tema hafif/sade tutulacak, durum yönetimi Context + custom hook ile başlayacak (gerekirse Zustand).
+- `frontend/src/app`: Uygulama sağlayıcıları (QueryClient, Theme, Router, Session) ve route guard’lar.
+- `frontend/src/components/layout`: Sidebar, header, breadcrumbs ve kabuk bileşenleri.
+- `frontend/src/features/*`: Domain odaklı modüller (auth, dashboard, raporlar, kullanıcılar vb.).
+- `frontend/src/lib`: axios client, query client, storage helper.
+- `frontend/src/styles/global.css`: Global tema/Reset ayarları.
+- Teknoloji seti: Vite + React (JS), MUI, React Router v6, TanStack Query + axios, React Hook Form + Zod, TanStack Table + MUI, Recharts ve react-hot-toast. Tema hafif/sade tutulacak, durum yönetimi Context + custom hook ile başlayacak (gerekirse Zustand).
 - Import alias kuralı: Hem frontend hem backend’de `@/` alias’ı kök `src/` klasörlerine işaret edecek; böylece dosya yapısı uzun relatif yollara ihtiyaç duymadan okunabilir kalacak.
 
 > Not: Yeni dosyalar (örneğin RBAC middleware, simülasyon script’i, frontend bileşenleri) eklendikçe bu liste güncellenecek.

@@ -11,14 +11,14 @@ Hermes, mezuniyet projesi kapsamında geliştirilen hafif bir Manufacturing Exec
 | Katman | Teknolojiler |
 | --- | --- |
 | Backend | Node.js (LTS), Express 5, MongoDB + Mongoose, JWT, bcryptjs |
-| Frontend | (Plan) Vite + React (JS), MUI, React Router v6, TanStack Query, axios, React Hook Form + Zod, TanStack Table + MUI, Recharts, react-hot-toast |
+| Frontend | Vite + React (JS), MUI, React Router v6, TanStack Query, axios, React Hook Form + Zod, TanStack Table + MUI, Recharts, react-hot-toast |
 | Ortak | dotenv, nodemon, `@/` import alias, ESLint + Prettier (planlı) |
 
 ## Depo Yapısı
 ```
 hermes/
 ├── backend/        # Node.js + Express API
-├── frontend/       # React uygulaması (yakında kurulacak)
+├── frontend/       # React uygulaması (Vite + React iskeleti hazır)
 └── docs/           # Tüm proje dokümantasyonu
 ```
 
@@ -57,9 +57,24 @@ Her çalışmaya başlamadan önce `docs/project-guidelines.md` içindeki yönle
    - Sağlık kontrolü: `GET http://localhost:5000/api/health`
    - Auth testleri: `POST http://localhost:5000/api/auth/login`
 
-## Frontend Durumu
-- Vite + React kurulumu bir sonraki adım. Öncesinde `docs/standart/frontend-decisions.md` dosyasındaki zorunlu kurallar gözden geçirilmeli.
-- Frontend kurulumu sonrası ESLint + Prettier konfigürasyonları eklenecek ve README güncellenecektir.
+## Frontend’i Çalıştırma
+1. Gereksinimler: Node.js LTS.
+2. Ortam dosyası:
+   ```bash
+   cd frontend
+   cp .env.example .env
+   ```
+3. Bağımlılıklar:
+   ```bash
+   npm install
+   ```
+4. Geliştirme sunucusu:
+   ```bash
+   npm run dev
+   ```
+   - Varsayılan adres: `http://localhost:5173/`
+
+> Not: Alias ve provider iskeleti hazır; UI bileşenlerini genişletmeden önce `docs/standart/frontend-decisions.md` kurallarını gözden geçirin. Yeni bağımlılıklar için `npm install <paket>` komutlarını manuel çalıştırmanız gerekebilir.
 
 ## Katkı ve İş Akışı
 1. Güncel kurallar için `docs/project-guidelines.md` → `docs/standart/*.md` dosyalarını oku.

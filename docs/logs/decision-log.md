@@ -66,6 +66,18 @@ Bu dosya, projede alınan mimarî ve teknolojik kararları, gerekçelerini ve be
 - **Gerekçe:** Kod stilini standartlaştırmak, PR incelemelerini hızlandırmak ve hataları erken yakalamak.
 - **Etkisi:** Ortak kural seti dokümante edilecek; VSCode ve CI entegrasyonlarına zemin hazırlayacak.
 
+### Frontend İskeleti (Vite + React)
+
+- **Karar:** Frontend projesi Vite + React (JS) ile kuruldu; `AppProviders` (React Query + MUI Theme + Router + SessionProvider), `AppLayout` (sidebar/header/breadcrumbs), mock login formu ve placeholder dashboard/rapor/kullanıcı sayfaları hazırlandı.
+- **Gerekçe:** Backend API’leri tamamlandıkça yalnızca ilgili feature modülleri genişleterek hızlı ilerlemek; layout ve guard yapısını baştan netleştirmek.
+- **Etkisi:** Auth oturumu `localStorage` tabanlı `SessionProvider` ile yönetiliyor, izin bazlı guard’lar ve axios client hazır durumda; sonraki adımlar sadece API entegrasyonu ve gerçek veri bağlaması olacak.
+
+### Auth Entegrasyonu (Gerçek API ile)
+
+- **Karar:** Frontend login formu doğrudan `/api/auth/login` endpoint’ine bağlandı; SessionProvider backend yanıtını normalize ederek role string’leri ve izinleri türetiyor. Uygulama açılışında `/api/auth/refresh` çağrısı yapılıyor, logout sırasında `/api/auth/logout` tetikleniyor, axios interceptors 401 durumunda session’ı temizleyip global eventi yayıyor.
+- **Gerekçe:** Mock login yerine gerçek kullanıcı oturumunu yönetmek; refresh token rotation ve izin kontrolleriyle tüm korumalı rotalar için altyapıyı hazır hale getirmek.
+- **Etkisi:** Login → dashboard, sayfa yenileme, logout gibi akışlar gerçek verilerle çalışıyor; bundan sonra makine/rapor modüllerini API’ye bağlamak için ek bir altyapı ihtiyacı yok.
+
 ## Ortak / Diğer Kararlar
 
 ### ENV ve Config Standartları
