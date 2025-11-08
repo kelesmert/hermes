@@ -3,6 +3,7 @@
 Bu doküman, projedeki önemli dosya ve klasörlerin ne işe yaradığını hızlıca öğrenebilmek için tutulur. Yeni dosyalar eklendikçe güncellenecektir.
 
 ## Kök Dizin
+
 - `.gitignore`: Git tarafından takip edilmemesi gereken dosya/klasörleri listeler (ör. `node_modules`, `.env`).
 - `backend/`: Node.js + Express tabanlı API uygulaması.
 - `frontend/`: React tabanlı istemci uygulaması (henüz iskelet aşamasında).
@@ -10,6 +11,7 @@ Bu doküman, projedeki önemli dosya ve klasörlerin ne işe yaradığını hız
 - `.specstory/`: IDE veya otomasyon araçlarının kullandığı yardımcı dosyalar.
 
 ## Backend
+
 - `backend/package.json`: Backend projesinin bağımlılıkları ve script’leri (`npm run dev`, `npm run seed` vb.).
 - `backend/.env.example`: Backend için gerekli ortam değişkenlerinin şablonu (Mongo URI, JWT secret, seed admin bilgileri).
 - `backend/src/app.js`: Express uygulamasının ana tanımı; middleware’ler, `/` route’u ve hata yakalama burada.
@@ -40,6 +42,7 @@ Bu doküman, projedeki önemli dosya ve klasörlerin ne işe yaradığını hız
 - `backend/scripts/seed.js`: Varsayılan rol kayıtlarını ve `.env` üzerinden verilen admin hesabını oluşturan script (`npm run seed`).
 
 ## Docs
+
 - `docs/project-guidelines.md`: İletişim kuralları, mimarî kararlar ve kodlama prensipleri.
 - `docs/project-roadmap.md`: 14 günlük yol haritası ve fazların genel planı.
 - `docs/project-report.md`: Tez raporu için referans; ilerleyen aşamalarda mimari/test/sonuç bölümleri dolduruluyor.
@@ -49,7 +52,10 @@ Bu doküman, projedeki önemli dosya ve klasörlerin ne işe yaradığını hız
 - `docs/file-overview.md`: (Bu dosya) Önemli dosya ve klasörlerin kısa açıklamaları.
 
 ## Frontend
+
 - `frontend/.env.example`: React/Vite projesi için API adresi, websocket URL’si gibi ortam değişkeni şablonu.
 - `frontend/README.md`: Frontend klasörünün kapsamını ve ileride eklenecek komutları özetler.
+- Planlanan teknoloji seti: Vite + React (JS), MUI, React Router v6, TanStack Query + axios, React Hook Form + Zod, TanStack Table + MUI, Recharts ve react-hot-toast. Tema hafif/sade tutulacak, durum yönetimi Context + custom hook ile başlayacak (gerekirse Zustand).
+- Import alias kuralı: Hem frontend hem backend’de `@/` alias’ı kök `src/` klasörlerine işaret edecek; böylece dosya yapısı uzun relatif yollara ihtiyaç duymadan okunabilir kalacak.
 
 > Not: Yeni dosyalar (örneğin RBAC middleware, simülasyon script’i, frontend bileşenleri) eklendikçe bu liste güncellenecek.

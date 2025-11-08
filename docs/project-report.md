@@ -20,8 +20,30 @@ Bu doküman, mezuniyet projesi kapsamında geliştirilecek olan hafif bir Manufa
 - **Çok Dillilik (Opsiyonel):** Arayüz tek dil (Türkçe) ile başlayacak, ancak bileşen mimarisi ileride çok dilliliğe uyarlanabilecek şekilde modüler tutulacak.
 - **Dağıtım:** Öncelikli hedef lokal ortamda çalıştırma; ancak Docker tabanlı basit bir dağıtım senaryosu için dokümantasyon sağlanacak.
 
-## 3. Mimari Tasarım (Taslak)
-Bu bölümde backend, frontend, veri tabanı şemaları ve entegrasyon akışları ayrıntılandırılacaktır. (Güncellenecek.)
+## 3. Mimari Tasarım
+### Backend
+- Node.js + Express uygulaması; katmanlı yapı (routes → middleware → controllers → services → models → utils).
+- Auth/RBAC altyapısı JWT + refresh token kombinasyonu ile kuruluyor; ileride cookie tabanlı yönetime geçilecek.
+- MongoDB/Mongoose veri modeli: `users`, `roles`, `permissions`, `refresh_tokens`, devamında `machines`, `machine_events`, `reports`, `audit_logs`, `ai_insights`.
+
+### Frontend
+- SPA yaklaşımı: Vite + React (JavaScript). Gerektiğinde TypeScript’e geçiş yapılabilir.
+- UI katmanı: MUI temel bileşenleri; gerektiğinde formlar/grafikler için alternatif kütüphaneler eklenebilir.
+- Router: React Router v6; korumalı rotalar ve permission guard’ları planlandı.
+- Veri katmanı: TanStack Query ile server state yönetimi ve polling; HTTP çağrıları axios üzerinden yapılacak (`baseURL = VITE_API_URL`).
+- Form doğrulama: React Hook Form + Zod.
+- Tablolar: TanStack Table + MUI bileşenleri.
+- Grafikler: Recharts.
+- Bildirimler: react-hot-toast.
+- Auth oturumu: Refresh token cookie yönetimi hazır olana kadar `localStorage` içinde saklanacak; uygulama açılışında `refresh` endpoint’i çağrılarak sessiz yenileme yapılacak. HttpOnly cookie’ye geçiş için backend TODO’su korunuyor.
+- Import alias: Frontend ve backend genelinde `@/` alias’ı tanımlanarak uzun relatif yollar yerine `@/features/auth` benzeri ifadeler kullanılacak.
+- Layout: Sol sidebar + üst header kombinasyonu standart olacak; sidebar tüm navigasyonu tutacak, header’da kullanıcı menüsü, genel arama ve notifications dropdown yer alacak. Breadcrumbs her korumalı sayfada gösterilecek. Mobil ekranlar şu etapta hedeflenmiyor ancak tablet boyutunda uyum gözlenecek.
+- Tema kararı “hafif ve sade” hedefiyle daha sonra netleştirilecek.
+- Client state: Öncelik Context + custom hook; ihtiyaç olursa Zustand devreye alınacak.
+
+### Ortak Entegrasyonlar
+- `.env` dosyaları backend ve frontend için ayrı yönetilecek; frontend tarafında `VITE_API_URL=http://localhost:5000/api`.
+- backend ile frontend arasında JWT tabanlı auth akışı; cookie strategisi hazırlandığında `withCredentials` etkinleştirilecek.
 
 ## 4. Uygulama Aşamaları
 
@@ -45,6 +67,17 @@ Bu bölümde backend, frontend, veri tabanı şemaları ve entegrasyon akışlar
 - Lokal doğrulama sürecinde `.env` değerleri güncellenip `npm run seed` ve `npm run dev` çalıştırılarak `/api/health` ve `/api/auth/login` (seed edilen admin hesabıyla) test edildi; backend auth katmanının çalıştığı teyit edildi.
 - RBAC mimarisi genişletildi: permissions koleksiyonu eklendi, roller permission referansları taşıyor ve kullanıcılar birden fazla rol alabiliyor; seed script’i yeni izin kayıtlarını da oluşturacak şekilde güncellendi.
 - JWT doğrulaması yapan `auth-guard` ve izin kontrolü sağlayan `permission-guard` middleware’leri eklendi; `GET /api/users` gibi korunan endpoint’ler yalnızca `users.manage` yetkisi olan kullanıcılara açıldı.
+
+### 4.3 Frontend Hazırlığı
+- SPA mimarisi için Vite + React (JavaScript) tercih edildi; TypeScript’e ihtiyaç halinde geçilebileceği not düşüldü.
+- UI kiti olarak MUI belirlendi; formlar/grafikler için gerekli olduğunda farklı kütüphaneler kullanılabilecek.
+- Router, veri çekme ve formlar için React Router v6, TanStack Query, axios, React Hook Form + Zod ikilisi seçildi; tablo/grafik için TanStack Table + MUI ve Recharts kararı alındı.
+- Bildirim altyapısı react-hot-toast ile sağlanacak; tema kararı ileriki tasarım çalışmasında verilecek.
+- Frontend `.env` yapısı ve `VITE_API_URL` standardı belirlendi; axios `baseURL` ve `withCredentials` ayarlarının backend token stratejisiyle uyumlu olması planlandı.
+- Token saklama yaklaşımı, cookie’ye geçiş tamamlanana kadar `localStorage` içinde refresh token tutup uygulama başlatıldığında `refresh` endpoint’ini çağıracak şekilde belirlendi; ileride HttpOnly cookie’lere geçilecek.
+- Kod tabanında `@/` alias’ı kullanılacak; Vite ve Node yapılandırmaları buna göre güncellenecek.
+- Layout kararları (sidebar + header + breadcrumbs + notifications dropdown) ve responsive (tablet odaklı) hedefler not edildi.
+- ESLint ve Prettier iskelet kurulumundan hemen sonra eklenip dokümante edilecek.
 
 ## 5. Test ve Doğrulama (Taslak)
 Planlanan birim/entegrasyon testleri ve manuel senaryolar burada toplanacaktır. (Güncellenecek.)

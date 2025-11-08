@@ -38,3 +38,57 @@ Bu doküman projede kullanılan veya ileride kullanılacak teknolojileri, neden 
 
 ## Genel Not
 - Yeni kütüphaneler/araçlar eklendikçe bu dosyaya kısa açıklama ve gerekçe eklenmelidir; böylece tez raporu ve teknik değerlendirme sırasında hangi teknolojinin neden seçildiği kolayca izah edilebilir.
+
+## Frontend Bağımlılıkları
+
+### Vite
+- **Neden?** Modern bundle mimarisi, çok hızlı HMR ve düşük konfigürasyonla React projelerini ayağa kaldırmak için ideal.
+- **Görev:** React SPA için geliştirme sunucusu ve build pipeline’ı sağlar; `vite.config.js` üzerinden alias/env yönetimi yapılır.
+
+### React
+- **Neden?** Bileşen tabanlı UI yaklaşımı, geniş ekosistem ve mevcut ekip tecrübesi.
+- **Görev:** SPA arayüzünün temelini oluşturur; MUI, React Router ve diğer kütüphaneler React bileşenleri üzerinden çalışır.
+
+### @mui/material (MUI)
+- **Neden?** Zengin bileşen seti, tema sistemi ve kurumsal dashboard’lar için hazır tasarım bileşenleri sağlar.
+- **Görev:** Layout, form kontrolleri, tablo/grafik kapsayıcıları ve genel UI elemanlarını sunar.
+
+### React Router v6
+- **Neden?** SPA içinde sayfa/rota yönetimini deklaratif şekilde kurmak için modern bir çözüm.
+- **Görev:** Auth guard’ları, rol bazlı erişim ve nested layout yapılarının temelini oluşturur.
+
+### @tanstack/react-query
+- **Neden?** API verilerini cache’leyip otomatik yeniden fetch, hata/geri deneme, polling gibi ihtiyaçları kutudan çıktığı gibi sağlar.
+- **Görev:** Backend API yanıtlarını yönetir; dashboard/makine ekranlarında belirli aralıklarla veri yenileme yapılır.
+
+### axios
+- **Neden?** HTTP interceptor desteği, `baseURL` konfigürasyonu ve JSON handling kolaylığı.
+- **Görev:** Auth header’ları ekleyip backend ile haberleşir; 401 durumunda yönlendirme gibi merkezi davranışları yönetir.
+
+### React Hook Form + Zod
+- **Neden?** Performanslı form yönetimi ve tip güvenli doğrulama şemaları.
+- **Görev:** Login formu ve ilerideki filtre/CRUD formları için validation + state kontrolü sağlar.
+
+### @tanstack/react-table
+- **Neden?** Kolon, filtre ve sayfalama üzerinde ince kontrol; MUI ile uyumlu render desenleri.
+- **Görev:** Rapor, kullanıcı, makine ve audit listelerini esnek şekilde oluşturmak.
+
+### Recharts
+- **Neden?** React bileşenleriyle kolay grafik çizimi, dashboard’lar için yeterli özelleştirme.
+- **Görev:** Dashboard metrikleri, rapor ekranları ve AI içgörü grafiklerini render etmek.
+
+### react-hot-toast
+- **Neden?** Hafif, modern ve özelleştirilebilir bildirimler sunar.
+- **Görev:** API başarı/başarısızlık mesajlarını kullanıcıya hızlıca iletmek.
+
+### Zustand (opsiyonel)
+- **Neden?** Gerektiğinde global state’i minimum boilerplate ile yönetmek için hafif bir alternatif.
+- **Görev:** Auth session veya çapraz bileşen paylaşımlı state ihtiyaçlarında Context’e alternatif olarak kullanılabilir (şimdilik ihtiyaç halinde devreye girecek).
+
+### ESLint + Prettier (planlı)
+- **Neden?** Kod stilini standartlaştırmak ve hataları erken yakalamak; ekip içinde aynı formatı korumak.
+- **Görev:** `npm run lint` ve `npm run format` komutlarıyla frontend kod tabanını doğrulamak; Vite/React projesi kurulduktan sonra eklenecek.
+
+### Path Alias (`@/`)
+- **Neden?** Kökten başlayan import’larla karmaşık relatif yolları (`../../..`) ortadan kaldırmak.
+- **Görev:** Hem Vite hem Node tarafında `@/` alias’ı `src/` (veya eşdeğer) klasörüne işaret edecek; örn. `@/features/auth/hooks/use-session`.

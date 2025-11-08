@@ -28,9 +28,14 @@
 - [ ] Auth akışı için refresh/logout endpoint testleri ve Postman senaryoları
 
 ## Frontend
+- [x] Frontend teknoloji kararları (Vite + React (JS), MUI, React Router v6, TanStack Query, axios, React Hook Form + Zod, TanStack Table + MUI, Recharts, react-hot-toast, Context/Zustand stratejisi)
+- [ ] Import alias konfigürasyonu (`@/` kısayolu hem frontend hem backend)
 - [ ] React (Vite) projesi kurulumu ve temel yapı
 - [ ] UI kit seçimi ve tema ayarları
+- [ ] App layout (sol sidebar + üst header + breadcrumbs + notifications dropdown)
+- [ ] Header genel arama ve bildirim dropdown placeholder bileşenleri
 - [ ] Auth sayfaları (login, logout, rol yönlendirmeleri)
+- [ ] Geçici localStorage tabanlı refresh token yönetimi (cookie geçişine hazırlık)
 - [ ] Dashboard layout ve genel metrik kartları
 - [ ] Makine kartları (durum renkleri, aksiyon butonları, polling/WS)
 - [ ] Raporlama sayfası + filtreler
@@ -42,6 +47,7 @@
 ## Test ve Dağıtım
 - [ ] Backend için birim/entegrasyon testleri (Jest/Supertest)
 - [ ] Frontend için temel component testleri (React Testing Library)
+- [ ] ESLint + Prettier kurulumları, `npm run lint`/`format` script’leri ve dokümantasyonu
 - [ ] Manual end-to-end senaryoların listesi
 - [ ] Lokal çalıştırma rehberi (README güncellemesi)
 - [ ] Docker/Docker Compose dosyaları (opsiyonel)

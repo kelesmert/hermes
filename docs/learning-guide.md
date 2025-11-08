@@ -89,3 +89,18 @@ Bu rehber, backend’i MVP hedefiyle nasıl kurduğumuzu öğretici şekilde öz
 - Backend lint/test (ESLint + Jest/Supertest) ve Postman koleksiyonu.
 - Makine modeli + olay kayıtları + simülasyon script’i.
 - Frontend (Vite + React) iskeleti ve login akışı.
+
+## 14) Frontend İskeleti ve Teknoloji Kararları
+- Mimari: Vite + React (SPA) ve JavaScript; ihtiyaç halinde TypeScript’e geçilecek.
+- UI: MUI bileşenleri; formlar/grafikler gerektiğinde farklı kütüphanelerle desteklenebilir.
+- Router & Veri Katmanı: React Router v6, TanStack Query; HTTP çağrıları axios ile yapılacak, `baseURL = VITE_API_URL`.
+- Formlar: React Hook Form + Zod doğrulama şemaları.
+- Tablolar & Grafikler: TanStack Table + MUI compose, Recharts grafikler.
+- Bildirimler: react-hot-toast.
+- Tema: Hafif ve sade bir tema hedefleniyor; tasarım aşamasında netleşecek.
+- Durum yönetimi: Öncelik Context + custom hook; karmaşık ihtiyaçta Zustand devreye alınacak.
+- Ortam değişkenleri: `frontend/.env` içinde `VITE_API_URL=http://localhost:5000/api`; ileride cookie tabanlı auth için `axios.withCredentials` aktif edilecek.
+- Token saklama: Backend cookie yapısı hazır olana kadar refresh token `localStorage`’da tutulacak ve uygulama açılışında otomatik `refresh` çağrısı yapılacak; HttpOnly cookie’lere geçiş TODO olarak listelendi.
+- Import alias: `@/` kök alias’ı hem frontend hem backend’de tanımlanacak; karmaşık relatif yollar yerine bu kısayol tercih edilecek.
+- App layout: Sol sidebar tüm navigasyonu barındıracak, üst header’da kullanıcı menüsü, genel arama ve notifications dropdown bulunacak; breadcrumbs zorunlu, mobil hedef değil fakat tablet uyumu sağlanacak.
+- ESLint + Prettier: Frontend iskeletinin hemen ardından konfigüre edilip script’leri eklenecek; dokümantasyon güncel tutulacak.
