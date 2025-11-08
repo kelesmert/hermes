@@ -1,9 +1,11 @@
 # MES MVP Yol Haritası
 
 ## 1. Genel Bakış
+
 Amaç, 10‑14 gün içinde Node.js/Express backend, React frontend ve MongoDB veritabanı kullanarak hafif ama işlevsel bir MES MVP’si geliştirmektir. Sistem kullanıcı kimlik doğrulama/rol yönetimi, makine durumu takibi, raporlama + AI destekli analiz ve audit log altyapısını kapsar. Tüm veri makine simülasyon script’i üzerinden üretilecektir.
 
 ## 2. Mimari Tasarım
+
 - **Backend (Node.js + Express):** Auth/RBAC middleware, makine durum API’leri, raporlama ve AI analiz servisleri, audit log pipeline’ı.
 - **Frontend (React):** Vite + React (JS) SPA; MUI bileşenleri, React Router v6, TanStack Query + axios, React Hook Form + Zod, TanStack Table + MUI, Recharts ve react-hot-toast ile auth akışı, dashboard, makine kartları, raporlama/analiz ekranları, audit log görünümü, opsiyonel çok dillilik altyapısı.
 - **Veritabanı (MongoDB):** `users`, `roles`, `machines`, `machine_events`, `reports`, `audit_logs` koleksiyonları.
@@ -11,6 +13,7 @@ Amaç, 10‑14 gün içinde Node.js/Express backend, React frontend ve MongoDB v
 - **Dağıtım:** Lokal geliştirme öncelikli; Docker tabanlı dağıtım dokümantasyonu opsiyonel.
 
 ## 3. Geliştirme Fazları ve Milestones
+
 1. **Gün 1‑2 – Hazırlık:** Gereksinim dokümantasyonu, repo yapısı, ortak config (lint, test, `.env.example`), kararların kaydı.
 2. **Gün 3‑4 – Backend Temeli:** Express setup, Mongo bağlantısı, kullanıcı/rol şemaları, JWT auth ve RBAC middleware, admin seed script’i.
 3. **Gün 5‑6 – Makine Servisleri:** Makine modeli, durum geçiş API’leri, olay geçmişi, veri simülasyon script’i, örnek veriler.
@@ -20,6 +23,7 @@ Amaç, 10‑14 gün içinde Node.js/Express backend, React frontend ve MongoDB v
 7. **Gün 14 – Kapanış:** En-to-end testler, dokümantasyon, lokal çalışma rehberi, opsiyonel docker-compose hazırlığı ve gelecek iş listesi.
 
 ## 4. Riskler ve Notlar
+
 - Tek kişilik ekip ve kısa süre nedeniyle özellik kapsamı MVP düzeyinde tutulmalı.
 - AI modülü için hazır modeller veya basit kural bazlı analizler tercih edilmeli; daha karmaşık modeller sonraki fazlara bırakılabilir.
 - Audit log ve raporlama altyapısının ileride gerçek zamanlı entegrasyonlara uyum sağlayacak şekilde tasarlanması önerilir.

@@ -13,9 +13,9 @@ Bu dosya, mevcut sohbet oturumunda alınan kararları ve yapılan işleri özetl
 - Tokenlar şimdilik Authorization header’da; ileride HTTP-only cookie’lere geçilecek (plan kaydedildi).
 
 ## Dokümantasyon
-- `docs/project-report.md`, `docs/project-guidelines.md`, `docs/project-checklist.md`, `docs/requirements.md`, `docs/project-roadmap.md`, `docs/file-overview.md`, `docs/technology-notes.md` güncel.
-- Yeni dosyalar: `docs/learning-guide.md` (öğretici rehber) ve `docs/chat-summary.md` (bu dosya).
-- Karar kayıtları için `docs/decision-log.md` yaratıldı; tüm yeni tercihler buraya ekleniyor.
+- `docs/specs/project-report.md`, `docs/project-guidelines.md`, `docs/tasks/project-checklist.md`, `docs/specs/requirements.md`, `docs/specs/project-roadmap.md`, `docs/meta/file-overview.md`, `docs/logs/tech-decision-logs.md` güncel.
+- Yeni dosyalar: `docs/meta/learning-guide.md` (öğretici rehber) ve `docs/logs/chat-summary.md` (bu dosya).
+- Karar kayıtları için `docs/logs/decision-log.md` yaratıldı; tüm yeni tercihler buraya ekleniyor.
 - Checklist’e yeni TODO’lar: cookie tabanlı token yönetimi + Postman cookie senaryoları.
 - Frontend stack kararları kaydedildi: Vite + React (JS), MUI, React Router v6, TanStack Query, axios, React Hook Form + Zod, TanStack Table + MUI, Recharts, react-hot-toast; tema ileride netleşecek, durum yönetimi için önce Context/custom hook, gerekirse Zustand; `VITE_API_URL` ile backend `http://localhost:5000/api`.
 - Yeni ek kararlar: Refresh token cookie’ye geçene kadar `localStorage`’da saklanıp uygulama açılışında `refresh` çağrılacak; `@/` import alias’ı hem frontend hem backend’de kullanılacak; layout sol sidebar + üst header + breadcrumbs + notifications dropdown şeklinde olacak; header’da genel arama ve kullanıcı menüsü yer alacak; ESLint/Prettier iskelet sonrası eklenecek.

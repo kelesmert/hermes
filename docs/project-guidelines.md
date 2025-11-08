@@ -41,15 +41,45 @@
 
 - Her faz tamamlandığında ilgili dokümanlar güncellenecek.
 - Karar değişiklikleri bu dosyaya veya ilgili bölümüne eklenerek kayda geçirilecek.
-- `docs/project-report.md` tez yazımı için ana referans dokümanı.
-- `docs/decision-log.md` projedeki önemli kararları ve gerekçelerini kayıt altına alır; yeni tercihlerin tamamı burada güncellenir.
-- `docs/technology-notes.md` kullanılan teknolojilerin neden seçildiğini açıklar; yeni bağımlılıklar eklendikçe güncellenecek.
-- `docs/file-overview.md` proje dosyalarının görevlerini özetler.
-- `docs/learning-guide.md` öğretici rehber; mimari, auth/RBAC, seed ve doğrulama akışlarını adım adım açıklar.
-- `docs/project-checklist.md` tanımlanan görevler chechliste yazılacak.Tamamlanan her adım görev listesinde işaretlenerek güncel durum korunacak.
+- Standart dosyalar (`docs/standart/*.md`) bağlayıcı kuralları içerir; kod yazmadan önce güncel oldukları doğrulanır.
+- Log dosyaları (`docs/logs/*.md`) bilgi amaçlıdır; “neden” sorusunun cevabını verir fakat kural niteliği taşımaz.
+
+### Doküman Haritası
+
+- [project-guidelines.md](project-guidelines.md): Ana rehber (bu dosya); diğer dokümanların yol haritası ve özet kurallar.
+- [standart/backend-decisions.md](standart/backend-decisions.md): Backend için zorunlu teknoloji ve mimari kurallar.
+- [standart/frontend-decisions.md](standart/frontend-decisions.md): Frontend için zorunlu teknoloji ve component/layout kuralları.
+- [standart/technical-decisions.md](standart/technical-decisions.md): DevOps, repo yapısı ve çapraz teknik zorunluluklar.
+- [standart/naming-conventions.md](standart/naming-conventions.md): Detaylı isimlendirme kuralları ve örnekleri.
+- [logs/decision-log.md](logs/decision-log.md): Alınan kararların gerekçeleri ve beklenen etkileri; günlük niteliğinde.
+- [logs/tech-decision-logs.md](logs/tech-decision-logs.md): Kullanılan/planlanan teknolojilerin neden seçildiği; bilgi amaçlı.
+- [logs/chat-summary.md](logs/chat-summary.md): Aktif sohbet özetleri ve hızlı bağlam.
+- [specs/requirements.md](specs/requirements.md): Ürün gereksinimleri, roller, veri modeli ve açık sorular.
+- [specs/project-report.md](specs/project-report.md): Tez raporu taslağı; mimari ve bulguların akademik anlatımı.
+- [specs/project-roadmap.md](specs/project-roadmap.md): Faz planları ve kilometre taşları.
+- [tasks/project-checklist.md](tasks/project-checklist.md): Somut görevlerin listesi; tamamlananlar işaretlenir, silinmez.
+- [meta/file-overview.md](meta/file-overview.md): Dosya/klasör açıklamaları; hafıza rehberi.
+- [meta/learning-guide.md](meta/learning-guide.md): Öğretici rehber; akışların adım adım açıklaması.
 
 ## Kod Kalitesi ve Tasarım Prensipleri
 
-- Kod yapısı modüler ve DRY olacak; tekrar eden mantıklar ortak helper/service katmanlarına taşınacak.
-- Fonksiyon veya dosya davranışı açık değilse kısa yorum satırlarıyla açıklanacak, gereksiz yorum eklenmeyecek.
-- İsimlendirme yapılırken (dosya, klasör, env anahtarı vb.) kebab-case (`this-is-kebab-case`) tercih edilecek; mevcut standartların dışına çıkılması gerekiyorsa önce onay alınacak.
+- Kod yapısı **modüler** olacak ve **DRY (Don't Repeat Yourself)** prensibine uygun geliştirilecektir.  
+  Tekrar eden mantıklar, ortak **helper** veya **service** katmanlarına taşınmalıdır.
+- Fonksiyon veya dosya davranışı açık değilse **kısa yorum satırları** ile açıklama yapılmalıdır.  
+  Gereksiz veya tekrarlayan yorumlar eklenmemelidir.
+- Yeni bir **dosya**, **klasör**, **dosya içeriği** veya **kod parçası** oluşturulurken,  
+  düzgün ve tutarlı isimlendirme için aşağıdaki doküman incelenmeli ve kurallar uygulanmalıdır:  
+  [`docs/standart/naming-conventions.md`](standart/naming-conventions.md)
+
+---
+
+### İsimlendirme Kuralları
+
+1. **Dosya Adları:** `kebab-case` (tüm projede zorunlu)
+2. **React Bileşenleri:** `PascalCase` (zorunlu istisna)
+3. **Kod İçi:**
+   - Fonksiyon / değişken: `camelCase`
+   - Sabitler: `UPPER_SNAKE_CASE`
+   - Sınıf / Model: `PascalCase`
+4. **Env Variables:** `UPPER_SNAKE_CASE`
+5. **API URLs:** `kebab-case`

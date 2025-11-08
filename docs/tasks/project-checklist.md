@@ -1,17 +1,19 @@
 # MES MVP Checklist
 
 ## Hazırlık
+
 - [x] Kararlar ve kurallar dokümanı (`docs/project-guidelines.md`)
-- [x] Yol haritası dokümanı (`docs/project-roadmap.md`)
-- [x] Tez raporu şablonu (`docs/project-report.md`)
-- [x] Gereksinim detaylandırması (`docs/requirements.md` veya eşdeğeri)
-- [x] Teknoloji seçimleri ve gerekçeleri dokümanı (`docs/technology-notes.md`)
+- [x] Yol haritası dokümanı (`docs/specs/project-roadmap.md`)
+- [x] Tez raporu şablonu (`docs/specs/project-report.md`)
+- [x] Gereksinim detaylandırması (`docs/specs/requirements.md` veya eşdeğeri)
+- [x] Teknoloji seçimleri ve gerekçeleri dokümanı (`docs/logs/tech-decision-logs.md`)
 - [x] Repo yapısının oluşturulması (backend/frontend klasörleri, ortak yapılandırmalar)
 - [x] `.env.example` dosyaları (backend/frontend)
 - [ ] Lint/test scriptleri ve temel proje ayarları (ilgili proje kurulumu tamamlandıktan sonra)
 - [x] Lokal doğrulama (seed + dev sunucu + `/api/health` ve `/api/auth/login`)
 
 ## Backend
+
 - [x] Node.js + Express projesi kurulumu
 - [x] MongoDB bağlantısı ve konfigürasyonu
 - [x] Kullanıcı, rol ve session modelleri
@@ -28,6 +30,7 @@
 - [ ] Auth akışı için refresh/logout endpoint testleri ve Postman senaryoları
 
 ## Frontend
+
 - [x] Frontend teknoloji kararları (Vite + React (JS), MUI, React Router v6, TanStack Query, axios, React Hook Form + Zod, TanStack Table + MUI, Recharts, react-hot-toast, Context/Zustand stratejisi)
 - [ ] Import alias konfigürasyonu (`@/` kısayolu hem frontend hem backend)
 - [ ] React (Vite) projesi kurulumu ve temel yapı
@@ -45,6 +48,7 @@
 - [ ] Opsiyonel çok dillilik altyapısına hazırlık
 
 ## Test ve Dağıtım
+
 - [ ] Backend için birim/entegrasyon testleri (Jest/Supertest)
 - [ ] Frontend için temel component testleri (React Testing Library)
 - [ ] ESLint + Prettier kurulumları, `npm run lint`/`format` script’leri ve dokümantasyonu

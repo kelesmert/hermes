@@ -59,7 +59,7 @@ Bu doküman, mezuniyet projesi kapsamında geliştirilecek olan hafif bir Manufa
 - Proje kuralları, yol haritası ve gereksinim dokümanları oluşturularak kapsam netleştirildi.
 - Monorepo yaklaşımı (tek repo içinde `backend/` ve `frontend/` klasörleri) benimsendi.
 - Gereksinim detay dokümanı üzerinden roller, fonksiyonel ve işlevsel ihtiyaçlar kayıt altına alındı.
-- Kullanılan teknolojilerin gerekçeleri için `docs/technology-notes.md` dokümanı açılarak bağımlılıkların açıklaması yazılmaya başlandı.
+- Kullanılan teknolojilerin gerekçeleri için `docs/logs/tech-decision-logs.md` dokümanı açılarak bağımlılıkların açıklaması yazılmaya başlandı.
 
 ### 4.2 Backend İskeleti
 

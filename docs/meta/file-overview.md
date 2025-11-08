@@ -43,13 +43,30 @@ Bu doküman, projedeki önemli dosya ve klasörlerin ne işe yaradığını hız
 
 ## Docs
 
-- `docs/project-guidelines.md`: İletişim kuralları, mimarî kararlar ve kodlama prensipleri.
-- `docs/project-roadmap.md`: 14 günlük yol haritası ve fazların genel planı.
-- `docs/project-report.md`: Tez raporu için referans; ilerleyen aşamalarda mimari/test/sonuç bölümleri dolduruluyor.
-- `docs/requirements.md`: Fonksiyonel ve işlevsel gereksinimlerin ayrıntılı listesi, roller, API taslakları.
-- `docs/project-checklist.md`: Yapılacak işler listesi (hazırlık, backend, frontend, test); tamamlanan maddeler işaretleniyor.
-- `docs/technology-notes.md`: Kullanılan kütüphanelerin neden seçildiğini ve ne yaptığını açıklar.
-- `docs/file-overview.md`: (Bu dosya) Önemli dosya ve klasörlerin kısa açıklamaları.
+- `docs/project-guidelines.md`: Ana rehber; kuralların özeti ve doküman haritası.
+
+### docs/standart
+- `docs/standart/backend-decisions.md`: Backend için zorunlu teknoloji ve mimari kurallar.
+- `docs/standart/frontend-decisions.md`: Frontend için zorunlu teknoloji ve component/layout kuralları.
+- `docs/standart/technical-decisions.md`: DevOps, repo yapısı ve çapraz teknik zorunluluklar.
+- `docs/standart/naming-conventions.md`: İsimlendirme standartları ve örnekleri.
+
+### docs/logs
+- `docs/logs/decision-log.md`: Alınan kararların gerekçeleri ve etkileri.
+- `docs/logs/tech-decision-logs.md`: Kullanılan/planlanan teknolojilerin neden seçildiği.
+- `docs/logs/chat-summary.md`: Sohbet özetleri ve hızlı bağlam.
+
+### docs/specs
+- `docs/specs/requirements.md`: Proje gereksinimleri, roller, veri modeli.
+- `docs/specs/project-report.md`: Tez raporu taslağı ve mimari anlatım.
+- `docs/specs/project-roadmap.md`: Geliştirme fazları ve kilometre taşları.
+
+### docs/tasks
+- `docs/tasks/project-checklist.md`: Yapılacak işler listesi; tamamlananlar işaretli kalır.
+
+### docs/meta
+- `docs/meta/file-overview.md`: (Bu dosya) Önemli dosya ve klasörlerin kısa açıklamaları.
+- `docs/meta/learning-guide.md`: Öğretici rehber; mimari ve akışların adım adım anlatımı.
 
 ## Frontend
 

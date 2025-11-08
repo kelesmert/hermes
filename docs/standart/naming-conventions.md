@@ -196,14 +196,6 @@ hermes/
 │   ├── src/
 │   │   ├── models/
 │   │   │   ├── user.model.js              # kebab-case
-│   │   │   ├── role.model.js
-│   │   │   ├── permission.model.js
-│   │   │   ├── refresh-token.model.js
-│   │   │   └── index.js
-│   │   ├── routes/
-│   │   │   ├── auth.routes.js             # kebab-case
-│   │   │   ├── user.routes.js
-│   │   │   └── machine.routes.js
 │   │   ├── middleware/
 │   │   │   ├── auth-guard.js              # kebab-case
 │   │   │   ├── permission-guard.js
@@ -247,10 +239,19 @@ hermes/
 │   └── .env.local
 │
 └── docs/
-    ├── project-report.md                  # kebab-case
     ├── project-guidelines.md
-    ├── naming-convention.md
-    └── chat-summary.md
+    ├── specs/
+    │   ├── project-report.md
+    │   └── requirements.md
+    ├── tasks/
+    │   └── project-checklist.md
+    ├── standart/
+    │   ├── backend-decisions.md
+    │   ├── frontend-decisions.md
+    │   ├── technical-decisions.md
+    │   └── naming-conventions.md
+    └── logs/
+        └── chat-summary.md
 ```
 
 ## Kod Örnekleri
