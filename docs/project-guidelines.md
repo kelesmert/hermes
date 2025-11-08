@@ -39,15 +39,14 @@
 
 ## Dokümantasyon ve Kayıt
 
+- Her faz tamamlandığında ilgili dokümanlar güncellenecek.
+- Karar değişiklikleri bu dosyaya veya ilgili bölümüne eklenerek kayda geçirilecek.
 - `docs/project-report.md` tez yazımı için ana referans dokümanı.
 - `docs/decision-log.md` projedeki önemli kararları ve gerekçelerini kayıt altına alır; yeni tercihlerin tamamı burada güncellenir.
 - `docs/technology-notes.md` kullanılan teknolojilerin neden seçildiğini açıklar; yeni bağımlılıklar eklendikçe güncellenecek.
 - `docs/file-overview.md` proje dosyalarının görevlerini özetler.
 - `docs/learning-guide.md` öğretici rehber; mimari, auth/RBAC, seed ve doğrulama akışlarını adım adım açıklar.
-- Her faz tamamlandığında ilgili dokümanlar güncellenecek.
-- Karar değişiklikleri bu dosyaya veya ilgili bölümüne eklenerek kayda geçirilecek.
-- `docs/project-checklist.md` tamamlanan her adım görev listesinde işaretlenerek güncel durum korunacak.
-- Lint/test scriptleri ve konfigürasyon ayarları ilgili proje (backend veya frontend) temel kurulumu tamamlandıktan sonra eklenecek.
+- `docs/project-checklist.md` tanımlanan görevler chechliste yazılacak.Tamamlanan her adım görev listesinde işaretlenerek güncel durum korunacak.
 
 ## Kod Kalitesi ve Tasarım Prensipleri
 
