@@ -1,7 +1,7 @@
 const asyncHandler = require('../utils/async-handler');
 const AppError = require('../utils/app-error');
 const { verifyAccessToken } = require('../utils/jwt');
-const User = require('../models/user-model');
+const User = require('../domains/auth/models/user-model');
 
 const authGuard = asyncHandler(async (req, _res, next) => {
   const authorization = req.get('authorization') || '';

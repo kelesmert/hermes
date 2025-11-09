@@ -1,5 +1,5 @@
-const User = require('../models/user-model');
-const asyncHandler = require('../utils/async-handler');
+const User = require('../../auth/models/user-model');
+const asyncHandler = require('../../../utils/async-handler');
 
 const listUsers = asyncHandler(async (_req, res) => {
   const users = await User.find()

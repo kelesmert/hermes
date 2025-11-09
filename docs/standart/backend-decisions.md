@@ -28,20 +28,25 @@ backend/
 │   ├── app.js
 │   ├── server.js
 │   ├── config/
-│   ├── routes/
-│   ├── controllers/
-│   ├── services/
 │   ├── middleware/
-│   ├── models/
 │   ├── utils/
-│   └── constants/
+│   ├── constants/
+│   ├── domains/
+│   │   ├── auth/
+│   │   │   ├── controllers/
+│   │   │   ├── services/
+│   │   │   ├── routes/
+│   │   │   └── models/
+│   │   ├── users/
+│   │   └── ... (diğer domain klasörleri)
+│   └── shared/ (ortak helperlar, event emitters vb. gerektiğinde)
 ├── scripts/
 │   └── seed.js
 └── package.json
 ```
 
-- Tüm yeni kod ilgili klasöre (route/controller/service/middleware) yerleşir; “misc” klasörü oluşturulmaz.
-- Model tanımları `src/models/` altında olmalı ve `src/models/index.js` üzerinden preload edilir.
+- Domain bazlı yapı: Her domain (örn. `auth`, `users`, `machines`, `reports`) `src/domains/<domain>` altında kendi `models/services/controllers/routes` klasörlerine sahip olur. Domain dışı ortak kodlar `src/shared` altında tutulur.
+- Model tanımları ilgili domain klasöründe bulunur ve `src/domains/<domain>/models/index.js` üzerinden preload edilir; gerekirse tüm domain modelleri `src/domains/index.js` içinde toplanabilir.
 
 ## 3. Auth & RBAC Kuralları
 

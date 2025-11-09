@@ -32,9 +32,9 @@ Bu rehber, backend ve frontend’i MVP hedefiyle nasıl kurduğumuzu öğretici 
 ## 5) Kimlik Doğrulama (Auth)
 - Şifre: `bcryptjs` ile hash/karşılaştırma (`backend/src/utils/password.js`).
 - JWT access token: `backend/src/utils/jwt.js` (kısa ömür, payload’da `sub` + `roles`).
-- Refresh token: `backend/src/services/token-service.js` (crypto ile rastgele değer → SHA-256 hash → DB; yenilemede eskisi iptal edilir).
-- Servisler: `backend/src/services/auth-service.js` (register/login/refresh/logout).
-- Controller ve rotalar: `backend/src/controllers/auth-controller.js`, `backend/src/routes/auth-routes.js`.
+- Refresh token: `backend/src/domains/auth/services/token-service.js` (crypto → SHA-256 → Mongo; yenilemede eskisi revoke edilir).
+- Servisler: `backend/src/domains/auth/services/auth-service.js` (register/login/refresh/logout).
+- Controller ve rotalar: `backend/src/domains/auth/controllers/auth-controller.js`, `backend/src/domains/auth/routes/auth-routes.js`.
 
 ## 6) RBAC (Role-Based Access Control)
 - İlişki modeli: `permissions → roles → users`.

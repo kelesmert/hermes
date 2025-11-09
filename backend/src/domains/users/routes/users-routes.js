@@ -1,7 +1,7 @@
 const { Router } = require('express');
-const authGuard = require('../middleware/auth-guard');
-const { requirePermissions } = require('../middleware/permission-guard');
-const permissions = require('../constants/permissions');
+const authGuard = require('../../../middleware/auth-guard');
+const { requirePermissions } = require('../../../middleware/permission-guard');
+const permissions = require('../../../constants/permissions');
 const usersController = require('../controllers/users-controller');
 
 const router = Router();

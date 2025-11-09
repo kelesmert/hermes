@@ -1,7 +1,7 @@
 const ms = require('ms');
 const RefreshToken = require('../models/refresh-token-model');
-const { generateRefreshTokenValue, hashTokenValue } = require('../utils/token');
-const config = require('../config');
+const { generateRefreshTokenValue, hashTokenValue } = require('../../../utils/token');
+const config = require('../../../config');
 
 const getRefreshExpiryDate = () =>
   new Date(Date.now() + ms(config.jwt.refreshExpiresIn || '7d'));

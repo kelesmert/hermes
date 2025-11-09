@@ -1,4 +1,4 @@
-require('./permission-model');
-require('./role-model');
-require('./user-model');
-require('./refresh-token-model');
+require('../domains/auth/models/permission-model');
+require('../domains/auth/models/role-model');
+require('../domains/auth/models/user-model');
+require('../domains/auth/models/refresh-token-model');

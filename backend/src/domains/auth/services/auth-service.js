@@ -1,15 +1,15 @@
 const User = require('../models/user-model');
 const Role = require('../models/role-model');
-const AppError = require('../utils/app-error');
-const { hashPassword } = require('../utils/password');
-const { signAccessToken } = require('../utils/jwt');
+const AppError = require('../../../utils/app-error');
+const { hashPassword } = require('../../../utils/password');
+const { signAccessToken } = require('../../../utils/jwt');
 const {
   saveRefreshToken,
   findActiveRefreshToken,
   replaceRefreshToken,
   deleteRefreshToken,
 } = require('./token-service');
-const roles = require('../constants/roles');
+const roles = require('../../../constants/roles');
 
 const sanitizeUser = (userDoc) => {
   if (!userDoc) return null;

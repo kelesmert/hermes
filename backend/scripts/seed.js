@@ -7,9 +7,9 @@ dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 const roles = require('../src/constants/roles');
 const permissions = require('../src/constants/permissions');
 const { connectDatabase } = require('../src/config/database');
-const Permission = require('../src/models/permission-model');
-const Role = require('../src/models/role-model');
-const User = require('../src/models/user-model');
+const Permission = require('../src/domains/auth/models/permission-model');
+const Role = require('../src/domains/auth/models/role-model');
+const User = require('../src/domains/auth/models/user-model');
 const { hashPassword } = require('../src/utils/password');
 
 const permissionSeeds = [

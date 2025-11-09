@@ -16,7 +16,7 @@
 - Frontend React (tercihen Vite tabanlı) ile kurulacak.
 - Veritabanı MongoDB olacak.
 - Repo yapısı tek bir monorepo içinde `backend/` ve `frontend/` klasörleri şeklinde organize edilecek.
-- MongoDB erişimi için Mongoose ODM kullanılacak.
+- MongoDB erişimi için Mongoose ODM kullanılacak; backend kodu domain bazlı klasör yapısına (örn. `src/domains/auth`, `src/domains/users` vb.) göre organize edilecek.
 - Frontend için güncel kararlar:
   - Proje iskeleti Vite + React (SPA) ve JavaScript ile kurulacak; ihtiyaç halinde TypeScript’e geçilecek.
   - UI kiti olarak temel MUI bileşenleri kullanılacak; formlar veya grafiklerde gerektiğinde farklı kütüphaneler tercih edilebilecek.
@@ -27,6 +27,7 @@
   - Tema seçimi ilerleyen aşamada netleştirilecek; hedef hafif ve sade bir görünüm.
   - Durum yönetimi ihtiyaç oldukça belirlenecek; mümkünse Context + custom hook, gerektiğinde Zustand.
   - `VITE_API_URL` ile backend (`http://localhost:5000/api`) adresi konfigüre edilecek; `axios.withCredentials` ilerideki cookie geçişine hazır tutulacak.
+  - `src/lib/api/client.js` altındaki axios instance her zaman `VITE_API_URL` değerini `baseURL` olarak kullanır ve tüm frontend API çağrıları bu client üzerinden geçer.
 - Kodda `@/` import alias’ı kullanılacak; hem frontend’de Vite alias’ı hem de backend’de Node path alias’ı tanımlanacak, böylece `../../` zincirleri yerine `@/services/token-service` gibi okunabilir yollar tercih edilecek.
 - Layout kararı: Uygulama kabuğu sol sidebar + üst header kombinasyonundan oluşacak; sidebar tüm modül menülerini barındıracak, header içinde kullanıcı menüsü, genel arama alanı ve bildirim (notifications dropdown) bulunacak. Breadcrumbs zorunlu olacak; mobil tam destek zorunlu değil fakat tablet boyutlarında düzgün görünmesi sağlanacak.
 - ESLint ve Prettier iskelet kurulduktan hemen sonra projeye eklenecek; kuralların ve kullanılan komutların dokümantasyonu güncel tutulacak.

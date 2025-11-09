@@ -1,5 +1,5 @@
-const AppError = require('../utils/app-error');
-const asyncHandler = require('../utils/async-handler');
+const AppError = require('../../../utils/app-error');
+const asyncHandler = require('../../../utils/async-handler');
 const authService = require('../services/auth-service');
 
 const requestMeta = (req) => ({

@@ -20,18 +20,11 @@ Bu doküman, projedeki önemli dosya ve klasörlerin ne işe yaradığını hız
 - `backend/src/config/database.js`: Mongoose ile MongoDB bağlantısını kuran yardımcı fonksiyon.
 - `backend/src/routes/index.js`: Tüm API rotalarını birleştirir (`/health`, `/auth`).
 - `backend/src/routes/health-routes.js`: `/api/health` uç noktasını içerir; servis durumu için basit yanıt verir.
-- `backend/src/routes/auth-routes.js`: Register/login/refresh/logout HTTP endpoint’lerini tanımlar.
-- `backend/src/routes/users-routes.js`: Kullanıcı listesi gibi endpoint’leri içerir; auth ve permission guard ile korunur.
-- `backend/src/controllers/auth-controller.js`: Auth isteklerini alır, validasyon yapar ve servis katmanına yönlendirir.
-- `backend/src/controllers/users-controller.js`: Yönetici kullanıcılar için kullanıcı listesini dönen controller.
-- `backend/src/services/auth-service.js`: Kullanıcı kayıt/giriş, token üretimi ve yenileme gibi bütün auth iş mantığı.
-- `backend/src/services/token-service.js`: Refresh token’ların veritabanında saklanması, yenilenmesi ve silinmesi.
+- `backend/src/domains/auth/`: Auth & RBAC domain’i; `controllers`, `services` (auth-service, token-service), `routes` (`auth-routes`), `models` (user, role, permission, refresh-token) klasörlerini içerir.
+- `backend/src/domains/users/`: Kullanıcı yönetimi domain’i; `users-controller`, `users-routes` burada bulunur.
 - `backend/src/middleware/auth-guard.js`: JWT doğrulaması yaparak isteğe `req.auth` bilgisi ekler.
 - `backend/src/middleware/permission-guard.js`: İstenen izinlere göre erişim kontrolü yapan middleware.
-- `backend/src/models/permission-model.js`: Sistem genelindeki izinleri tanımlar; roller bu dokümanlara referans verir.
-- `backend/src/models/role-model.js`: Roller için Mongoose şeması (isim, label, izinler, varsayılan rol).
-- `backend/src/models/user-model.js`: Kullanıcı şeması; şifre hash alanı, birden fazla rol referansı ve `comparePassword` metodu içerir.
-- `backend/src/models/refresh-token-model.js`: Refresh token koleksiyonu; token hash’i, kullanıcı ilişkisi ve durum kontrolü.
+- `backend/src/models/index.js`: Domain modellerini preload eder (`domains/auth/models/*`).
 - `backend/src/utils/password.js`: Şifre hash’leme ve doğrulama yardımcıları (bcrypt).
 - `backend/src/utils/jwt.js`: JWT access token üretimi ve doğrulama işlevleri.
 - `backend/src/utils/token.js`: Rastgele refresh token değeri üretme ve hash’leme yardımcıları.
@@ -68,6 +61,9 @@ Bu doküman, projedeki önemli dosya ve klasörlerin ne işe yaradığını hız
 - `docs/meta/file-overview.md`: (Bu dosya) Önemli dosya ve klasörlerin kısa açıklamaları.
 - `docs/meta/learning-guide.md`: Öğretici rehber; mimari ve akışların adım adım anlatımı.
 
+### docs/dev-notes
+- `docs/dev-notes/backend-domain-plan.md`: Backend'i domain bazlı klasör yapısına taşımak için geçiş planı ve adımları.
+
 ## Frontend
 
 - `frontend/.env.example`: React/Vite projesi için API adresi, websocket URL’si gibi ortam değişkeni şablonu.
@@ -75,7 +71,9 @@ Bu doküman, projedeki önemli dosya ve klasörlerin ne işe yaradığını hız
 - `frontend/src/app`: Uygulama sağlayıcıları (QueryClient, Theme, Router, Session) ve route guard’lar.
 - `frontend/src/components/layout`: Sidebar, header, breadcrumbs ve kabuk bileşenleri.
 - `frontend/src/features/*`: Domain odaklı modüller (auth, dashboard, raporlar, kullanıcılar vb.).
-- `frontend/src/lib`: axios client, query client, storage helper.
+- `frontend/src/lib/api/client.js`: Tüm frontend HTTP çağrılarını yapan axios instance; `baseURL` her zaman `VITE_API_URL`'dir.
+- `frontend/src/lib/query-client.js`: TanStack Query client konfigürasyonu.
+- `frontend/src/lib/storage.js`: LocalStorage helper ve `SESSION_STORAGE_KEY` tanımı.
 - `frontend/src/styles/global.css`: Global tema/Reset ayarları.
 - Teknoloji seti: Vite + React (JS), MUI, React Router v6, TanStack Query + axios, React Hook Form + Zod, TanStack Table + MUI, Recharts ve react-hot-toast. Tema hafif/sade tutulacak, durum yönetimi Context + custom hook ile başlayacak (gerekirse Zustand).
 - Import alias kuralı: Hem frontend hem backend’de `@/` alias’ı kök `src/` klasörlerine işaret edecek; böylece dosya yapısı uzun relatif yollara ihtiyaç duymadan okunabilir kalacak.

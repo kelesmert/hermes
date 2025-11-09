@@ -78,6 +78,12 @@ Bu dosya, projede alınan mimarî ve teknolojik kararları, gerekçelerini ve be
 - **Gerekçe:** Mock login yerine gerçek kullanıcı oturumunu yönetmek; refresh token rotation ve izin kontrolleriyle tüm korumalı rotalar için altyapıyı hazır hale getirmek.
 - **Etkisi:** Login → dashboard, sayfa yenileme, logout gibi akışlar gerçek verilerle çalışıyor; bundan sonra makine/rapor modüllerini API’ye bağlamak için ek bir altyapı ihtiyacı yok.
 
+### Backend Domain Yapısı
+
+- **Karar:** Backend kodu domain bazlı klasörlere ayrılacak (örn. `src/domains/auth`, `src/domains/users`, ileride `src/domains/machines`); her domain kendi `models/services/controllers/routes` yapılarına sahip olacak. Ortak kod `src/shared` altında tutulacak.
+- **Gerekçe:** Monolit yapıyı düzenli ve ölçeklenebilir tutmak; ileride domain’leri ayrı servislere ayırmak gerekirse taşımayı kolaylaştırmak.
+- **Etkisi:** Yeni domain eklerken standart klasör yapısı kullanılacak, `backend/standart/backend-decisions.md` ve `project-guidelines` bu kuralla güncellendi.
+
 ## Ortak / Diğer Kararlar
 
 ### ENV ve Config Standartları

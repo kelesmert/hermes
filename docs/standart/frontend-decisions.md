@@ -58,7 +58,7 @@ frontend/
 
 ## 5. Veri Erişimi ve Hata Yönetimi
 
-- Tüm HTTP çağrıları `src/lib/api/client.ts` (veya `.js`) içindeki axios instance üzerinden yapılır; baseURL `import.meta.env.VITE_API_URL`.
+- Tüm HTTP çağrıları `src/lib/api/client.js` içindeki axios instance üzerinden yapılır; baseURL `import.meta.env.VITE_API_URL` olarak belirlenir.
 - axios interceptors: 401 durumunda otomatik logout veya login yönlendirmesi yapılır; request öncesinde access token header’a eklenir.
 - TanStack Query query key konvansiyonu: `['machines', id]`, `['reports', filters]` vb. Tekil string kullanılmaz.
 - Polling gerekiyorsa Query’nin `refetchInterval` özelliği kullanılır; manuel `setInterval` yasaktır.

@@ -16,6 +16,22 @@ Bu dosya, mevcut sohbet oturumunda alınan kararları ve yapılan işleri özetl
 - Frontend iskeleti kuruldu: `AppProviders`, `AppLayout`, `PrivateRoute`/`PermissionGuard`, mock login formu, sidebar/header/breadcrumbs, dashboard & placeholder rapor/kullanıcı sayfaları ve axios client hazır. Refresh token geçici olarak `localStorage`’da saklanıyor; alias `@/` aktif.
 - Auth entegrasyonu tamamlandı: login/refresh/logout gerçek API ile çalışıyor; SessionProvider rol ve izinleri normalize ediyor, axios interceptors 401 durumunda oturumu sıfırlıyor.
 
+## Frontend Auth
+
+- `frontend/src/features/auth/components/login-form.jsx`: Mock login kaldırıldı, backend `/auth/login` çağrısı yapılıyor; hatalar toast olarak gösteriliyor.
+- `frontend/src/features/auth/context/session-context.jsx`: Backend yanıtı normalize edilip roller string, izinler `ROLE_PERMISSIONS` üzerinden türetiliyor; uygulama açılışında `/auth/refresh`, logout’ta `/auth/logout` tetikleniyor.
+- `frontend/src/lib/api/client.js`: Axios instance `VITE_API_URL` tabanlı, 401 yakalanınca session temizleyip `hermes:session-expired` eventi yayınlıyor.
+- `frontend/src/constants/permissions.js` ve `role-permissions.js`: Tüm izinler tek noktada tanımlı; UI guard’ları bu listeden besleniyor.
+- Login → dashboard → sayfa yenileme → logout akışı tarayıcıda test edildi, sorunsuz çalışıyor.
+
+## Backend Domain Structure
+
+- `backend/src/domains/auth` ve `backend/src/domains/users` klasörleri oluşturuldu; controller/service/route/model dosyaları buraya taşındı.
+- `routes/index.js` ve `models/index.js` yeni path'lere göre güncellendi, eski `controllers/` ve `services/` klasörleri kaldırıldı.
+- `docs/standart/backend-decisions.md`, `docs/project-guidelines.md`, `docs/meta/file-overview.md` ve `docs/dev-notes/backend-domain-plan.md` domain bazlı yapıyı belgeledi.
+
+- Frontend entegrasyonu: Makine listesi/detay sayfası, dashboard kartları ve event geçmişi bu API’lerden beslenecek.
+
 ## Doğrulama
 
 - `npm run seed` ve `npm run dev` çalışıyor; Postman ile login → refresh → protected endpoint → logout senaryosu doğrulandı.
