@@ -6,7 +6,7 @@ Bu doküman, projedeki önemli dosya ve klasörlerin ne işe yaradığını hız
 
 - `.gitignore`: Git tarafından takip edilmemesi gereken dosya/klasörleri listeler (ör. `node_modules`, `.env`).
 - `backend/`: Node.js + Express tabanlı API uygulaması.
-- `frontend/`: React tabanlı istemci uygulaması (henüz iskelet aşamasında).
+- `frontend/`: React tabanlı istemci uygulaması; auth akışı, dashboard placeholder’ları ve kullanıcı/rol yönetimi ekranlarını barındırır.
 - `docs/`: Gereksinimler, yol haritası, rapor ve genel notlar gibi bütün dokümanlar.
 - `.specstory/`: IDE veya otomasyon araçlarının kullandığı yardımcı dosyalar.
 
@@ -18,7 +18,7 @@ Bu doküman, projedeki önemli dosya ve klasörlerin ne işe yaradığını hız
 - `backend/src/server.js`: HTTP sunucusunu oluşturur, MongoDB bağlantısını başlatır ve app’i dinlemeye açar.
 - `backend/src/config/index.js`: Ortam değişkenlerini okuyup yapılandırma nesnesi sunar (port, client URL, JWT süreleri vb.).
 - `backend/src/config/database.js`: Mongoose ile MongoDB bağlantısını kuran yardımcı fonksiyon.
-- `backend/src/routes/index.js`: Tüm API rotalarını birleştirir (`/health`, `/auth`).
+- `backend/src/routes/index.js`: Tüm API rotalarını birleştirir (`/health`, `/auth`, `/users`, `/roles`, `/permissions`).
 - `backend/src/routes/health-routes.js`: `/api/health` uç noktasını içerir; servis durumu için basit yanıt verir.
 - `backend/src/domains/auth/`: Auth & RBAC domain’i; `controllers`, `services` (auth-service, token-service), `routes` (`auth-routes`), `models` (user, role, permission, refresh-token) klasörlerini içerir.
 - `backend/src/domains/access-control/`: Rol ve permission yönetimi için controller/service/route dosyaları (`roles-routes`, `permissions-routes`).
@@ -31,7 +31,7 @@ Bu doküman, projedeki önemli dosya ve klasörlerin ne işe yaradığını hız
 - `backend/src/utils/token.js`: Rastgele refresh token değeri üretme ve hash’leme yardımcıları.
 - `backend/src/utils/app-error.js`: Uygulama içinde kullanılacak özel hata sınıfı (HTTP durum kodlarıyla beraber).
 - `backend/src/utils/async-handler.js`: Promise dönen controller fonksiyonlarını sarmalayarak hata yakalamayı kolaylaştırır.
-- `backend/src/constants/roles.js`: Rol isimlerini merkezi bir yerde tanımlar (admin, supervisor, operator, viewer).
+- `backend/src/constants/roles.js`: Rol isimlerini merkezi bir yerde tanımlar (`master`, `supervisor`, `maintenance`, `operator`, `viewer`).
 - `backend/src/constants/permissions.js`: Sistem genelinde kullanılacak izin anahtarlarını listeler (örn. `machines.read`).
 - `backend/scripts/seed.js`: Varsayılan rol kayıtlarını ve `.env` üzerinden verilen admin hesabını oluşturan script (`npm run seed`).
 

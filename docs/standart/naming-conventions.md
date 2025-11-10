@@ -259,7 +259,7 @@ hermes/
 ### Backend Model (Mongoose)
 
 ```javascript
-// filepath: backend/src/models/user.model.js
+// filepath: backend/src/domains/auth/models/user-model.js
 
 const mongoose = require("mongoose");
 
@@ -280,11 +280,11 @@ module.exports = User;
 ### Backend Service
 
 ```javascript
-// filepath: backend/src/services/auth.service.js
+// filepath: backend/src/domains/auth/services/auth-service.js
 
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const User = require("../models/user.model");
+const User = require("../models/user-model");
 
 // Sabitler UPPER_SNAKE_CASE
 const JWT_ACCESS_SECRET = process.env.JWT_ACCESS_SECRET;

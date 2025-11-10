@@ -23,11 +23,11 @@ Bu rehber, backend ve frontend’i MVP hedefiyle nasıl kurduğumuzu öğretici 
 ## 4) MongoDB + Mongoose (ODM)
 - Neden: Şema, doğrulama, ilişkiler, middleware desteği.
 - Modeller:
-  - `backend/src/models/permission-model.js`: İzinler (ör. `users.manage`).
-  - `backend/src/models/role-model.js`: Roller, birden çok permission referansı.
-  - `backend/src/models/user-model.js`: Kullanıcılar, birden çok rol referansı (en az bir rol şartı).
-  - `backend/src/models/refresh-token-model.js`: Refresh token kayıtları (hash’li).
-- Model yükleme: `backend/src/models/index.js` tüm modelleri require eder; `backend/src/server.js` başında yüklenir (MissingSchemaError çözümü).
+  - `backend/src/domains/auth/models/permission-model.js`: İzinler (ör. `users.manage`).
+  - `backend/src/domains/auth/models/role-model.js`: Roller, birden çok permission referansı.
+  - `backend/src/domains/auth/models/user-model.js`: Kullanıcılar, birden çok rol referansı (en az bir rol şartı).
+  - `backend/src/domains/auth/models/refresh-token-model.js`: Refresh token kayıtları (hash’li).
+- Model yükleme: `backend/src/models/index.js` tüm domain modellerini require eder; `backend/src/server.js` başında yüklenir (MissingSchemaError çözümü).
 
 ## 5) Kimlik Doğrulama (Auth)
 - Şifre: `bcryptjs` ile hash/karşılaştırma (`backend/src/utils/password.js`).
@@ -54,11 +54,18 @@ Bu rehber, backend ve frontend’i MVP hedefiyle nasıl kurduğumuzu öğretici 
   - `POST /api/auth/login` → access + refresh token döner.
   - `POST /api/auth/refresh` → body: `{ "refreshToken": "..." }` → yeni token seti döner.
   - `POST /api/auth/logout` → body: `{ "refreshToken": "..." }` → ilgili refresh token iptal edilir.
-- Kullanıcılar:
-  - `GET /api/users` → korumalı; header: `Authorization: Bearer <accessToken>`.
+- Kullanıcılar (`/api/users` → `users.manage` izni):
+  - `GET /api/users` → tüm kullanıcıları listeler.
+  - `POST /api/users` → yeni kullanıcı oluşturur.
+  - `PATCH /api/users/:id` → kullanıcı bilgilerini/rollerini günceller.
+  - `DELETE /api/users/:id` → kullanıcı siler.
+- Roller & İzinler:
+  - `GET /api/roles` → tüm rol kayıtlarını döner (`roles.manage` veya `users.manage` izni gerektirir).
+  - `POST /api/roles`, `PATCH /api/roles/:id`, `DELETE /api/roles/:id` → rol CRUD işlemleri (`roles.manage`).
+  - `GET /api/permissions` → izin sözlüğünü döner (`roles.manage` veya `users.manage`).
 
 ## 9) Doğrulama (Postman)
-- Login: `POST /api/auth/login` (JSON body: email+password) → `tokens.accessToken`’ı kopyala.
+- Login: `POST /api/auth/login` (JSON body: `username` + `password`) → `tokens.accessToken`’ı kopyala.
 - Korumalı istek: `GET /api/users` → Authorization sekmesi `Bearer Token`, sadece token’ı gir (köşeli parantez yok).
 - Refresh: `POST /api/auth/refresh` (body’de refresh token) → yeni access/refresh alırsın.
 
@@ -101,7 +108,7 @@ Bu rehber, backend ve frontend’i MVP hedefiyle nasıl kurduğumuzu öğretici 
 - Durum yönetimi: Öncelik Context + custom hook; karmaşık ihtiyaçta Zustand devreye alınacak.
 - Ortam değişkenleri: `frontend/.env` içinde `VITE_API_URL=http://localhost:5000/api`; cookie tabanlı auth gerekirse `axios.withCredentials` aktif edilecek.
 - Token saklama: Refresh token şimdilik `localStorage`’da tutulacak ve uygulama açılışında otomatik `refresh` çağrısı yapılacak; HttpOnly cookie’lere geçiş opsiyonel TODO olarak takip ediliyor.
-- Import alias: `@/` kök alias’ı hem frontend hem backend’de tanımlanacak; karmaşık relatif yollar yerine bu kısayol tercih edilecek.
+- Import alias: Frontend’de `@/` alias’ı `src/` köküne işaret eder; backend tarafında şimdilik relatif path’ler kullanılmaya devam ediyor (alias geçişi plan çıktığı anda güncellenecek).
 - App layout: Sol sidebar tüm navigasyonu barındıracak, üst header’da kullanıcı menüsü, genel arama ve notifications dropdown bulunacak; breadcrumbs zorunlu, mobil hedef değil fakat tablet uyumu sağlanacak.
 - ESLint + Prettier: Frontend iskeletinin hemen ardından konfigüre edilip script’leri eklenecek; dokümantasyon güncel tutulacak.
 

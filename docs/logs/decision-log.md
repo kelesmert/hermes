@@ -26,7 +26,7 @@ Bu dosya, projede alınan mimarî ve teknolojik kararları, gerekçelerini ve be
 
 - **Karar:** `/api/roles`, `/api/permissions` ve `/api/users` (create/update) uç noktaları eklendi; roller CRUD, izin listesi ve kullanıcı yönetimi tamamen API üzerinden yönetilecek. Rol silmelerinde viewer rolü fallback olarak atanıyor.
 - **Gerekçe:** Admin panelinden rol/izin yönetimi yapılabilmesi ve yeni rollerin sonradan eklenebilmesi için dinamik uç noktalara ihtiyaç vardı.
-- **Etkisi:** Seed edilen roller (admin, supervisor, operator, maintenance, viewer) üzerine yeni roller eklenebilir; sys kullanıcı mock verileri gözlemleyebilir, admin gerçek kurulum yapabilir.
+- **Etkisi:** Seed edilen roller (master, supervisor, operator, viewer) üzerine yeni roller eklenebilir; sys kullanıcı mock verileri gözlemleyebilir, admin gerçek kurulum yapabilir.
 
 ## Frontend Kararları
 
