@@ -61,6 +61,8 @@ Bu doküman, projedeki önemli dosya ve klasörlerin ne işe yaradığını hız
 ### docs/meta
 - `docs/meta/file-overview.md`: (Bu dosya) Önemli dosya ve klasörlerin kısa açıklamaları.
 - `docs/meta/learning-guide.md`: Öğretici rehber; mimari ve akışların adım adım anlatımı.
+- `docs/meta/summary.md`: Projeyi hızlıca kavramak için genel bakış dokümanı.
+- `docs/meta/doc-maintenance.md`: Kod değişikliklerine göre hangi dokümanların güncelleneceğini anlatan bakım rehberi.
 
 ### docs/dev-notes
 - `docs/dev-notes/backend-domain-plan.md`: Backend'i domain bazlı klasör yapısına taşımak için geçiş planı ve adımları.

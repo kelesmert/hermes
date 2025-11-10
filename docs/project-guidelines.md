@@ -46,6 +46,7 @@
 - Her faz tamamlandığında ilgili dokümanlar güncellenecek.
 - Karar değişiklikleri bu dosyaya veya ilgili bölümüne eklenerek kayda geçirilecek.
 - Standart dosyalar (`docs/standart/*.md`) bağlayıcı kuralları içerir; kod yazmadan önce güncel oldukları doğrulanır.
+- Kod değişikliği sonrasında `docs/meta/doc-maintenance.md` içindeki eşleştirmeler takip edilerek güncellenmesi gereken dokümanlar gözden geçirilir.
 - Log dosyaları (`docs/logs/*.md`) bilgi amaçlıdır; “neden” sorusunun cevabını verir fakat kural niteliği taşımaz.
 
 ### Doküman Haritası
@@ -64,6 +65,8 @@
 - [tasks/project-checklist.md](tasks/project-checklist.md): Somut görevlerin listesi; tamamlananlar işaretlenir, silinmez.
 - [meta/file-overview.md](meta/file-overview.md): Dosya/klasör açıklamaları; hafıza rehberi.
 - [meta/learning-guide.md](meta/learning-guide.md): Öğretici rehber; akışların adım adım açıklaması.
+- [meta/summary.md](meta/summary.md): Projenin hızlı panoraması; yeni geliştiriciler için ilk okunacak dosya.
+- [meta/doc-maintenance.md](meta/doc-maintenance.md): Kod değişikliklerine göre hangi dokümanların güncelleneceğini belirleyen bakım rehberi.
 - `frontend/README.md`: Frontend kurulumu (Vite + React), dizin yapısı ve alias kullanımına dair hızlı rehber.
 
 ## Kod Kalitesi ve Tasarım Prensipleri
