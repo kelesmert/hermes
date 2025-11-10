@@ -89,6 +89,17 @@ const roleSeeds = [
     ],
   },
   {
+    name: roles.MAINTENANCE,
+    label: 'Maintenance',
+    description: 'Bakım ekipleri için makine yönetimi ve rapor erişimi.',
+    permissionNames: [
+      permissions.MACHINES_READ,
+      permissions.MACHINES_WRITE,
+      permissions.MACHINES_UPDATE_OWN,
+      permissions.REPORTS_READ,
+    ],
+  },
+  {
     name: roles.OPERATOR,
     label: 'Operator',
     description: 'Makine operatörü, atanmış makineleri yönetir.',
@@ -192,11 +203,53 @@ const seedAdminUser = async (rolesDocs) => {
   return adminUser;
 };
 
+const seedSysUser = async (rolesDocs) => {
+  const sysEmail = process.env.SEED_SYS_EMAIL;
+  const sysPassword = process.env.SEED_SYS_PASSWORD;
+
+  if (!sysEmail || !sysPassword) {
+    console.log('SEED_SYS_EMAIL veya SEED_SYS_PASSWORD tanımlı değil, sys kullanıcısı oluşturulmadı.');
+    return null;
+  }
+
+  const adminRole = rolesDocs.find((role) => role.name === roles.ADMIN);
+  if (!adminRole) {
+    throw new Error('Admin rolü bulunamadı, sys kullanıcısı oluşturulamadı.');
+  }
+
+  const existingSys = await User.findOne({ email: sysEmail.toLowerCase() }).populate('roles');
+  if (existingSys) {
+    const hasAdminRole = existingSys.roles.some((role) => role._id.equals(adminRole._id));
+    if (!hasAdminRole) {
+      existingSys.roles.push(adminRole._id);
+      await existingSys.save();
+      console.log(`Sys kullanıcısına admin rolü atandı: ${existingSys.email}`);
+    } else {
+      console.log(`Sys kullanıcısı zaten mevcut: ${existingSys.email}`);
+    }
+    return existingSys;
+  }
+
+  const passwordHash = await hashPassword(sysPassword);
+
+  const sysUser = await User.create({
+    firstName: process.env.SEED_SYS_FIRST_NAME || 'System',
+    lastName: process.env.SEED_SYS_LAST_NAME || 'Observer',
+    email: sysEmail.toLowerCase(),
+    passwordHash,
+    roles: [adminRole._id],
+  });
+
+  console.log(`Sys kullanıcısı oluşturuldu: ${sysUser.email}`);
+  return sysUser;
+};
+
 const run = async () => {
   try {
     await connectDatabase();
     const roleDocs = await seedRoles();
     await seedAdminUser(roleDocs);
+    await seedSysUser(roleDocs);
     console.log('Seed işlemi tamamlandı.');
     process.exit(0);
   } catch (err) {

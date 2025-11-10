@@ -24,6 +24,14 @@ Bu dosya, mevcut sohbet oturumunda alınan kararları ve yapılan işleri özetl
 - `frontend/src/constants/permissions.js` ve `role-permissions.js`: Tüm izinler tek noktada tanımlı; UI guard’ları bu listeden besleniyor.
 - Login → dashboard → sayfa yenileme → logout akışı tarayıcıda test edildi, sorunsuz çalışıyor.
 
+## RBAC Yönetimi
+
+- Backend’e `/api/roles`, `/api/permissions` ve `/api/users` (create/update) uçları eklendi; role CRUD, viewer fallback (rol silinince tek kalan kullanıcıları viewer’a atama) ve permission listesi API’si hazır.
+- Seed script maintenance rolü + sys test kullanıcısı oluşturuyor; viewer rolü zorunlu olduğundan fallback senaryosu güvence altında.
+- Auth servisleri artık rol->permission ilişkisini payload’a ekliyor; SessionProvider bu bilgiyi saklayarak UI guard’larını dinamik hale getiriyor.
+- Frontend kullanıcı sayfası TanStack Table ile `/api/users` verisini gösteriyor; kullanıcı ekleme/düzenleme/aktif-pasif akışları ve rol atama dialogları tamamlandı.
+- Roller & izinler sekmesi (sadece `roles.manage`) role CRUD + permission kategorili seçim ekranı sağlıyor; silme işleminde viewer fallback mesajı gösteriliyor.
+
 ## Backend Domain Structure
 
 - `backend/src/domains/auth` ve `backend/src/domains/users` klasörleri oluşturuldu; controller/service/route/model dosyaları buraya taşındı.

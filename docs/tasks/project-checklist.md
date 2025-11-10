@@ -21,7 +21,7 @@
 - [x] RBAC middleware ve korunan endpoint örnekleri
 - [x] Admin kullanıcı seed script’i
 - [ ] (Opsiyonel) Tokenları cookie tabanlı yönetime geçir (HTTP-only, Secure, SameSite), CSRF koruması ekle ve çoklu cihaz oturum yönetimi + aktif refresh listesi hazırla
-- [ ] Roller/izinler için CRUD endpoint’leri ve permission yönetim API’si
+- [x] Roller/izinler için CRUD endpoint’leri ve permission yönetim API’si
 - [ ] Makine modeli, durum geçişleri ve olay kayıtları API’leri
 - [ ] Veri simülasyon script’i (cron veya scheduler)
 - [ ] Raporlama endpointleri (verimlilik, duruş süreleri vb.)
@@ -41,11 +41,11 @@
 - [x] Header genel arama ve bildirim dropdown placeholder bileşenleri
 - [x] Auth sayfaları (login, logout, rol yönlendirmeleri)
 - [x] Geçici localStorage tabanlı refresh token yönetimi (cookie geçişine hazırlık)
-- [ ] `/api/users` listesini TanStack Table ile entegre et; aktif/pasif toggle, rol atama ve filtreleme akışlarını tamamla
+- [x] `/api/users` listesini TanStack Table ile entegre et; aktif/pasif toggle, rol atama ve filtreleme akışlarını tamamla
 - [ ] Dashboard layout ve genel metrik kartları
 - [ ] Makine kartları (durum renkleri, aksiyon butonları, polling/WS)
 - [ ] Raporlama sayfası + filtreler
-- [ ] Roller/izinler için yönetim ekranı; permission set düzenleme ve kullanıcıya rol atama modalları
+- [x] Roller/izinler için yönetim ekranı; permission set düzenleme ve kullanıcıya rol atama modalları
 - [ ] Dashboard/rapor placeholder’larını gerçek makine/event verileriyle besleyip React Query polling/WebSocket desteği ekle
 - [ ] CSV/Excel export butonları ve kullanıcı geri bildirimi
 - [ ] Audit log görüntüleme ekranı

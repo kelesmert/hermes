@@ -8,5 +8,7 @@ const router = Router();
 
 router.use(authGuard);
 router.get('/', requirePermissions(permissions.USERS_MANAGE), usersController.listUsers);
+router.post('/', requirePermissions(permissions.USERS_MANAGE), usersController.createUser);
+router.patch('/:id', requirePermissions(permissions.USERS_MANAGE), usersController.updateUser);
 
 module.exports = router;

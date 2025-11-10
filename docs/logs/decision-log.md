@@ -22,6 +22,12 @@ Bu dosya, projede alınan mimarî ve teknolojik kararları, gerekçelerini ve be
 - **Gerekçe:** Stateles access token performansı ve merkezi refresh kontrolü arasında denge; sonraki aşamada cookie’ye geçiş planı destekleniyor.
 - **Etkisi:** `auth-guard` middleware’i için hızlı doğrulama, refresh token revocation listesiyle güvenli oturum yenileme.
 
+### RBAC Yönetim API’si
+
+- **Karar:** `/api/roles`, `/api/permissions` ve `/api/users` (create/update) uç noktaları eklendi; roller CRUD, izin listesi ve kullanıcı yönetimi tamamen API üzerinden yönetilecek. Rol silmelerinde viewer rolü fallback olarak atanıyor.
+- **Gerekçe:** Admin panelinden rol/izin yönetimi yapılabilmesi ve yeni rollerin sonradan eklenebilmesi için dinamik uç noktalara ihtiyaç vardı.
+- **Etkisi:** Seed edilen roller (admin, supervisor, operator, maintenance, viewer) üzerine yeni roller eklenebilir; sys kullanıcı mock verileri gözlemleyebilir, admin gerçek kurulum yapabilir.
+
 ## Frontend Kararları
 
 ### Vite + React (JavaScript) SPA
@@ -77,6 +83,12 @@ Bu dosya, projede alınan mimarî ve teknolojik kararları, gerekçelerini ve be
 - **Karar:** Frontend login formu doğrudan `/api/auth/login` endpoint’ine bağlandı; SessionProvider backend yanıtını normalize ederek role string’leri ve izinleri türetiyor. Uygulama açılışında `/api/auth/refresh` çağrısı yapılıyor, logout sırasında `/api/auth/logout` tetikleniyor, axios interceptors 401 durumunda session’ı temizleyip global eventi yayıyor.
 - **Gerekçe:** Mock login yerine gerçek kullanıcı oturumunu yönetmek; refresh token rotation ve izin kontrolleriyle tüm korumalı rotalar için altyapıyı hazır hale getirmek.
 - **Etkisi:** Login → dashboard, sayfa yenileme, logout gibi akışlar gerçek verilerle çalışıyor; bundan sonra makine/rapor modüllerini API’ye bağlamak için ek bir altyapı ihtiyacı yok.
+
+### RBAC Yönetim UI’sı
+
+- **Karar:** `/api/users` TanStack Table ile bağlandı; kullanıcı oluşturma/düzenleme, rol atama ve aktif/pasif togglesı UI üzerinden yapılabiliyor. Aynı ekranda `roles.manage` iznine sahip kullanıcılar için rol/permission CRUD dialogları mevcut.
+- **Gerekçe:** İleride yeni roller/izinler ekleneceği için konfigürasyonun tamamen UI’dan yönetilmesi gerekiyor; ayrıca kullanıcı yönetim ekranının gerçek veriye bağlanması MVP kapsamındaydı.
+- **Etkisi:** Adminler yeni roller tanımlayıp izin setlerini kategori bazlı seçebiliyor, rol silme işleminde kullanıcılar otomatik olarak viewer rolüne taşınıyor; SessionProvider backend’den gelen permission listesiyle dinamik guard uygulayabiliyor.
 
 ### Backend Domain Yapısı
 

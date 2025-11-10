@@ -54,7 +54,7 @@ frontend/
 - Route guard’lar:
   - `PrivateRoute`: kimlik doğrulaması gerekli sayfalar.
   - `PermissionGuard`: `requiredPermissions` dizisindeki tüm izinlerin varlığını kontrol eder (backend ile uyumlu).
-- Rollerden izin türetme mantığı merkezî `ROLE_PERMISSIONS` sabiti ile yapılacak; backend’den gelen rol objeleri frontend’de string olarak normalize edilir.
+- Rollerden izin türetme mantığı backend’den gelen permission listesiyle yapılır; `ROLE_PERMISSIONS` yalnızca varsayılan roller için fallback olarak tutulur ve oturum verisi `SessionProvider` içinde normalize edilir.
 
 ## 5. Veri Erişimi ve Hata Yönetimi
 

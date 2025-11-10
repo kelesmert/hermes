@@ -29,6 +29,28 @@ const requirePermissions = (...requiredPermissions) => {
   };
 };
 
+const requireAnyPermission = (...possiblePermissions) => {
+  const permissions = [...new Set(formatPermissions(possiblePermissions).filter(Boolean))];
+
+  return (req, _res, next) => {
+    if (!req.auth) {
+      return next(new AppError('Kimlik doğrulaması gerekli.', 401));
+    }
+
+    const userPermissions = req.auth.permissions || [];
+    const hasAnyPermission = permissions.some((permission) =>
+      userPermissions.includes(permission),
+    );
+
+    if (!hasAnyPermission) {
+      return next(new AppError('Bu işlem için yetkiniz yok.', 403));
+    }
+
+    return next();
+  };
+};
+
 module.exports = {
   requirePermissions,
+  requireAnyPermission,
 };

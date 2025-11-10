@@ -6,6 +6,7 @@ import useSession from '@/features/auth/hooks/use-session.js';
 
 const Header = () => {
   const { user, logout } = useSession();
+  const primaryRoleLabel = user?.roleDetails?.[0]?.label || user?.roles?.[0] || 'Operator';
 
   return (
     <AppBar
@@ -47,7 +48,7 @@ const Header = () => {
           <Box sx={{ textAlign: 'left' }}>
             <Typography variant="subtitle2">{user?.fullName || 'Hermes Admin'}</Typography>
             <Typography variant="caption" color="text.secondary">
-              {user?.roles?.[0] || 'Operator'}
+              {primaryRoleLabel}
             </Typography>
           </Box>
           <IconButton color="inherit" onClick={logout}>

@@ -7,19 +7,50 @@ import { ROLE_PERMISSIONS } from '@/constants/role-permissions.js';
 const defaultSession = {
   user: null,
   roles: [],
+  roleDetails: [],
   permissions: [],
   tokens: null,
   isAuthenticated: false,
 };
 
-const toRoleNames = (roles = []) => roles
-  .map((role) => (typeof role === 'string' ? role : role?.name))
-  .filter(Boolean);
+const normalizeRoleDetails = (roles = []) =>
+  roles
+    .map((role) => {
+      if (!role) return null;
+      if (typeof role === 'string') {
+        return { name: role, permissions: [] };
+      }
+      const permissionDetails = Array.isArray(role.permissions)
+        ? role.permissions
+            .filter((permission) => permission?.name)
+            .map((permission) => ({
+              id: permission.id || permission._id,
+              name: permission.name,
+              label: permission.label,
+              category: permission.category,
+            }))
+        : [];
+      return {
+        id: role.id || role._id,
+        name: role.name,
+        label: role.label,
+        permissions: permissionDetails,
+      };
+    })
+    .filter((role) => role?.name);
 
-const derivePermissions = (roleNames = []) => {
+const toRoleNames = (roles = []) => normalizeRoleDetails(roles).map((role) => role.name);
+
+const derivePermissions = (roleDetails = []) => {
   const permissionSet = new Set();
-  roleNames.forEach((name) => {
-    (ROLE_PERMISSIONS[name] || []).forEach((permission) => permissionSet.add(permission));
+  roleDetails.forEach((role) => {
+    (role.permissions || []).forEach((permission) => {
+      const name = typeof permission === 'string' ? permission : permission?.name;
+      if (name) permissionSet.add(name);
+    });
+    if (role.name) {
+      (ROLE_PERMISSIONS[role.name] || []).forEach((permission) => permissionSet.add(permission));
+    }
   });
   return Array.from(permissionSet);
 };
@@ -46,15 +77,18 @@ export const SessionProvider = ({ children }) => {
   }, []);
 
   const buildSessionFromResponse = useCallback((data) => {
-    const roleNames = toRoleNames(data.user?.roles);
+    const roleDetails = normalizeRoleDetails(data.user?.roles);
+    const roleNames = roleDetails.map((role) => role.name);
     const formattedUser = {
       ...data.user,
       roles: roleNames,
+      roleDetails,
     };
     return {
       user: formattedUser,
       roles: roleNames,
-      permissions: derivePermissions(roleNames),
+      roleDetails,
+      permissions: derivePermissions(roleDetails),
       tokens: data.tokens,
       isAuthenticated: true,
     };
@@ -83,11 +117,13 @@ export const SessionProvider = ({ children }) => {
           // session cleared in refreshWithToken
         }
       } else if (stored) {
-        const roleNames = toRoleNames(stored.roles);
+        const roleDetails = normalizeRoleDetails(stored.roleDetails || stored.roles);
+        const roleNames = roleDetails.map((role) => role.name);
         persistSession({
           ...stored,
           roles: roleNames,
-          permissions: derivePermissions(roleNames),
+          roleDetails,
+          permissions: derivePermissions(roleDetails),
           isAuthenticated: true,
         });
       }

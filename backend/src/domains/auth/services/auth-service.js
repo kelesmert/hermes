@@ -11,6 +11,12 @@ const {
 } = require('./token-service');
 const roles = require('../../../constants/roles');
 
+const populateUserRoles = (userDoc) =>
+  userDoc.populate({
+    path: 'roles',
+    populate: { path: 'permissions' },
+  });
+
 const sanitizeUser = (userDoc) => {
   if (!userDoc) return null;
   const userObj = userDoc.toObject({ getters: true, versionKey: false });
@@ -24,6 +30,14 @@ const sanitizeUser = (userDoc) => {
               id: role._id,
               name: role.name,
               label: role.label,
+              permissions: (role.permissions || [])
+                .filter((permission) => permission?.name)
+                .map((permission) => ({
+                  id: permission._id,
+                  name: permission.name,
+                  label: permission.label,
+                  category: permission.category,
+                })),
             }
           : role,
       );
@@ -98,7 +112,7 @@ const registerUser = async (payload) => {
     roles: rolesDocs.map((roleDoc) => roleDoc._id),
   });
 
-  await user.populate('roles');
+  await populateUserRoles(user);
 
   return sanitizeUser(user);
 };
@@ -106,7 +120,10 @@ const registerUser = async (payload) => {
 const loginUser = async ({ email, password, userAgent, ipAddress }) => {
   const user = await User.findOne({ email: email.toLowerCase(), isActive: true })
     .select('+passwordHash')
-    .populate('roles');
+    .populate({
+      path: 'roles',
+      populate: { path: 'permissions' },
+    });
 
   if (!user) {
     throw new AppError('E-posta veya şifre hatalı.', 401);
@@ -116,7 +133,7 @@ const loginUser = async ({ email, password, userAgent, ipAddress }) => {
     const legacyRoleId = user.role._id || user.role;
     user.roles = [legacyRoleId];
     user.role = undefined;
-    await user.populate('roles');
+    await populateUserRoles(user);
   }
 
   const isMatch = await user.comparePassword(password);
@@ -142,7 +159,13 @@ const refreshSession = async ({ refreshToken, userAgent, ipAddress }) => {
     throw new AppError('Refresh token geçersiz veya süresi dolmuş.', 401);
   }
 
-  await existingToken.populate('user');
+  await existingToken.populate({
+    path: 'user',
+    populate: {
+      path: 'roles',
+      populate: { path: 'permissions' },
+    },
+  });
 
   if (!existingToken.user.isActive) {
     throw new AppError('Kullanıcı pasif durumda.', 403);

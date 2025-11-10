@@ -1,17 +1,46 @@
-import { Card, CardContent, Typography } from '@mui/material';
+import { useState, useMemo, useEffect } from 'react';
+import { Box, Tab, Tabs } from '@mui/material';
+import usePermissions from '@/hooks/use-permissions.js';
+import UsersTable from '@/features/users/components/user-table.jsx';
+import RoleManagement from '@/features/users/components/role-list.jsx';
 
-const UsersPage = () => (
-  <Card>
-    <CardContent>
-      <Typography variant="h6" gutterBottom>
-        Kullanıcı Yönetimi (Yolda)
-      </Typography>
-      <Typography color="text.secondary">
-        RBAC gereksinimlerine uygun kullanıcı/rol yönetimi bu ekranda uygulanacak. Yetkili kullanıcılar
-        listeleme, rol atama ve pasif etme işlemlerini buradan gerçekleştirecek.
-      </Typography>
-    </CardContent>
-  </Card>
-);
+const UsersPage = () => {
+  const { hasPermission } = usePermissions();
+  const canManageRoles = hasPermission('roles.manage');
+  const tabs = useMemo(
+    () => [
+      { label: 'Kullanıcılar', value: 'users' },
+      ...(canManageRoles ? [{ label: 'Roller & İzinler', value: 'roles' }] : []),
+    ],
+    [canManageRoles],
+  );
+
+  const [activeTab, setActiveTab] = useState(tabs[0]?.value || 'users');
+
+  useEffect(() => {
+    if (!tabs.find((tab) => tab.value === activeTab)) {
+      setActiveTab(tabs[0]?.value || 'users');
+    }
+  }, [tabs, activeTab]);
+
+  return (
+    <Box>
+      <Tabs
+        value={activeTab}
+        onChange={(_, value) => setActiveTab(value)}
+        sx={{ mb: 3 }}
+        textColor="primary"
+        indicatorColor="primary"
+      >
+        {tabs.map((tab) => (
+          <Tab key={tab.value} label={tab.label} value={tab.value} />
+        ))}
+      </Tabs>
+
+      {activeTab === 'users' && <UsersTable />}
+      {activeTab === 'roles' && canManageRoles && <RoleManagement />}
+    </Box>
+  );
+};
 
 export default UsersPage;
