@@ -20,13 +20,15 @@
 - [x] JWT tabanlı auth akışı (register/login/refresh/logout)
 - [x] RBAC middleware ve korunan endpoint örnekleri
 - [x] Admin kullanıcı seed script’i
-- [ ] Tokenları cookie tabanlı yönetime geçir (HTTP-only, Secure, SameSite) ve CSRF koruması ekle
+- [ ] (Opsiyonel) Tokenları cookie tabanlı yönetime geçir (HTTP-only, Secure, SameSite), CSRF koruması ekle ve çoklu cihaz oturum yönetimi + aktif refresh listesi hazırla
+- [ ] Roller/izinler için CRUD endpoint’leri ve permission yönetim API’si
 - [ ] Makine modeli, durum geçişleri ve olay kayıtları API’leri
 - [ ] Veri simülasyon script’i (cron veya scheduler)
 - [ ] Raporlama endpointleri (verimlilik, duruş süreleri vb.)
 - [ ] CSV/Excel export servisi
 - [ ] Audit log middleware’i ve kayıt koleksiyonu
 - [ ] AI analiz modülü (kural tabanlı veya model entegrasyonu)
+- [ ] Dashboard/rapor veri kaynaklarını gerçek makine/event akışıyla besleyecek polling/push servisleri
 - [ ] Auth akışı için refresh/logout endpoint testleri ve Postman senaryoları
 
 ## Frontend
@@ -39,9 +41,12 @@
 - [x] Header genel arama ve bildirim dropdown placeholder bileşenleri
 - [x] Auth sayfaları (login, logout, rol yönlendirmeleri)
 - [x] Geçici localStorage tabanlı refresh token yönetimi (cookie geçişine hazırlık)
+- [ ] `/api/users` listesini TanStack Table ile entegre et; aktif/pasif toggle, rol atama ve filtreleme akışlarını tamamla
 - [ ] Dashboard layout ve genel metrik kartları
 - [ ] Makine kartları (durum renkleri, aksiyon butonları, polling/WS)
 - [ ] Raporlama sayfası + filtreler
+- [ ] Roller/izinler için yönetim ekranı; permission set düzenleme ve kullanıcıya rol atama modalları
+- [ ] Dashboard/rapor placeholder’larını gerçek makine/event verileriyle besleyip React Query polling/WebSocket desteği ekle
 - [ ] CSV/Excel export butonları ve kullanıcı geri bildirimi
 - [ ] Audit log görüntüleme ekranı
 - [ ] AI analiz sonuçlarını gösteren bileşen
@@ -56,4 +61,4 @@
 - [ ] Lokal çalıştırma rehberi (README güncellemesi)
 - [ ] Docker/Docker Compose dosyaları (opsiyonel)
 - [ ] Nihai raporlama ve gelecek iş listesi güncellemesi
-- [ ] Postman: cookie tabanlı login/refresh/logout senaryoları ve otomasyon testleri
+- [ ] (Opsiyonel) Postman: cookie tabanlı login/refresh/logout senaryoları ve otomasyon testleri

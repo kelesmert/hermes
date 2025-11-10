@@ -11,7 +11,7 @@ Bu dosya, mevcut sohbet oturumunda alınan kararları ve yapılan işleri özetl
 - `docs/specs/project-report.md`, `docs/project-guidelines.md`, `docs/tasks/project-checklist.md`, `docs/specs/requirements.md`, `docs/specs/project-roadmap.md`, `docs/meta/file-overview.md`, `docs/meta/learning-guide.md`, `docs/logs/tech-decision-logs.md` güncel.
 - Yeni dosyalar/güncellemeler: `docs/meta/learning-guide.md` içine frontend iskeleti anlatımı eklendi; `docs/logs/chat-summary.md` (bu dosya) güncel.
 - Karar kayıtları için `docs/logs/decision-log.md` güncellendi; tüm yeni tercihler buraya ekleniyor.
-- Checklist’e yeni TODO’lar: cookie tabanlı token yönetimi + Postman cookie senaryoları.
+- Checklist’e yeni TODO’lar: cookie tabanlı token yönetimi + Postman cookie senaryoları (opsiyonel olarak işaretlendi).
 - Frontend stack kararları kaydedildi ve uygulandı: Vite + React (JS), MUI, React Router v6, TanStack Query, axios, React Hook Form + Zod, TanStack Table + MUI, Recharts, react-hot-toast; tema ileride netleşecek, durum yönetimi için önce Context/custom hook, gerekirse Zustand; `VITE_API_URL` ile backend `http://localhost:5000/api`.
 - Frontend iskeleti kuruldu: `AppProviders`, `AppLayout`, `PrivateRoute`/`PermissionGuard`, mock login formu, sidebar/header/breadcrumbs, dashboard & placeholder rapor/kullanıcı sayfaları ve axios client hazır. Refresh token geçici olarak `localStorage`’da saklanıyor; alias `@/` aktif.
 - Auth entegrasyonu tamamlandı: login/refresh/logout gerçek API ile çalışıyor; SessionProvider rol ve izinleri normalize ediyor, axios interceptors 401 durumunda oturumu sıfırlıyor.
@@ -41,6 +41,6 @@ Bu dosya, mevcut sohbet oturumunda alınan kararları ve yapılan işleri özetl
 
 - Frontend iskeleti: Login ekranı + rol bazlı yönlendirme (ör. admin/operator sayfaları) planlandı ama uygulanmadı.
 - Lint/test altyapısı, makine modeli/simülasyon, raporlama/Audit, frontend ekranları gibi roadmap maddeleri beklemede.
-- Token’ları cookie tabanlı yönetime geçirmek ve CSRF koruması eklemek için TODO eklendi.
+- Token’ları cookie tabanlı yönetime geçirmek ve CSRF koruması eklemek opsiyonel TODO olarak listede duruyor.
 
 Bu özet yeni sohbetlerde bağlam sağlamak için kullanılabilir; ayrıntılar için ilgili dokümanlara bakılması yeterlidir.

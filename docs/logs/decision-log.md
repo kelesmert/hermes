@@ -44,9 +44,9 @@ Bu dosya, projede alınan mimarî ve teknolojik kararları, gerekçelerini ve be
 
 ### Token Saklama Stratejisi (Geçiş Dönemi)
 
-- **Karar:** Backend HttpOnly cookie yapısı hazır olana kadar refresh token tarayıcı `localStorage`’ında tutulacak; uygulama her açıldığında `POST /api/auth/refresh` çağrılarak sessiz login sağlanacak.
-- **Gerekçe:** Kullanıcıların sayfayı yenileyince tekrar login olmasını engellemek; kısa vadede XSS riskini bilerek kabul etmek, uzun vadede cookie/CSRF geçişini planlamak.
-- **Etkisi:** Session yönetimi Context + custom hook üzerinden yapılacak; transition tamamlandığında localStorage kullanımı kaldırılacak ve dokümantasyon güncellenecek.
+- **Karar:** Refresh token tarayıcı `localStorage`’ında tutulacak; uygulama her açıldığında `POST /api/auth/refresh` çağrılarak sessiz login sağlanacak. HttpOnly cookie yapısına geçiş opsiyonel olarak değerlendirilecek.
+- **Gerekçe:** Kullanıcıların sayfayı yenileyince tekrar login olmasını engellemek; cookie/CSRF geçişine ancak gerçek ihtiyaç oluştuğunda yatırım yapmak.
+- **Etkisi:** Session yönetimi Context + custom hook üzerinden devam edecek; ileride gereksinim doğrulanırsa cookie + CSRF kombinasyonu için ayrıca plan yapılacak ve dokümantasyon güncellenecek.
 
 ### Import Alias (`@/`)
 

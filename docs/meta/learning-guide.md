@@ -76,11 +76,11 @@ Bu rehber, backend ve frontend’i MVP hedefiyle nasıl kurduğumuzu öğretici 
 - Kod: Modüler ve DRY; anlaşılması zor fonksiyonlarda kısa yorumlar.
 - Test aracı: Postman varsayılan; farklı araç gerekirse özellikle belirtilecek.
 
-## Not: Cookie Tabanlı Token Yönetimi (Planlı)
+## Not: Cookie Tabanlı Token Yönetimi (Opsiyonel)
 - Şimdilik access token `Authorization: Bearer` ile gönderiliyor.
-- İleride access/refresh token’lar HTTP-only, Secure, SameSite cookie’lerde saklanacak.
-- Bu geçişte CSRF koruması zorunlu: double-submit token veya özel CSRF header.
-- Refresh akışı: cookie rotation (eski refresh revoke, yenisi set) + oturum kapamada cookie’lerin temizlenmesi.
+- Gereksinim doğarsa access/refresh token’lar HTTP-only, Secure, SameSite cookie’lerde saklanacak.
+- Böyle bir geçiş yapılırsa CSRF koruması (double-submit token veya özel CSRF header) zorunlu olacak.
+- Refresh akışı o senaryoda cookie rotation (eski refresh revoke, yenisi set) + oturum kapamada cookie’lerin temizlenmesi adımlarını izleyecek.
 
 ## 12) Hızlı Başlangıç
 1) `mongod` çalışıyor olsun. 2) `cp backend/.env.example backend/.env` → değerleri doldur. 3) `cd backend && npm i && npm run seed && npm run dev`. 4) Postman ile `POST /api/auth/login` ve `GET /api/users` dene.
@@ -99,8 +99,8 @@ Bu rehber, backend ve frontend’i MVP hedefiyle nasıl kurduğumuzu öğretici 
 - Bildirimler: react-hot-toast.
 - Tema: Hafif ve sade bir tema hedefleniyor; tasarım aşamasında netleşecek.
 - Durum yönetimi: Öncelik Context + custom hook; karmaşık ihtiyaçta Zustand devreye alınacak.
-- Ortam değişkenleri: `frontend/.env` içinde `VITE_API_URL=http://localhost:5000/api`; ileride cookie tabanlı auth için `axios.withCredentials` aktif edilecek.
-- Token saklama: Backend cookie yapısı hazır olana kadar refresh token `localStorage`’da tutulacak ve uygulama açılışında otomatik `refresh` çağrısı yapılacak; HttpOnly cookie’lere geçiş TODO olarak listelendi.
+- Ortam değişkenleri: `frontend/.env` içinde `VITE_API_URL=http://localhost:5000/api`; cookie tabanlı auth gerekirse `axios.withCredentials` aktif edilecek.
+- Token saklama: Refresh token şimdilik `localStorage`’da tutulacak ve uygulama açılışında otomatik `refresh` çağrısı yapılacak; HttpOnly cookie’lere geçiş opsiyonel TODO olarak takip ediliyor.
 - Import alias: `@/` kök alias’ı hem frontend hem backend’de tanımlanacak; karmaşık relatif yollar yerine bu kısayol tercih edilecek.
 - App layout: Sol sidebar tüm navigasyonu barındıracak, üst header’da kullanıcı menüsü, genel arama ve notifications dropdown bulunacak; breadcrumbs zorunlu, mobil hedef değil fakat tablet uyumu sağlanacak.
 - ESLint + Prettier: Frontend iskeletinin hemen ardından konfigüre edilip script’leri eklenecek; dokümantasyon güncel tutulacak.

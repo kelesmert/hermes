@@ -105,14 +105,14 @@ Bu proje, Node.js/Express backend, React frontend ve MongoDB veritabanı kullana
 - Mimari: Vite + React (SPA) ve JavaScript; gerektiğinde TypeScript’e geçiş yapılacak.
 - UI: MUI temel bileşenleri, ihtiyaç halinde spesifik formlar/grafikler için ek kütüphaneler kullanılacak.
 - Router: React Router v6.
-- Veri çekme: TanStack Query (React Query) + axios (`baseURL = VITE_API_URL`, ileride cookie tabanlı auth için `withCredentials` desteği).
+- Veri çekme: TanStack Query (React Query) + axios (`baseURL = VITE_API_URL`, gerekirse cookie tabanlı auth için `withCredentials` desteği devreye alınacak).
 - Form doğrulama: React Hook Form + Zod.
 - Tablo/Grafik: TanStack Table + MUI bileşenleri, Recharts.
 - Bildirim: react-hot-toast.
 - Durum yönetimi: Öncelik Context + custom hook; gerekirse Zustand devreye alınacak.
 - Tema: Hafif ve sade yaklaşım hedefleniyor, detay kararı tasarım aşamasında verilecek.
 - Env: `VITE_API_URL=http://localhost:5000/api` (backend ile uyumlu).
-- Auth oturumu: Refresh token cookie tabanına taşınana kadar `localStorage` içinde saklanacak; uygulama açıldığında otomatik `POST /api/auth/refresh` ile sessiz yenileme yapılacak.
+- Auth oturumu: Refresh token şimdilik `localStorage` içinde saklanacak; uygulama açıldığında otomatik `POST /api/auth/refresh` ile sessiz yenileme yapılacak. HttpOnly cookie yapısına geçiş opsiyonel bir iyileştirme olarak değerlendirilecek.
 - Import alias: Hem frontend hem backend tarafında `@/` alias’ı tanımlanacak, uzun relatif yollar yerine bu kısayol kullanılacak.
 - Layout: Sol sidebar + üst header ana kabuk olacak; sidebar tüm modül menülerini barındıracak, header’da kullanıcı menüsü, genel arama alanı ve notifications dropdown bulunacak. Breadcrumbs her korumalı sayfada gösterilecek. Mobil öncelik değil; tablet boyutu desteklenecek.
 - Bildirim menüsü (header) ve genel arama için placeholder bileşenler ilk fazda hazırlanacak.

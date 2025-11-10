@@ -23,7 +23,7 @@
   - React Router v6 yönlendirme, TanStack Query veri çekme, axios HTTP istemcisi olacak.
   - Formlar React Hook Form + Zod ile yönetilecek; tablolar TanStack Table + MUI, grafikler Recharts ile render edilecek.
   - Bildirimler için react-hot-toast kullanılacak.
-  - Refresh token, backend cookie stratejisi tamamlanana kadar geçici olarak `localStorage` içinde saklanacak; uygulama açılışında otomatik `POST /api/auth/refresh` çağrısı yapılacak. HttpOnly cookie yapısı hazırlandığında bu yaklaşım güncellenecek.
+  - Refresh token şimdilik `localStorage` içinde saklanacak ve uygulama açılışında otomatik `POST /api/auth/refresh` çağrısı yapılacak; HttpOnly cookie yapısına geçiş opsiyonel olup gereksinim ortaya çıkarsa ayrıca planlanacak.
   - Tema seçimi ilerleyen aşamada netleştirilecek; hedef hafif ve sade bir görünüm.
   - Durum yönetimi ihtiyaç oldukça belirlenecek; mümkünse Context + custom hook, gerektiğinde Zustand.
   - `VITE_API_URL` ile backend (`http://localhost:5000/api`) adresi konfigüre edilecek; `axios.withCredentials` ilerideki cookie geçişine hazır tutulacak.
@@ -38,7 +38,7 @@
 - Audit log altyapısı planın ilerleyen aşamalarında kurulacak.
 - Raporlama katmanında verimlilik ve duruş analizleri sağlanacak; AI temelli kısa içgörü üretilmesi hedeflenecek.
 - İsimlendirmelerde şirket/proje adı olan “hermes” kullanılacak (örn. `hermes_dev` veritabanı); “mes” etiketi sadece konsepti açıklamak için kullanılacak.
-- Token saklama stratejisi: Şimdilik `Authorization: Bearer` başlığı ile gönderilen access token ve `localStorage`’da tutulan refresh token (uygulama yüklenince otomatik `refresh`) kullanılacak; ileride access/refresh token yönetimi HTTP-only, Secure, SameSite cookie’lere taşınacak ve uygun CSRF koruması (örn. double-submit token veya CSRF header) eklenecek.
+- Token saklama stratejisi: Şimdilik `Authorization: Bearer` başlığı ile gönderilen access token ve `localStorage`’da tutulan refresh token (uygulama yüklenince otomatik `refresh`) kullanılacak; HttpOnly, Secure, SameSite cookie’lere geçiş opsiyonel bir iyileştirme olarak değerlendirilecek ve gerekirse CSRF korumasıyla birlikte ele alınacak.
 
 ## Dokümantasyon ve Kayıt
 
