@@ -38,6 +38,7 @@ const authGuard = asyncHandler(async (req, _res, next) => {
 
   req.auth = {
     userId: user._id.toString(),
+    username: user.username,
     email: user.email,
     roles: roleNames,
     permissions: permissionNames,

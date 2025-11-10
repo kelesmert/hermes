@@ -10,16 +10,17 @@ Bu proje, Node.js/Express backend, React frontend ve MongoDB veritabanı kullana
 ## 3. Kullanıcı Rolleri
 | Rol      | Açıklama | Yetkiler |
 |----------|----------|----------|
-| Admin    | Sistemin tamamını yönetir | Kullanıcı oluşturma/silme, rol atama, makine CRUD, rapor/audit görüntüleme, AI sonuçlarını onaylama |
-| Supervisor | Üretim yöneticisi | Dashboard, makine durum değişimleri, rapor indirme, AI önerilerini görme |
-| Operator | Makine operatörü | Kendine atanmış makineleri görüntüleme, durum güncelleme, not ekleme |
-| Viewer   | Sadece okuma | Dashboard ve rapor ekranlarını görüntüler |
+| Master   | Sistemdeki tüm yetkilere sahip | Tüm modüllere erişim, kullanıcı/rol yönetimi, rapor/audit/AI onayı |
+| Supervisor | Üretim yöneticisi | Dashboard (read), makineler (read/write), iş emri & vardiya kontrolü, rapor görüntüleme, operatör yönetimi |
+| Operator | Saha operatörü | Atanmış istasyonda iş emri yürütme, makine durum güncelleme, telemetri girişi |
+| Viewer   | Misafir/izleyici | Dashboard ve rapor ekranlarını görüntüler |
 
 > Not: Her kullanıcı en az bir role sahip olmak zorunda olup ihtiyaç halinde birden fazla rol atanabilir. Roller, merkezi bir izin (permission) koleksiyonuna bağlı olarak yetki kazanır.
 
 ## 4. Fonksiyonel Gereksinimler
 1. **Kimlik Doğrulama & RBAC**
    - JWT tabanlı login/logout.
+   - Tüm oturumlar kullanıcı adı + şifre ile açılır; e-posta adresi opsiyonel olup yalnızca bildirim/sıfırlama gibi durumlar için saklanır.
    - Refresh token mekanizması (opsiyonel ama önerilir).
    - Rol bazlı middleware ile endpoint koruması.
 2. **Kullanıcı Yönetimi**

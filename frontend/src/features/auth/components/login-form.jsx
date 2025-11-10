@@ -8,7 +8,7 @@ import toast from 'react-hot-toast';
 import authApi from '@/features/auth/services/auth-api.js';
 
 const loginSchema = z.object({
-  email: z.string().email('Geçerli bir e-posta girin.'),
+  username: z.string().min(3, 'Kullanıcı adı en az 3 karakter olmalı.'),
   password: z.string().min(6, 'En az 6 karakter olmalı.'),
 });
 
@@ -21,7 +21,7 @@ const LoginForm = () => {
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm({
-    defaultValues: { email: '', password: '' },
+    defaultValues: { username: '', password: '' },
     resolver: zodResolver(loginSchema),
   });
 
@@ -42,11 +42,10 @@ const LoginForm = () => {
     <Box component="form" onSubmit={handleSubmit(onSubmit)}>
       <Stack spacing={2.5}>
         <TextField
-          label="E-posta"
-          type="email"
-          {...register('email')}
-          error={Boolean(errors.email)}
-          helperText={errors.email?.message}
+          label="Kullanıcı Adı"
+          {...register('username')}
+          error={Boolean(errors.username)}
+          helperText={errors.username?.message}
           fullWidth
         />
         <TextField
@@ -59,7 +58,7 @@ const LoginForm = () => {
         />
 
         <Alert severity="info" variant="outlined">
-          Demo kullanıcı: `admin@hermes.local` / `ChangeMe123!`
+          Demo kullanıcı: `admin` / `ChangeMe123!`
         </Alert>
 
         <Button

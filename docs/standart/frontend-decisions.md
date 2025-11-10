@@ -50,11 +50,13 @@ frontend/
 ## 4. Auth & State Yönetimi
 
 - Access token bellek içinde tutulur; refresh token cookie’ye geçene kadar `localStorage`’da saklanır ve uygulama yüklenince `POST /api/auth/refresh` çağrısı yapılır.
+- Auth girişleri kullanıcı adı + şifre ile yapılır. Login formu yalnızca `username` ve `password` alanlarını içermelidir (e-posta opsiyoneldir).
 - Auth bilgisi `SessionProvider + useSession` ile yönetilir. Gerektiğinde Zustand kullanılabilir, ancak önce bu dosya güncellenecek.
+- SessionProvider backend’den gelen rol + permission detaylarını saklar; `ROLE_PERMISSIONS` yalnızca varsayılan roller için fallback olarak tutulur.
 - Route guard’lar:
   - `PrivateRoute`: kimlik doğrulaması gerekli sayfalar.
   - `PermissionGuard`: `requiredPermissions` dizisindeki tüm izinlerin varlığını kontrol eder (backend ile uyumlu).
-- Rollerden izin türetme mantığı backend’den gelen permission listesiyle yapılır; `ROLE_PERMISSIONS` yalnızca varsayılan roller için fallback olarak tutulur ve oturum verisi `SessionProvider` içinde normalize edilir.
+- `/users` rotası TanStack Table ile kullanıcı listesini gösterir; kullanıcı silme/düzenleme dialogları yalnızca `users.manage` iznine sahip kullanıcılar için aktiftir. Aynı sayfadaki “Roller & İzinler” sekmesi `roles.manage` iznine sahip kullanıcılara açıktır.
 
 ## 5. Veri Erişimi ve Hata Yönetimi
 

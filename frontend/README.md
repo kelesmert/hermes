@@ -12,6 +12,7 @@ npm run dev
 ```
 
 Varsayılan adres: `http://localhost:5173/`
+- Login ekranında kullanıcı adı + şifre kullanılır (örn. `admin / ChangeMe123!`). `/users` rotasında kullanıcı tablosu ve `roles.manage` izni olanlar için rol/permission sekmesi bulunur.
 
 ## Yapı
 - `src/app` → Providers, tema ve route guard bileşenleri.

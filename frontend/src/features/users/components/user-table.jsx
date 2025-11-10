@@ -7,6 +7,10 @@ import {
   CardContent,
   Chip,
   CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   FormControlLabel,
   IconButton,
   Stack,
@@ -22,6 +26,7 @@ import {
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useReactTable, getCoreRowModel, flexRender } from '@tanstack/react-table';
@@ -31,8 +36,10 @@ import {
   fetchRoles,
   createUser,
   updateUser,
+  deleteUser,
 } from '@/features/users/services/users-api.js';
 import UserFormDialog from '@/features/users/components/user-form-dialog.jsx';
+import usePermissions from '@/hooks/use-permissions.js';
 
 const DataState = ({ isLoading, hasData, onRefresh, isFiltered }) => {
   if (isLoading) {
@@ -67,9 +74,13 @@ DataState.propTypes = {
 
 const UsersTable = () => {
   const queryClient = useQueryClient();
+  const { hasPermission } = usePermissions();
+  const canManageUsers = hasPermission('users.manage');
   const [search, setSearch] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [deleteCandidate, setDeleteCandidate] = useState(null);
 
   const {
     data: users = [],
@@ -123,6 +134,7 @@ const UsersTable = () => {
 
   const handleSubmitUser = (values) => {
     const payload = {
+      username: values.username,
       firstName: values.firstName,
       lastName: values.lastName,
       email: values.email,
@@ -147,6 +159,25 @@ const UsersTable = () => {
     });
   };
 
+  const deleteMutation = useMutation({
+    mutationFn: (id) => deleteUser(id),
+    onSuccess: () => {
+      toast.success('Kullanıcı silindi.');
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      setConfirmOpen(false);
+      setDeleteCandidate(null);
+    },
+    onError: (error) => {
+      const message = error.response?.data?.message || 'Kullanıcı silinemedi.';
+      toast.error(message);
+    },
+  });
+
+  const openDeleteDialog = (user) => {
+    setDeleteCandidate(user);
+    setConfirmOpen(true);
+  };
+
   const filteredUsers = useMemo(() => {
     if (!search) return users;
     const term = search.toLowerCase();
@@ -154,7 +185,8 @@ const UsersTable = () => {
       (user) =>
         user.firstName.toLowerCase().includes(term) ||
         user.lastName.toLowerCase().includes(term) ||
-        user.email.toLowerCase().includes(term),
+        user.username.toLowerCase().includes(term) ||
+        (user.email || '').toLowerCase().includes(term),
     );
   }, [users, search]);
 
@@ -167,8 +199,13 @@ const UsersTable = () => {
           <Stack>
             <Typography fontWeight={600}>{`${row.original.firstName} ${row.original.lastName}`}</Typography>
             <Typography variant="body2" color="text.secondary">
-              {row.original.email}
+              @{row.original.username}
             </Typography>
+            {row.original.email && (
+              <Typography variant="body2" color="text.secondary">
+                {row.original.email}
+              </Typography>
+            )}
           </Stack>
         ),
       },
@@ -202,15 +239,27 @@ const UsersTable = () => {
       {
         header: 'İşlemler',
         cell: ({ row }) => (
-          <Tooltip title="Düzenle">
-            <IconButton onClick={() => handleOpenDialog(row.original)}>
-              <EditIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
+          <Stack direction="row" spacing={1}>
+            <Tooltip title="Düzenle">
+              <IconButton onClick={() => handleOpenDialog(row.original)}>
+                <EditIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title={canManageUsers ? 'Sil' : 'Bu işlem için izniniz yok'}>
+              <span>
+                <IconButton
+                  onClick={() => openDeleteDialog(row.original)}
+                  disabled={!canManageUsers}
+                >
+                  <DeleteIcon fontSize="small" />
+                </IconButton>
+              </span>
+            </Tooltip>
+          </Stack>
         ),
       },
     ],
-    [handleToggleActive],
+    [handleToggleActive, canManageUsers],
   );
 
   const table = useReactTable({
@@ -224,7 +273,7 @@ const UsersTable = () => {
       <CardContent>
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} justifyContent="space-between" mb={3}>
           <TextField
-            placeholder="İsim veya e-posta ara"
+            placeholder="İsim, kullanıcı adı veya e-posta ara"
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             size="small"
@@ -280,6 +329,47 @@ const UsersTable = () => {
         roles={roleOptions}
         initialData={editingUser}
       />
+
+      <Dialog
+        open={confirmOpen}
+        onClose={() => {
+          if (!deleteMutation.isLoading) {
+            setConfirmOpen(false);
+            setDeleteCandidate(null);
+          }
+        }}
+      >
+        <DialogTitle>Kullanıcıyı Sil</DialogTitle>
+        <DialogContent dividers>
+          <Typography gutterBottom>
+            {deleteCandidate
+              ? `${deleteCandidate.firstName} ${deleteCandidate.lastName} (@${deleteCandidate.username}) kullanıcısını silmek üzeresiniz.`
+              : 'Bu kullanıcıyı silmek üzeresiniz.'}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Bu işlem geri alınamaz. Devam etmek istiyor musunuz?
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => {
+              setConfirmOpen(false);
+              setDeleteCandidate(null);
+            }}
+            disabled={deleteMutation.isLoading}
+          >
+            Vazgeç
+          </Button>
+          <Button
+            color="error"
+            variant="contained"
+            onClick={() => deleteMutation.mutate(deleteCandidate.id)}
+            disabled={deleteMutation.isLoading}
+          >
+            Sil
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Card>
   );
 };

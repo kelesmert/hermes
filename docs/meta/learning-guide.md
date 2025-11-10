@@ -108,7 +108,7 @@ Bu rehber, backend ve frontend’i MVP hedefiyle nasıl kurduğumuzu öğretici 
 ## 15) Frontend Öğrenim Notları
 - Detaylı dizin yapısı ve kurulum için `frontend/README.md` dosyasına bak.
 - Auth entegrasyonu:
-  - Login formu `/api/auth/login` endpoint’i ile çalışır; SessionProvider backend’den gelen rol + permission detaylarını saklar (`ROLE_PERMISSIONS` yalnızca varsayılan roller için fallback olarak kullanılır).
+  - Login formu `/api/auth/login` endpoint’i ile çalışır; kullanıcılar kullanıcı adı + şifre girer (e-posta opsiyoneldir). SessionProvider backend’den gelen rol + permission detaylarını saklar (`ROLE_PERMISSIONS` yalnızca varsayılan roller için fallback olarak kullanılır).
   - Uygulama açılışında localStorage’daki refresh token ile otomatik `/api/auth/refresh` çağrısı yapılır; başarısız olursa session temizlenir.
   - Logout sırasında `/api/auth/logout` tetiklenir; axios interceptors 401 durumunda storage’ı silip `hermes:session-expired` event’i yayar.
   - `Users` sayfasındaki TanStack Table gerçek `/api/users` verisini gösterir; aynı ekrandaki roller sekmesi `roles.manage` iznine sahip kullanıcılar için rol/permission CRUD akışını sunar.

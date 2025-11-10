@@ -118,8 +118,8 @@ const deleteRole = async (roleId) => {
     throw new AppError('Silinecek rol bulunamadı.', 404);
   }
 
-  if (role.name === roles.VIEWER) {
-    throw new AppError('Viewer rolü silinemez.', 400);
+  if (role.name === roles.VIEWER || role.name === roles.MASTER) {
+    throw new AppError('Bu rol silinemez.', 400);
   }
 
   const viewerRole = await Role.findOne({ name: roles.VIEWER });

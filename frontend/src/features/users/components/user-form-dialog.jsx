@@ -19,6 +19,7 @@ import {
 import { Controller, useForm } from 'react-hook-form';
 
 const defaultValues = {
+  username: '',
   firstName: '',
   lastName: '',
   email: '',
@@ -39,6 +40,7 @@ const UserFormDialog = ({ open, onClose, onSubmit, roles, initialData }) => {
   useEffect(() => {
     if (initialData) {
       reset({
+        username: initialData.username || '',
         firstName: initialData.firstName || '',
         lastName: initialData.lastName || '',
         email: initialData.email || '',
@@ -63,12 +65,18 @@ const UserFormDialog = ({ open, onClose, onSubmit, roles, initialData }) => {
       <Box component="form" onSubmit={handleSubmit(onSubmit)}>
         <DialogContent dividers>
           <Stack spacing={2.5}>
+            <TextField
+              label="Kullanıcı Adı"
+              {...register('username', { required: true })}
+              fullWidth
+            />
             <TextField label="Ad" {...register('firstName', { required: true })} fullWidth />
             <TextField label="Soyad" {...register('lastName', { required: true })} fullWidth />
             <TextField
               label="E-posta"
               type="email"
-              {...register('email', { required: true })}
+              {...register('email')}
+              helperText="Opsiyonel - şifre reset ve bildirimler için kullanılacak."
               fullWidth
             />
             <TextField
@@ -144,6 +152,7 @@ UserFormDialog.propTypes = {
   ),
   initialData: PropTypes.shape({
     id: PropTypes.string,
+    username: PropTypes.string,
     firstName: PropTypes.string,
     lastName: PropTypes.string,
     email: PropTypes.string,

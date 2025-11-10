@@ -23,7 +23,8 @@
   - React Router v6 yönlendirme, TanStack Query veri çekme, axios HTTP istemcisi olacak.
   - Formlar React Hook Form + Zod ile yönetilecek; tablolar TanStack Table + MUI, grafikler Recharts ile render edilecek.
   - Bildirimler için react-hot-toast kullanılacak.
-  - Refresh token şimdilik `localStorage` içinde saklanacak ve uygulama açılışında otomatik `POST /api/auth/refresh` çağrısı yapılacak; HttpOnly cookie yapısına geçiş opsiyonel olup gereksinim ortaya çıkarsa ayrıca planlanacak.
+- Refresh token şimdilik `localStorage` içinde saklanacak ve uygulama açılışında otomatik `POST /api/auth/refresh` çağrısı yapılacak; HttpOnly cookie yapısına geçiş opsiyonel olup gereksinim ortaya çıkarsa ayrıca planlanacak.
+- Uygulama girişleri kullanıcı adı + şifre ile yapılır; e-posta adresi opsiyoneldir ve bildirim/şifre sıfırlama gibi senaryolar için saklanır.
   - Tema seçimi ilerleyen aşamada netleştirilecek; hedef hafif ve sade bir görünüm.
   - Durum yönetimi ihtiyaç oldukça belirlenecek; mümkünse Context + custom hook, gerektiğinde Zustand.
   - `VITE_API_URL` ile backend (`http://localhost:5000/api`) adresi konfigüre edilecek; `axios.withCredentials` ilerideki cookie geçişine hazır tutulacak.

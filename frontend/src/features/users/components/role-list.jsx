@@ -169,7 +169,7 @@ const RoleManagement = () => {
                                 setSelectedRole(role);
                                 setConfirmOpen(true);
                               }}
-                              disabled={role.name === 'viewer'}
+                              disabled={role.name === 'viewer' || role.name === 'master'}
                             >
                               <DeleteIcon fontSize="small" />
                             </IconButton>

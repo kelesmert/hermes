@@ -93,21 +93,31 @@ const buildAuthTokens = async (userDoc, context) => {
 };
 
 const registerUser = async (payload) => {
-  const { firstName, lastName, email, password, roleNames } = payload;
+  const { username, firstName, lastName, email, password, roleNames } = payload;
 
-  const existingUser = await User.findOne({ email: email.toLowerCase() });
+  const normalizedUsername = username.trim().toLowerCase();
+  const normalizedEmail = email ? email.trim().toLowerCase() : undefined;
 
-  if (existingUser) {
-    throw new AppError('Bu e-posta ile kullanıcı zaten mevcut.', 409);
+  const existingByUsername = await User.findOne({ username: normalizedUsername });
+  if (existingByUsername) {
+    throw new AppError('Bu kullanıcı adı zaten kullanılıyor.', 409);
+  }
+
+  if (normalizedEmail) {
+    const existingByEmail = await User.findOne({ email: normalizedEmail });
+    if (existingByEmail) {
+      throw new AppError('Bu e-posta ile kullanıcı zaten mevcut.', 409);
+    }
   }
 
   const rolesDocs = await resolveRoles(roleNames);
   const passwordHash = await hashPassword(password);
 
   const user = await User.create({
+    username: normalizedUsername,
     firstName,
     lastName,
-    email: email.toLowerCase(),
+    email: normalizedEmail,
     passwordHash,
     roles: rolesDocs.map((roleDoc) => roleDoc._id),
   });
@@ -117,8 +127,9 @@ const registerUser = async (payload) => {
   return sanitizeUser(user);
 };
 
-const loginUser = async ({ email, password, userAgent, ipAddress }) => {
-  const user = await User.findOne({ email: email.toLowerCase(), isActive: true })
+const loginUser = async ({ username, password, userAgent, ipAddress }) => {
+  const normalizedUsername = username.trim().toLowerCase();
+  const user = await User.findOne({ username: normalizedUsername, isActive: true })
     .select('+passwordHash')
     .populate({
       path: 'roles',
@@ -126,7 +137,7 @@ const loginUser = async ({ email, password, userAgent, ipAddress }) => {
     });
 
   if (!user) {
-    throw new AppError('E-posta veya şifre hatalı.', 401);
+    throw new AppError('Kullanıcı adı veya şifre hatalı.', 401);
   }
 
   if ((!user.roles || user.roles.length === 0) && user.role) {
@@ -138,7 +149,7 @@ const loginUser = async ({ email, password, userAgent, ipAddress }) => {
 
   const isMatch = await user.comparePassword(password);
   if (!isMatch) {
-    throw new AppError('E-posta veya şifre hatalı.', 401);
+    throw new AppError('Kullanıcı adı veya şifre hatalı.', 401);
   }
 
   user.lastLoginAt = new Date();

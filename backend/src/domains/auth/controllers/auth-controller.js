@@ -8,13 +8,14 @@ const requestMeta = (req) => ({
 });
 
 const register = asyncHandler(async (req, res) => {
-  const { firstName, lastName, email, password, roleName, roles } = req.body || {};
+  const { username, firstName, lastName, email, password, roleName, roles } = req.body || {};
 
-  if (!firstName || !lastName || !email || !password) {
-    throw new AppError('Ad, soyad, e-posta ve şifre zorunludur.', 400);
+  if (!username || !firstName || !lastName || !password) {
+    throw new AppError('Kullanıcı adı, ad, soyad ve şifre zorunludur.', 400);
   }
 
   const user = await authService.registerUser({
+    username,
     firstName,
     lastName,
     email,
@@ -26,14 +27,14 @@ const register = asyncHandler(async (req, res) => {
 });
 
 const login = asyncHandler(async (req, res) => {
-  const { email, password } = req.body || {};
+  const { username, password } = req.body || {};
 
-  if (!email || !password) {
-    throw new AppError('E-posta ve şifre zorunludur.', 400);
+  if (!username || !password) {
+    throw new AppError('Kullanıcı adı ve şifre zorunludur.', 400);
   }
 
   const payload = await authService.loginUser({
-    email,
+    username,
     password,
     ...requestMeta(req),
   });

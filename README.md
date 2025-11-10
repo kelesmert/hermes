@@ -3,8 +3,9 @@
 Hermes, mezuniyet projesi kapsamında geliştirilen hafif bir Manufacturing Execution System (MES) MVP’sidir. Amaç; Node.js/Express tabanlı backend, React tabanlı frontend ve MongoDB veritabanıyla kullanıcı kimlik doğrulaması, rol/izin yönetimi, makine izleme, raporlama ve AI destekli içgörüleri içeren modüler bir çözüm sunmaktır.
 
 ## Durum
-- ✅ Backend temel iskeleti, JWT + refresh token tabanlı auth/RBAC akışı ve seed script’i hazır.
-- 📋 Makine servisleri, raporlama, audit, AI ve frontend arayüzleri için çalışmalar roadmap’te planlı.
+- ✅ Backend temel iskeleti, JWT + refresh token tabanlı auth ve kullanıcı adıyla giriş yapan RBAC yönetimi (roles/permissions/users endpointleri + seed script) hazır.
+- ✅ Frontend `/users` sayfası TanStack Table ve rol/izin yönetimi sekmesiyle gerçek API’lere bağlı; kullanıcı ekleme/düzenleme/silme ve viewer fallback akışları çalışıyor.
+- 📋 Makine servisleri, raporlama, audit, AI ve diğer domainler roadmap’te planlı.
 - 📝 Tüm zorunlu kurallar `docs/standart/` altında; karar günlükleri ve gereksinimler güncel tutuluyor.
 
 ## Teknoloji Yığını
@@ -50,6 +51,9 @@ Her çalışmaya başlamadan önce `docs/project-guidelines.md` içindeki yönle
    npm install
    npm run seed
    ```
+   > Seed script’i varsayılan roller + iki kullanıcıyı üretir:
+   > - Master hesap: `admin / ChangeMe123!`
+   > - Sys test hesabı: `sys / syssys`
 4. Geliştirme sunucusu:
    ```bash
    npm run dev
@@ -73,6 +77,7 @@ Her çalışmaya başlamadan önce `docs/project-guidelines.md` içindeki yönle
    npm run dev
    ```
    - Varsayılan adres: `http://localhost:5173/`
+   - Login ekranında kullanıcı adı + şifre ile giriş yapılır (örn. `admin / ChangeMe123!`). `/users` sayfası kullanıcı/rol yönetimi ve izin sekmesini içerir.
 
 > Not: Alias ve provider iskeleti hazır; UI bileşenlerini genişletmeden önce `docs/standart/frontend-decisions.md` kurallarını gözden geçirin. Yeni bağımlılıklar için `npm install <paket>` komutlarını manuel çalıştırmanız gerekebilir.
 

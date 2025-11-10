@@ -54,12 +54,15 @@ backend/
 - Refresh token kaydı `RefreshToken` koleksiyonunda SHA-256 hash ile tutulur; rotation sırasında eski kayıt revoke edilir.
 - Her korumalı endpoint önce `auth-guard`, ardından gerekiyorsa `permission-guard` kullanır.
 - İzin zinciri `permissions → roles → users` şeklindedir; kullanıcıların en az bir rolü olmak zorundadır.
+- Kullanıcı kayıtlarında `username` alanı zorunlu ve unique’tir. E-posta alanı opsiyoneldir ve yalnızca bildirim/şifre sıfırlama gibi süreçlerde kullanılır.
+- Varsayılan rol piramidi `master > supervisor > operator > viewer` olarak tanımlıdır; master tüm izinlere sahiptir, supervisor üretim/operatör yönetimi yapar, operator yalnızca atanmış istasyonda iş yürütür.
+- RBAC yönetimi için `domains/admin` altında rol ve permission CRUD endpointleri bulunur (`/api/roles`, `/api/permissions`); kullanıcı yönetimi `/api/users` üzerinden yapılır.
 
 ## 4. Seed ve Konfigürasyon
 
-- `npm run seed` komutu varsayılan permission/role ve admin kullanıcısını oluşturmak zorundadır.
-- `.env.example` içindeki anahtarlar: `PORT`, `MONGO_URI`, `MONGO_DB_NAME`, `JWT_SECRET`, `REFRESH_TOKEN_SECRET`, `TOKEN_EXPIRES_IN`, `REFRESH_TOKEN_EXPIRES_IN`, seed admin bilgileri.
-- Seed script’i eksik permission/role gördüğünde hata fırlatmak yerine upsert eder.
+- `npm run seed` komutu varsayılan permission/role ve sistem kullanıcılarını (master/admin ve sys/test) oluşturmak zorundadır.
+- `.env.example` içindeki anahtarlar: `PORT`, `MONGO_URI`, `MONGO_DB_NAME`, `JWT_SECRET`, `REFRESH_TOKEN_SECRET`, `TOKEN_EXPIRES_IN`, `REFRESH_TOKEN_EXPIRES_IN`, seed kullanıcı bilgileri (`SEED_*_USERNAME`, `SEED_*_EMAIL`, `SEED_*_PASSWORD` vb.).
+- Seed script’i eksik permission/role gördüğünde hata fırlatmak yerine upsert eder; username alanı boş olan kullanıcıları otomatik doldurur ve silinemez roller (master/viewer) için koruma uygular.
 
 ## 5. Hata Yönetimi
 

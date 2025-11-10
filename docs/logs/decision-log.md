@@ -113,3 +113,14 @@ Bu dosya, projede alınan mimarî ve teknolojik kararları, gerekçelerini ve be
 ---
 
 Yeni kararlar alındıkça bu dosyaya tarih/başlık/gerekçe formatıyla ekleme yapılmalıdır.
+- ### Kullanıcı Adı Bazlı Kimlik Doğrulama
+
+- **Karar:** Kullanıcı girişleri e-posta yerine zorunlu `username` alanı ile yapılacak; e-posta opsiyonel olup sadece bildirim/şifre sıfırlama için saklanacak. Seed script’i admin/sys hesaplarına username tanımlar ve mevcut kullanıcıların eksik username alanlarını doldurur.
+- **Gerekçe:** Üretim sahasında kullanıcılar genellikle şirket e-postası kullanmıyor; sade ve benzersiz bir kimlik gerekli.
+- **Etkisi:** Auth controller/service, kullanıcı yönetimi ve frontend formlar username üzerinden çalışıyor; yerel depolardaki eski kayıtlar migrasyon ile uyumlu hale getirildi.
+
+### Rol Piramidi ve Yeni Permission Seti
+
+- **Karar:** Varsayılan roller `master > supervisor > operator > viewer` olarak güncellendi; execution ve vardiya yönetimi için yeni permission anahtarları (`work_orders.execute`, `shifts.manage`) eklendi.
+- **Gerekçe:** Rol tanımları üretim süreçlerine göre netleştirildi; supervisor operatörleri yönetebilmek, operator ise sadece atanmış istasyonlarda işlem yapabilmek zorunda.
+- **Etkisi:** Seed script’i yeni rollerle güncellendi, viewer fallback korundu, frontend fallback haritası ve rol yönetim UI’sı yeni izin kategorilerini gösteriyor.

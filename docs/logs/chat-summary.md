@@ -27,10 +27,12 @@ Bu dosya, mevcut sohbet oturumunda alınan kararları ve yapılan işleri özetl
 ## RBAC Yönetimi
 
 - Backend’e `/api/roles`, `/api/permissions` ve `/api/users` (create/update) uçları eklendi; role CRUD, viewer fallback (rol silinince tek kalan kullanıcıları viewer’a atama) ve permission listesi API’si hazır.
-- Seed script maintenance rolü + sys test kullanıcısı oluşturuyor; viewer rolü zorunlu olduğundan fallback senaryosu güvence altında.
+- Seed script master/supervisor/operator/viewer rollerini güncelledi, sys & admin (master) hesaplarına username tanımlıyor; viewer rolü zorunlu olduğundan fallback senaryosu güvence altında.
 - Auth servisleri artık rol->permission ilişkisini payload’a ekliyor; SessionProvider bu bilgiyi saklayarak UI guard’larını dinamik hale getiriyor.
 - Frontend kullanıcı sayfası TanStack Table ile `/api/users` verisini gösteriyor; kullanıcı ekleme/düzenleme/aktif-pasif akışları ve rol atama dialogları tamamlandı.
 - Roller & izinler sekmesi (sadece `roles.manage`) role CRUD + permission kategorili seçim ekranı sağlıyor; silme işleminde viewer fallback mesajı gösteriliyor.
+- Kimlik doğrulama artık kullanıcı adı + şifre ile yapılıyor; e-posta opsiyonel olup seed script admin/sys hesaplarına username atıyor ve eksik username alanlarını dolduruyor. Kullanıcı tablosu username’i gösteriyor, kullanıcı silme butonu `users.manage` izniyle kontrol ediliyor.
+- Kullanıcı silme API’si + onay diyaloğu eklendi; buton yalnızca `users.manage` izni olanlarda aktif ve işlemden sonra liste otomatik yenileniyor.
 
 ## Backend Domain Structure
 

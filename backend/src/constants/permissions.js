@@ -8,4 +8,6 @@ module.exports = {
   USERS_MANAGE: 'users.manage',
   ROLES_MANAGE: 'roles.manage',
   AUDIT_READ: 'audit.read',
+  WORK_ORDERS_EXECUTE: 'work_orders.execute',
+  SHIFTS_MANAGE: 'shifts.manage',
 };

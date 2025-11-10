@@ -7,6 +7,7 @@ const { hashPassword } = require('../../../utils/password');
 
 const formatUser = (user) => ({
   id: user._id,
+  username: user.username,
   firstName: user.firstName,
   lastName: user.lastName,
   email: user.email,
@@ -21,7 +22,7 @@ const formatUser = (user) => ({
 
 const listUsers = asyncHandler(async (_req, res) => {
   const users = await User.find()
-    .select('firstName lastName email roles isActive createdAt')
+    .select('username firstName lastName email roles isActive createdAt')
     .populate('roles', 'name label');
 
   res.json({
@@ -30,10 +31,11 @@ const listUsers = asyncHandler(async (_req, res) => {
 });
 
 const createUser = asyncHandler(async (req, res) => {
-  const { firstName, lastName, email, password, roleIds = [], isActive = true } = req.body || {};
+  const { username, firstName, lastName, email, password, roleIds = [], isActive = true } =
+    req.body || {};
 
-  if (!firstName || !lastName || !email || !password) {
-    throw new AppError('Ad, soyad, e-posta ve şifre zorunludur.', 400);
+  if (!username || !firstName || !lastName || !password) {
+    throw new AppError('Kullanıcı adı, ad, soyad ve şifre zorunludur.', 400);
   }
 
   if (!Array.isArray(roleIds) || roleIds.length === 0) {
@@ -45,9 +47,19 @@ const createUser = asyncHandler(async (req, res) => {
     throw new AppError('Geçersiz rol id formatı.', 400);
   }
 
-  const existingUser = await User.findOne({ email: email.toLowerCase() });
-  if (existingUser) {
-    throw new AppError('Bu e-posta ile kullanıcı zaten mevcut.', 409);
+  const normalizedUsername = username.toLowerCase().trim();
+  const normalizedEmail = typeof email === 'string' ? email.trim().toLowerCase() : undefined;
+
+  const existingByUsername = await User.findOne({ username: normalizedUsername });
+  if (existingByUsername) {
+    throw new AppError('Bu kullanıcı adı zaten kullanılıyor.', 409);
+  }
+
+  if (normalizedEmail) {
+    const existingByEmail = await User.findOne({ email: normalizedEmail });
+    if (existingByEmail) {
+      throw new AppError('Bu e-posta ile kullanıcı zaten mevcut.', 409);
+    }
   }
 
   const rolesDocs = await Role.find({ _id: { $in: roleIds } });
@@ -58,9 +70,10 @@ const createUser = asyncHandler(async (req, res) => {
   const passwordHash = await hashPassword(password);
 
   const user = await User.create({
+    username: normalizedUsername,
     firstName,
     lastName,
-    email: email.toLowerCase(),
+    email: normalizedEmail,
     passwordHash,
     roles: rolesDocs.map((role) => role._id),
     isActive: Boolean(isActive),
@@ -82,14 +95,29 @@ const updateUser = asyncHandler(async (req, res) => {
     throw new AppError('Kullanıcı bulunamadı.', 404);
   }
 
-  const { firstName, lastName, email, password, roleIds, isActive } = req.body || {};
+  const { username, firstName, lastName, email, password, roleIds, isActive } = req.body || {};
 
-  if (email && email.toLowerCase() !== user.email) {
-    const existingUser = await User.findOne({ email: email.toLowerCase(), _id: { $ne: id } });
+  if (username && username.toLowerCase().trim() !== user.username) {
+    const existingByUsername = await User.findOne({
+      username: username.toLowerCase().trim(),
+      _id: { $ne: id },
+    });
+    if (existingByUsername) {
+      throw new AppError('Bu kullanıcı adı başka bir kullanıcı tarafından kullanılıyor.', 409);
+    }
+    user.username = username.toLowerCase().trim();
+  }
+
+  const normalizedEmail = typeof email === 'string' ? email.trim().toLowerCase() : undefined;
+
+  if (normalizedEmail && normalizedEmail !== user.email) {
+    const existingUser = await User.findOne({ email: normalizedEmail, _id: { $ne: id } });
     if (existingUser) {
       throw new AppError('Bu e-posta başka bir kullanıcı tarafından kullanılıyor.', 409);
     }
-    user.email = email.toLowerCase();
+    user.email = normalizedEmail;
+  } else if (email === null || email === '') {
+    user.email = undefined;
   }
 
   if (firstName) user.firstName = firstName;
@@ -124,8 +152,24 @@ const updateUser = asyncHandler(async (req, res) => {
   res.json({ user: formatUser(user) });
 });
 
+const deleteUser = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    throw new AppError('Geçersiz kullanıcı id formatı.', 400);
+  }
+
+  const user = await User.findById(id);
+  if (!user) {
+    throw new AppError('Kullanıcı bulunamadı.', 404);
+  }
+
+  await User.deleteOne({ _id: id });
+  res.status(204).send();
+});
+
 module.exports = {
   listUsers,
   createUser,
   updateUser,
+  deleteUser,
 };

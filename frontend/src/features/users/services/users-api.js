@@ -15,6 +15,10 @@ export const updateUser = async (id, payload) => {
   return data.user;
 };
 
+export const deleteUser = async (id) => {
+  await apiClient.delete(`/users/${id}`);
+};
+
 export const fetchRoles = async () => {
   const { data } = await apiClient.get('/roles');
   return data.roles;

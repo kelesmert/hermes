@@ -12,6 +12,46 @@ const Role = require('../src/domains/auth/models/role-model');
 const User = require('../src/domains/auth/models/user-model');
 const { hashPassword } = require('../src/utils/password');
 
+const sanitizeUsernameBase = (value) =>
+  value
+    .toString()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-zA-Z0-9]+/g, '')
+    .toLowerCase();
+
+const ensureUsernames = async () => {
+  const usersWithoutUsername = await User.find({
+    $or: [{ username: { $exists: false } }, { username: null }, { username: '' }],
+  });
+
+  if (usersWithoutUsername.length === 0) {
+    return;
+  }
+
+  for (const user of usersWithoutUsername) {
+    const baseSource =
+      user.email?.split('@')[0] ||
+      `${user.firstName || ''}${user.lastName || ''}` ||
+      `user${Date.now()}`;
+    let base = sanitizeUsernameBase(baseSource);
+    if (!base) {
+      base = `user${Date.now()}`;
+    }
+    let candidate = base;
+    let suffix = 1;
+    // eslint-disable-next-line no-await-in-loop
+    while (await User.exists({ username: candidate })) {
+      candidate = `${base}${suffix}`;
+      suffix += 1;
+    }
+    user.username = candidate;
+    // eslint-disable-next-line no-await-in-loop
+    await user.save();
+    console.log(`Eksik username güncellendi: ${user._id} -> ${candidate}`);
+  }
+};
+
 const permissionSeeds = [
   {
     name: permissions.DASHBOARD_READ,
@@ -67,43 +107,54 @@ const permissionSeeds = [
     description: 'Audit log kayıtlarını okuma',
     category: 'audit',
   },
+  {
+    name: permissions.WORK_ORDERS_EXECUTE,
+    label: 'İş Emri Yürütme',
+    description: 'İş emirlerini başlatma/durdurma ve operasyon adımlarını yürütme',
+    category: 'execution',
+  },
+  {
+    name: permissions.SHIFTS_MANAGE,
+    label: 'Vardiya Yönetimi',
+    description: 'Vardiya açma/kapama ve vardiya planlarını yönetme',
+    category: 'shifts',
+  },
 ];
 
 const roleSeeds = [
   {
-    name: roles.ADMIN,
-    label: 'Admin',
-    description: 'Sistem yöneticisi, tüm yetkiler.',
+    name: roles.MASTER,
+    label: 'Master',
+    description: 'Sistemdeki tüm yetkilere sahip rol.',
     permissionNames: ['*'],
   },
   {
     name: roles.SUPERVISOR,
     label: 'Supervisor',
-    description: 'Üretim yöneticisi, rapor ve makine yönetimi.',
+    description:
+      'Operatörleri ve makineleri yönetir, iş emirlerini ve vardiya üretimini kontrol eder, raporları görüntüler.',
     permissionNames: [
       permissions.DASHBOARD_READ,
       permissions.MACHINES_READ,
       permissions.MACHINES_WRITE,
-      permissions.REPORTS_READ,
-      permissions.REPORTS_EXPORT,
-    ],
-  },
-  {
-    name: roles.MAINTENANCE,
-    label: 'Maintenance',
-    description: 'Bakım ekipleri için makine yönetimi ve rapor erişimi.',
-    permissionNames: [
-      permissions.MACHINES_READ,
-      permissions.MACHINES_WRITE,
       permissions.MACHINES_UPDATE_OWN,
       permissions.REPORTS_READ,
+      permissions.REPORTS_EXPORT,
+      permissions.WORK_ORDERS_EXECUTE,
+      permissions.SHIFTS_MANAGE,
+      permissions.USERS_MANAGE,
     ],
   },
   {
     name: roles.OPERATOR,
     label: 'Operator',
-    description: 'Makine operatörü, atanmış makineleri yönetir.',
-    permissionNames: [permissions.MACHINES_READ, permissions.MACHINES_UPDATE_OWN],
+    description: 'Atanmış istasyondaki işi yürütür, makine ve iş emri durumlarını günceller.',
+    permissionNames: [
+      permissions.DASHBOARD_READ,
+      permissions.MACHINES_READ,
+      permissions.MACHINES_UPDATE_OWN,
+      permissions.WORK_ORDERS_EXECUTE,
+    ],
     isDefault: true,
   },
   {
@@ -164,14 +215,22 @@ const seedAdminUser = async (rolesDocs) => {
     return null;
   }
 
-  const adminRole = rolesDocs.find((role) => role.name === roles.ADMIN);
+  const adminRole = rolesDocs.find((role) => role.name === roles.MASTER);
   if (!adminRole) {
-    throw new Error('Admin rolü bulunamadı, lütfen önce rol seed işlemini tamamlayın.');
+    throw new Error('Master rolü bulunamadı, lütfen önce rol seed işlemini tamamlayın.');
   }
 
-  const existingAdmin = await User.findOne({ email: adminEmail.toLowerCase() }).populate('roles');
+  const adminUsername = (process.env.SEED_ADMIN_USERNAME || 'master').toLowerCase();
+
+  const existingAdmin =
+    (await User.findOne({ username: adminUsername }).populate('roles')) ||
+    (await User.findOne({ email: adminEmail.toLowerCase() }).populate('roles'));
   if (existingAdmin) {
     let updated = false;
+    if (!existingAdmin.username) {
+      existingAdmin.username = adminUsername;
+      updated = true;
+    }
     if (!Array.isArray(existingAdmin.roles) || existingAdmin.roles.length === 0) {
       existingAdmin.roles = [adminRole._id];
       updated = true;
@@ -182,9 +241,9 @@ const seedAdminUser = async (rolesDocs) => {
     }
     if (updated) {
       await existingAdmin.save();
-      console.log(`Admin kullanıcısı rollerle güncellendi: ${existingAdmin.email}`);
+      console.log(`Master kullanıcısı rollerle güncellendi: ${existingAdmin.email || existingAdmin.username}`);
     } else {
-      console.log(`Admin kullanıcısı zaten mevcut: ${existingAdmin.email}`);
+      console.log(`Master kullanıcısı zaten mevcut: ${existingAdmin.email || existingAdmin.username}`);
     }
     return existingAdmin;
   }
@@ -192,6 +251,7 @@ const seedAdminUser = async (rolesDocs) => {
   const passwordHash = await hashPassword(adminPassword);
 
   const adminUser = await User.create({
+    username: adminUsername,
     firstName: process.env.SEED_ADMIN_FIRST_NAME || 'Hermes',
     lastName: process.env.SEED_ADMIN_LAST_NAME || 'Admin',
     email: adminEmail.toLowerCase(),
@@ -199,12 +259,13 @@ const seedAdminUser = async (rolesDocs) => {
     roles: [adminRole._id],
   });
 
-  console.log(`Admin kullanıcısı oluşturuldu: ${adminUser.email}`);
+  console.log(`Master kullanıcısı oluşturuldu: ${adminUser.email || adminUser.username}`);
   return adminUser;
 };
 
 const seedSysUser = async (rolesDocs) => {
   const sysEmail = process.env.SEED_SYS_EMAIL;
+  const sysUsername = (process.env.SEED_SYS_USERNAME || 'sys').toLowerCase();
   const sysPassword = process.env.SEED_SYS_PASSWORD;
 
   if (!sysEmail || !sysPassword) {
@@ -212,20 +273,30 @@ const seedSysUser = async (rolesDocs) => {
     return null;
   }
 
-  const adminRole = rolesDocs.find((role) => role.name === roles.ADMIN);
+  const adminRole = rolesDocs.find((role) => role.name === roles.MASTER);
   if (!adminRole) {
     throw new Error('Admin rolü bulunamadı, sys kullanıcısı oluşturulamadı.');
   }
 
-  const existingSys = await User.findOne({ email: sysEmail.toLowerCase() }).populate('roles');
+  const existingSys =
+    (await User.findOne({ username: sysUsername }).populate('roles')) ||
+    (await User.findOne({ email: sysEmail.toLowerCase() }).populate('roles'));
   if (existingSys) {
+    let updated = false;
+    if (!existingSys.username) {
+      existingSys.username = sysUsername;
+      updated = true;
+    }
     const hasAdminRole = existingSys.roles.some((role) => role._id.equals(adminRole._id));
     if (!hasAdminRole) {
       existingSys.roles.push(adminRole._id);
+      updated = true;
+    }
+    if (updated) {
       await existingSys.save();
-      console.log(`Sys kullanıcısına admin rolü atandı: ${existingSys.email}`);
+      console.log(`Sys kullanıcısı güncellendi: ${existingSys.email || existingSys.username}`);
     } else {
-      console.log(`Sys kullanıcısı zaten mevcut: ${existingSys.email}`);
+      console.log(`Sys kullanıcısı zaten mevcut: ${existingSys.email || existingSys.username}`);
     }
     return existingSys;
   }
@@ -233,6 +304,7 @@ const seedSysUser = async (rolesDocs) => {
   const passwordHash = await hashPassword(sysPassword);
 
   const sysUser = await User.create({
+    username: sysUsername,
     firstName: process.env.SEED_SYS_FIRST_NAME || 'System',
     lastName: process.env.SEED_SYS_LAST_NAME || 'Observer',
     email: sysEmail.toLowerCase(),
@@ -247,6 +319,7 @@ const seedSysUser = async (rolesDocs) => {
 const run = async () => {
   try {
     await connectDatabase();
+    await ensureUsernames();
     const roleDocs = await seedRoles();
     await seedAdminUser(roleDocs);
     await seedSysUser(roleDocs);

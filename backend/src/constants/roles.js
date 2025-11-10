@@ -1,5 +1,5 @@
 module.exports = {
-  ADMIN: 'admin',
+  MASTER: 'master',
   SUPERVISOR: 'supervisor',
   MAINTENANCE: 'maintenance',
   OPERATOR: 'operator',
