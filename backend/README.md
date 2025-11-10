@@ -28,9 +28,9 @@ backend/
 │  ├─ middleware/
 │  ├─ utils/
 │  ├─ domains/
-│  │   ├─ auth/        # login/register/refresh/logout
-│  │   ├─ users/       # kullanıcı listesi + CRUD
-│  │   └─ admin/       # roles & permissions API’leri
+│  │   ├─ auth/           # login/register/refresh/logout
+│  │   ├─ users/          # kullanıcı listesi + CRUD
+│  │   └─ access-control/ # roles & permissions API’leri
 └─ scripts/seed.js
 ```
 

@@ -56,7 +56,7 @@ backend/
 - İzin zinciri `permissions → roles → users` şeklindedir; kullanıcıların en az bir rolü olmak zorundadır.
 - Kullanıcı kayıtlarında `username` alanı zorunlu ve unique’tir. E-posta alanı opsiyoneldir ve yalnızca bildirim/şifre sıfırlama gibi süreçlerde kullanılır.
 - Varsayılan rol piramidi `master > supervisor > operator > viewer` olarak tanımlıdır; master tüm izinlere sahiptir, supervisor üretim/operatör yönetimi yapar, operator yalnızca atanmış istasyonda iş yürütür.
-- RBAC yönetimi için `domains/admin` altında rol ve permission CRUD endpointleri bulunur (`/api/roles`, `/api/permissions`); kullanıcı yönetimi `/api/users` üzerinden yapılır.
+- RBAC yönetimi için `domains/access-control` altında rol ve permission CRUD endpointleri bulunur (`/api/roles`, `/api/permissions`); kullanıcı yönetimi `/api/users` üzerinden yapılır.
 
 ## 4. Seed ve Konfigürasyon
 

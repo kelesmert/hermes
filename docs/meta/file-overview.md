@@ -21,7 +21,7 @@ Bu doküman, projedeki önemli dosya ve klasörlerin ne işe yaradığını hız
 - `backend/src/routes/index.js`: Tüm API rotalarını birleştirir (`/health`, `/auth`).
 - `backend/src/routes/health-routes.js`: `/api/health` uç noktasını içerir; servis durumu için basit yanıt verir.
 - `backend/src/domains/auth/`: Auth & RBAC domain’i; `controllers`, `services` (auth-service, token-service), `routes` (`auth-routes`), `models` (user, role, permission, refresh-token) klasörlerini içerir.
-- `backend/src/domains/admin/`: Rol ve permission yönetimi için controller/service/route dosyaları (`roles-routes`, `permissions-routes`).
+- `backend/src/domains/access-control/`: Rol ve permission yönetimi için controller/service/route dosyaları (`roles-routes`, `permissions-routes`).
 - `backend/src/domains/users/`: Kullanıcı yönetimi domain’i; `users-controller`, `users-routes` burada bulunur.
 - `backend/src/middleware/auth-guard.js`: JWT doğrulaması yaparak isteğe `req.auth` bilgisi ekler.
 - `backend/src/middleware/permission-guard.js`: İstenen izinlere göre erişim kontrolü yapan middleware.

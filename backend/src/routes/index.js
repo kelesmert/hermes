@@ -2,8 +2,8 @@ const { Router } = require('express');
 const healthRoutes = require('./health-routes');
 const authRoutes = require('../domains/auth/routes/auth-routes');
 const usersRoutes = require('../domains/users/routes/users-routes');
-const rolesRoutes = require('../domains/admin/routes/roles-routes');
-const permissionsRoutes = require('../domains/admin/routes/permissions-routes');
+const rolesRoutes = require('../domains/access-control/routes/roles-routes');
+const permissionsRoutes = require('../domains/access-control/routes/permissions-routes');
 
 const router = Router();
 
