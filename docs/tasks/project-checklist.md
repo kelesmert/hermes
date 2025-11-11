@@ -23,7 +23,7 @@
 - [ ] (Opsiyonel) Tokenları cookie tabanlı yönetime geçir (HTTP-only, Secure, SameSite), CSRF koruması ekle ve çoklu cihaz oturum yönetimi + aktif refresh listesi hazırla
 - [x] Roller/izinler için CRUD endpoint’leri ve permission yönetim API’si
 - [x] Makine domaini Faz 1: `machines` + `machine_events` modelleri, CRUD ve event API’leri, denormalize durum alanları
-- [ ] Makine domaini Faz 2: Veri simülasyon script’i (cron/scheduler) ve API’ye entegre event üretimi
+- [x] Makine domaini Faz 2: Veri simülasyon script’i (cron/scheduler) ve API’ye entegre event üretimi
 - [ ] Event zamanlarının lokal timezone desteği (UTC+3 gibi) için helper/formatlama katmanı
 - [ ] Raporlama endpointleri (verimlilik, duruş süreleri vb.)
 - [ ] CSV/Excel export servisi
@@ -43,11 +43,11 @@
 - [x] Auth sayfaları (login, logout, rol yönlendirmeleri)
 - [x] Geçici localStorage tabanlı refresh token yönetimi (cookie geçişine hazırlık)
 - [x] `/api/users` listesini TanStack Table ile entegre et; aktif/pasif toggle, rol atama ve filtreleme akışlarını tamamla
-- [ ] Dashboard layout ve genel metrik kartları
+- [x] Dashboard layout ve genel metrik kartları
 - [ ] Makine kartları (durum renkleri, aksiyon butonları, polling/WS)
 - [ ] Raporlama sayfası + filtreler
 - [x] Roller/izinler için yönetim ekranı; permission set düzenleme ve kullanıcıya rol atama modalları
-- [ ] Dashboard/rapor placeholder’larını gerçek makine/event verileriyle besleyip React Query polling/WebSocket desteği ekle
+- [x] Dashboard/rapor placeholder’larını gerçek makine/event verileriyle besleyip React Query polling/WebSocket desteği ekle *(dashboard kısmı tamamlandı, rapor ekranı beklemede)*
 - [ ] CSV/Excel export butonları ve kullanıcı geri bildirimi
 - [ ] Audit log görüntüleme ekranı
 - [ ] AI analiz sonuçlarını gösteren bileşen

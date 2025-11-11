@@ -14,8 +14,8 @@ const getMachineMetrics = asyncHandler(async (req, res) => {
 
 const getMachineTelemetrySeries = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const { limit } = req.query;
-  const payload = await boardService.getMachineTelemetrySeries(id, { limit });
+  const { limit, since } = req.query;
+  const payload = await boardService.getMachineTelemetrySeries(id, { limit, since });
   res.json(payload);
 });
 

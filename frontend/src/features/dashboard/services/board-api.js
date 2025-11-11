@@ -10,9 +10,9 @@ export const fetchMachineBoardMetrics = async (machineId) => {
   return data;
 };
 
-export const fetchMachineTelemetrySeries = async ({ machineId, limit = 30 }) => {
+export const fetchMachineTelemetrySeries = async ({ machineId, limit = 30, since }) => {
   const { data } = await apiClient.get(`/board/machines/${machineId}/telemetry`, {
-    params: { limit },
+    params: { limit, since },
   });
   return data;
 };

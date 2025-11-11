@@ -25,7 +25,7 @@ Seed sonrası örnek hesaplar:
   npm run data:gen
   ```
   Bu script veri tabanına düzenli aralıklarla sinyal/telemetri yazar, OEE job’unu ve dashboard’u canlı tutar.
-  - Interval değerleri `.env` dosyasındaki `DATA_GEN_INTERVAL_MS` ve `DATA_GEN_MACHINE_REFRESH_MS` ile ayarlanabilir.
+  - Interval değerleri ve sensör oynaklığı `.env` dosyasındaki `DATA_GEN_INTERVAL_MS`, `DATA_GEN_MACHINE_REFRESH_MS`, `DATA_GEN_TEMP_DELTA`, `DATA_GEN_TORQUE_DELTA`, `DATA_GEN_ENERGY_DELTA` değişkenleriyle ayarlanabilir.
 
 ## Dizin Yapısı
 ```

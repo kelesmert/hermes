@@ -28,6 +28,7 @@ Bu doküman, projedeki önemli dosya ve klasörlerin ne işe yaradığını hız
 - `backend/src/domains/oee/config/oee-rules.json`: OEE/sinyal işleme domaini için downtime eşikleri, reason kod haritaları ve aggregation ayarlarının tutulduğu JSON konfigurasyonu.
 - `backend/src/domains/oee/models/oee-machine-state-model.js`: Her makine için son sinyal değerini, aktif duruş event’ini ve sıfır (0) serisinin başlangıcını tutar; OEE job’u bu tabloyu kullanır.
 - `backend/src/domains/oee/services/oee-processor.js`: Telemetry kayıtlarını batch halinde okuyup kuralları uygulayan servis; gerektiğinde `machine_events` üzerinde duruş başlatma/bitirme işlemleri yapar.
+- `backend/src/domains/oee/services/oee-dashboard-service.js`: Telemetry/OEE verilerinden dashboard için gerekli ortalama, toplam ve trend verilerini üretir; board domain’i bu servis üzerinden API cevaplarını oluşturur.
 - `backend/src/jobs/oee-processor-job.js`: Sunucu açıldığında çalışan cron benzeri job; belirlenen aralıklarla OEE processor servisini tetikler.
 - `backend/src/domains/board/`: Dashboard’a yönelik metrikleri toplayan domain; `services/board-service.js` telemetry/OEE sonuçlarını birleştirir, `routes/board-routes.js` `/api/board/metrics` ve `/api/board/machines/:id/metrics` endpointlerini sunar.
 - `backend/src/middleware/auth-guard.js`: JWT doğrulaması yaparak isteğe `req.auth` bilgisi ekler.
@@ -76,6 +77,7 @@ Bu doküman, projedeki önemli dosya ve klasörlerin ne işe yaradığını hız
 
 ### docs/dev-notes
 - `docs/dev-notes/backend-domain-plan.md`: Backend'i domain bazlı klasör yapısına taşımak için geçiş planı ve adımları.
+- `docs/dev-notes/dashboard-next-steps.md`: Telemetry → OEE → board akışındaki gelecek iyileştirme planları ve hızlı bakım notları.
 
 ## Frontend
 
@@ -85,6 +87,7 @@ Bu doküman, projedeki önemli dosya ve klasörlerin ne işe yaradığını hız
 - `frontend/src/components/layout`: Sidebar, header, breadcrumbs ve kabuk bileşenleri.
 - `frontend/src/features/*`: Domain odaklı modüller (auth, dashboard, raporlar, kullanıcılar vb.).
 - `frontend/src/features/machines/`: Makine yönetimi modülü; liste, CRUD dialogları ve duruş kayıtlarını içeren bileşenler.
+- `frontend/src/features/monitoring/pages/monitoring.jsx`: Makine/hat seçimi yaparak anlık telemetry ve sinyal trendini gösteren canlı izleme sayfası.
 - `frontend/src/features/users/components/`: Kullanıcı tablosu, kullanıcı formu, rol/permission yönetimi gibi modüler bileşenler.
 - `frontend/src/lib/api/client.js`: Tüm frontend HTTP çağrılarını yapan axios instance; `baseURL` her zaman `VITE_API_URL`'dir.
 - `frontend/src/lib/query-client.js`: TanStack Query client konfigürasyonu.

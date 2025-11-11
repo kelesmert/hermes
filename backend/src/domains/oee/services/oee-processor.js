@@ -37,6 +37,7 @@ const defaultSignalRule = rules.signals?.default || {
   reasonCode: 'unplanned_stop',
 };
 const aggregationRules = rules.aggregation || { pollIntervalMs: 5000, batchSize: 200 };
+const signalTimeoutMs = defaultSignalRule.signalTimeoutMs || 10000;
 
 const pollIntervalMs = aggregationRules.pollIntervalMs || 5000;
 const batchSize = aggregationRules.batchSize || 200;
@@ -127,6 +128,7 @@ const processTelemetryBatch = async () => {
     .limit(batchSize);
 
   if (!records.length) {
+    await handleSignalTimeouts();
     return;
   }
 
@@ -135,6 +137,29 @@ const processTelemetryBatch = async () => {
       await processTelemetryRecord(telemetry);
     } catch (error) {
       console.error('Telemetry kaydı işlenemedi:', telemetry.id, error.message);
+    }
+  }
+
+  await handleSignalTimeouts();
+};
+
+const handleSignalTimeouts = async () => {
+  if (!signalTimeoutMs) return;
+  const threshold = new Date(Date.now() - signalTimeoutMs);
+  const staleStates = await OeeMachineState.find({
+    lastSignalAt: { $lt: threshold },
+    currentState: { $ne: 'downtime' },
+    lastSignalAt: { $exists: true },
+  });
+
+  for (const state of staleStates) {
+    try {
+      const startTime = state.lastSignalAt || threshold;
+      state.zeroSequenceStart = startTime;
+      await openDowntimeEvent(state, startTime);
+      await state.save();
+    } catch (error) {
+      console.error('Sinyal zaman aşımı duruşu açılamadı:', state.machine, error.message);
     }
   }
 };

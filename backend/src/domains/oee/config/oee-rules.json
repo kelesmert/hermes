@@ -4,6 +4,7 @@
       "downtimeThresholdMs": 30000,
       "recoverySignal": 1,
       "reasonCode": "unplanned_stop",
+      "signalTimeoutMs": 10000,
       "reasonCategory": "unplanned"
     },
     "plannedBreak": {

@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import AppLayout from '@/components/layout/app-layout.jsx';
 import LoginPage from '@/features/auth/pages/login.jsx';
 import DashboardPage from '@/features/dashboard/pages/dashboard.jsx';
+import MonitoringPage from '@/features/monitoring/pages/monitoring.jsx';
 import ReportsPage from '@/features/reports/pages/reports.jsx';
 import UsersPage from '@/features/users/pages/users.jsx';
 import MachinesPage from '@/features/machines/pages/machines.jsx';
@@ -29,6 +30,14 @@ const App = () => (
           element={
             <PermissionGuard requiredPermissions={["reports.read"]}>
               <ReportsPage />
+            </PermissionGuard>
+          }
+        />
+        <Route
+          path="/monitoring"
+          element={
+            <PermissionGuard requiredPermissions={["dashboard.read"]}>
+              <MonitoringPage />
             </PermissionGuard>
           }
         />

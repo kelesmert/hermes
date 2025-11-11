@@ -2,6 +2,7 @@ import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
 import AssessmentOutlinedIcon from '@mui/icons-material/AssessmentOutlined';
 import PeopleAltOutlinedIcon from '@mui/icons-material/PeopleAltOutlined';
 import PrecisionManufacturingOutlinedIcon from '@mui/icons-material/PrecisionManufacturingOutlined';
+import SensorsOutlinedIcon from '@mui/icons-material/SensorsOutlined';
 
 export const NAV_ITEMS = [
   {
@@ -21,6 +22,12 @@ export const NAV_ITEMS = [
     path: '/users',
     icon: PeopleAltOutlinedIcon,
     permission: 'users.manage',
+  },
+  {
+    label: 'Monitoring',
+    path: '/monitoring',
+    icon: SensorsOutlinedIcon,
+    permission: 'dashboard.read',
   },
   {
     label: 'Makineler',

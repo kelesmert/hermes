@@ -11,20 +11,27 @@ const MachineTelemetry = require('../src/domains/machines/models/machine-telemet
 
 const INTERVAL_MS = Number(process.env.DATA_GEN_INTERVAL_MS) || 5000;
 const MACHINE_REFRESH_MS = Number(process.env.DATA_GEN_MACHINE_REFRESH_MS) || 60000;
+const TEMP_DELTA = Number(process.env.DATA_GEN_TEMP_DELTA) || 0.3;
+const TORQUE_DELTA = Number(process.env.DATA_GEN_TORQUE_DELTA) || 3;
+const ENERGY_DELTA = Number(process.env.DATA_GEN_ENERGY_DELTA) || 0.12;
 
 const machineStates = new Map();
 let machines = [];
 let intervalRef;
 let refreshRef;
 
-const randomWithin = (value, delta) => {
-  const min = value - delta;
-  const max = value + delta;
-  return Number((Math.random() * (max - min) + min).toFixed(2));
+const randomDrift = (delta) => (Math.random() * 2 - 1) * delta;
+
+const nudgeValue = (current, delta, min = null) => {
+  let next = current + randomDrift(delta);
+  if (min !== null && next < min) {
+    next = min;
+  }
+  return Number(next.toFixed(2));
 };
 
 const pickNextSignal = (current) => {
-  const changeProbability = current === 1 ? 0.15 : 0.35;
+  const changeProbability = current === 1 ? 0.08 : 0.3;
   if (Math.random() < changeProbability) {
     return current === 1 ? 0 : 1;
   }
@@ -54,9 +61,9 @@ const generateTelemetryPayload = (machine) => {
   const state = ensureMachineState(machine);
   state.signal = pickNextSignal(state.signal);
 
-  state.temperature = randomWithin(state.temperature, 1.5);
-  state.torque = randomWithin(state.torque, 5);
-  state.energy = Math.max(randomWithin(state.energy, 0.3), 0.1);
+  state.temperature = nudgeValue(state.temperature, TEMP_DELTA);
+  state.torque = nudgeValue(state.torque, TORQUE_DELTA);
+  state.energy = nudgeValue(state.energy, ENERGY_DELTA, 0.1);
 
   return {
     machine: machine._id,
