@@ -22,8 +22,9 @@
 - [x] Admin kullanıcı seed script’i
 - [ ] (Opsiyonel) Tokenları cookie tabanlı yönetime geçir (HTTP-only, Secure, SameSite), CSRF koruması ekle ve çoklu cihaz oturum yönetimi + aktif refresh listesi hazırla
 - [x] Roller/izinler için CRUD endpoint’leri ve permission yönetim API’si
-- [ ] Makine modeli, durum geçişleri ve olay kayıtları API’leri
-- [ ] Veri simülasyon script’i (cron veya scheduler)
+- [ ] Makine domaini Faz 1: `machines` + `machine_events` modelleri, CRUD ve event API’leri, denormalize durum alanları
+- [ ] Makine domaini Faz 2: Veri simülasyon script’i (cron/scheduler) ve API’ye entegre event üretimi
+- [ ] Event zamanlarının lokal timezone desteği (UTC+3 gibi) için helper/formatlama katmanı
 - [ ] Raporlama endpointleri (verimlilik, duruş süreleri vb.)
 - [ ] CSV/Excel export servisi
 - [ ] Audit log middleware’i ve kayıt koleksiyonu

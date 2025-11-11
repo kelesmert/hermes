@@ -118,4 +118,9 @@ Bu rehber, backend ve frontend’i MVP hedefiyle nasıl kurduğumuzu öğretici 
   - Login formu `/api/auth/login` endpoint’i ile çalışır; kullanıcılar kullanıcı adı + şifre girer (e-posta opsiyoneldir). SessionProvider backend’den gelen rol + permission detaylarını saklar (`ROLE_PERMISSIONS` yalnızca varsayılan roller için fallback olarak kullanılır).
   - Uygulama açılışında localStorage’daki refresh token ile otomatik `/api/auth/refresh` çağrısı yapılır; başarısız olursa session temizlenir.
   - Logout sırasında `/api/auth/logout` tetiklenir; axios interceptors 401 durumunda storage’ı silip `hermes:session-expired` event’i yayar.
-  - `Users` sayfasındaki TanStack Table gerçek `/api/users` verisini gösterir; aynı ekrandaki roller sekmesi `roles.manage` iznine sahip kullanıcılar için rol/permission CRUD akışını sunar.
+- `Users` sayfasındaki TanStack Table gerçek `/api/users` verisini gösterir; aynı ekrandaki roller sekmesi `roles.manage` iznine sahip kullanıcılar için rol/permission CRUD akışını sunar.
+
+## 16) Makine Domaini (Yeni)
+- Model: `backend/src/domains/machines/models/machine-model.js` alanları `code`, `name`, `status`, `lastEventAt`, `tags`, `isActive` ve otomatik timestamp’lerden oluşur. `code` benzersizdir; UI aramalarında kullanılır.
+- Durum enumları `backend/src/constants/machine-statuses.js` içinde tutulur (running/idle/downtime/maintenance/unknown) ve event sistemi bu değerleri kullanarak makine kaydındaki `status` + `lastEventAt` alanlarını güncelleyecektir.
+- Event’ler ayrı koleksiyonda (`machine_events`, yapım aşamasında) saklanacak; makine modeli sadece son durumu özetlemek için denormalize alanlara sahiptir.

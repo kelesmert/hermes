@@ -28,6 +28,12 @@ Bu dosya, projede alınan mimarî ve teknolojik kararları, gerekçelerini ve be
 - **Gerekçe:** Admin panelinden rol/izin yönetimi yapılabilmesi ve yeni rollerin sonradan eklenebilmesi için dinamik uç noktalara ihtiyaç vardı.
 - **Etkisi:** Seed edilen roller (master, supervisor, operator, viewer) üzerine yeni roller eklenebilir; sys kullanıcı mock verileri gözlemleyebilir, admin gerçek kurulum yapabilir.
 
+### Makine Domaini Temel Modeli
+
+- **Karar:** `machines` koleksiyonu için bağımsız bir model oluşturuldu; alanlar `code`, `name`, `status`, `lastEventAt`, `tags`, `isActive` ve otomatik timestamp’lerden oluşuyor. `status` enum değerleri (`running`, `idle`, `downtime`, `maintenance`, `unknown`) merkezi sabit olarak tanımlandı.
+- **Gerekçe:** Makine verisini kullanıcı/rol domaininden ayrı yöneterek ileride makine eventleri, simülasyon ve raporlama katmanını üzerine inşa edebilmek.
+- **Etkisi:** Backend yeni makine domainine hazır; event modelleri ve API’leri bu şema üzerinde geliştirilecek, frontend dashboard verilerini bu koleksiyondan okuyabilecek.
+
 ## Frontend Kararları
 
 ### Vite + React (JavaScript) SPA
