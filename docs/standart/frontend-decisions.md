@@ -57,6 +57,7 @@ frontend/
   - `PrivateRoute`: kimlik doğrulaması gerekli sayfalar.
   - `PermissionGuard`: `requiredPermissions` dizisindeki tüm izinlerin varlığını kontrol eder (backend ile uyumlu).
 - `/users` rotası TanStack Table ile kullanıcı listesini gösterir; kullanıcı silme/düzenleme dialogları yalnızca `users.manage` iznine sahip kullanıcılar için aktiftir. Aynı sayfadaki “Roller & İzinler” sekmesi `roles.manage` iznine sahip kullanıcılara açıktır.
+- `/machines` rotası makine tablosu, CRUD modalları ve event diyaloğunu içerir; menüde `machines.read` izni ile görünür. Durum kaydı ekleyebilmek için kullanıcıların `machines.write` iznine sahip olması zorunludur.
 
 ## 5. Veri Erişimi ve Hata Yönetimi
 

@@ -57,6 +57,7 @@ backend/
 - Kullanıcı kayıtlarında `username` alanı zorunlu ve unique’tir. E-posta alanı opsiyoneldir ve yalnızca bildirim/şifre sıfırlama gibi süreçlerde kullanılır.
 - Varsayılan rol piramidi `master > supervisor > operator > viewer` olarak tanımlıdır; master tüm izinlere sahiptir, supervisor üretim/operatör yönetimi yapar, operator yalnızca atanmış istasyonda iş yürütür.
 - RBAC yönetimi için `domains/access-control` altında rol ve permission CRUD endpointleri bulunur (`/api/roles`, `/api/permissions`); kullanıcı yönetimi `/api/users` üzerinden yapılır.
+- Makine domaini `domains/machines` altında konumlandırılacak; model katmanı `machines` ve `machine_events` koleksiyonlarını içerir, durum enumları `src/constants/machine-statuses.js` dosyasından okunur. Event oluşturulduğunda makine kaydındaki `status` + `lastEventAt` alanları güncellenir.
 
 ## 4. Seed ve Konfigürasyon
 
@@ -69,6 +70,7 @@ backend/
 - `src/utils/app-error.js` sınıfı kullanılmadan genel `Error` fırlatılmayacak; HTTP kodu içeren `AppError` tercih edilir.
 - `src/utils/async-handler.js` ile tüm async route/controller fonksiyonları sarılır.
 - `app.js` içinde tanımlanan global error middleware kaldırılmayacak; loglama ileride geliştirilebilir ama middleware kalır.
+- Tüm yeni Mongoose modelleri ortak `applyDefaultToJSON` helper’ını kullanarak `_id` → `id` dönüşümü yapmalı; `_id` alanına ihtiyaç duyulan özel modellerde helper dışarıda bırakılabilir.
 
 ## 6. Kod Standartları
 

@@ -3,7 +3,8 @@
 Node.js + Express tabanlı Hermes API’si bu klasörde yer alır. Mevcut sürüm:
 - JWT + refresh token tabanlı auth ve kullanıcı adıyla giriş,
 - RBAC yönetim uçları (`/api/users`, `/api/roles`, `/api/permissions`),
-- Seed script ile master/supervisor/operator/viewer rollerini ve test hesaplarını üretir.
+- Makine domaini için `machines` ve `machine_events` modelleri ile CRUD/event endpointleri,
+- Seed script ile master/supervisor/operator/viewer rollerini, test hesaplarını ve örnek makineleri üretir.
 
 ## Kurulum
 ```bash
@@ -17,6 +18,7 @@ npm run dev    # http://localhost:5000
 Seed sonrası örnek hesaplar:
 - Master: `admin / ChangeMe123!`
 - Sys/test: `sys / syssys`
+ - Örnek makineler: `MCH-001 (Simülasyon Presi)` ve `MCH-002 (CNC Kesim)` varsayılan olarak eklenir.
 
 ## Dizin Yapısı
 ```
@@ -30,7 +32,8 @@ backend/
 │  ├─ domains/
 │  │   ├─ auth/           # login/register/refresh/logout
 │  │   ├─ users/          # kullanıcı listesi + CRUD
-│  │   └─ access-control/ # roles & permissions API’leri
+│  │   ├─ access-control/ # roles & permissions API’leri
+│  │   └─ machines/       # makine ve durum kayıtları domaini
 └─ scripts/seed.js
 ```
 
@@ -44,7 +47,7 @@ backend/
 | Komut | Açıklama |
 | --- | --- |
 | `npm run dev` | Nodemon ile geliştirme sunucusu |
-| `npm run seed` | Permission/role + master/sys kullanıcılarını oluşturur/günceller |
+| `npm run seed` | Permission/role + master/sys kullanıcıları ve örnek makine kayıtlarını oluşturur/günceller |
 | `npm test` | (Planlı) |
 
 Yeni bağımlılık veya mimari karar eklemeden önce `docs/standart/backend-decisions.md` dosyasını güncelleyip onay alın.

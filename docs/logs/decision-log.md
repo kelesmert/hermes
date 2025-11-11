@@ -34,6 +34,12 @@ Bu dosya, projede alınan mimarî ve teknolojik kararları, gerekçelerini ve be
 - **Gerekçe:** Makine verisini kullanıcı/rol domaininden ayrı yöneterek ileride makine eventleri, simülasyon ve raporlama katmanını üzerine inşa edebilmek.
 - **Etkisi:** Backend yeni makine domainine hazır; event modelleri ve API’leri bu şema üzerinde geliştirilecek, frontend dashboard verilerini bu koleksiyondan okuyabilecek.
 
+### JSON Transform Helper
+
+- **Karar:** Ortak `_id → id` dönüşümü ve `__v` temizliği için `backend/src/utils/to-json-transform.js` helper’ı tanımlandı; makine ve makine-event şemalarına uygulandı.
+- **Gerekçe:** Frontend tarafında manuel map’ler yazmadan tüm API yanıtlarından okunabilir `id` alanı üretmek ve tekrar eden kodu azaltmak.
+- **Etkisi:** Makine/MachineEvent response’ları otomatik `id` içeriyor; ileride ihtiyaç duyulan diğer modeller aynı helper’ı kullanarak aynı davranışı kazanabilecek.
+
 ## Frontend Kararları
 
 ### Vite + React (JavaScript) SPA

@@ -6,10 +6,12 @@ dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 
 const roles = require('../src/constants/roles');
 const permissions = require('../src/constants/permissions');
+const machineStatuses = require('../src/constants/machine-statuses');
 const { connectDatabase } = require('../src/config/database');
 const Permission = require('../src/domains/auth/models/permission-model');
 const Role = require('../src/domains/auth/models/role-model');
 const User = require('../src/domains/auth/models/user-model');
+const Machine = require('../src/domains/machines/models/machine-model');
 const { hashPassword } = require('../src/utils/password');
 
 const sanitizeUsernameBase = (value) =>
@@ -165,6 +167,21 @@ const roleSeeds = [
   },
 ];
 
+const machineSeeds = [
+  {
+    code: 'MCH-001',
+    name: 'Simülasyon Presi',
+    status: machineStatuses.UNKNOWN,
+    tags: ['press', 'line-a'],
+  },
+  {
+    code: 'MCH-002',
+    name: 'CNC Kesim',
+    status: machineStatuses.UNKNOWN,
+    tags: ['cnc', 'line-b'],
+  },
+];
+
 const seedPermissions = async () => {
   const upserts = permissionSeeds.map((seed) =>
     Permission.findOneAndUpdate({ name: seed.name }, { $set: seed }, { upsert: true, new: true }),
@@ -316,6 +333,27 @@ const seedSysUser = async (rolesDocs) => {
   return sysUser;
 };
 
+const seedMachines = async () => {
+  const upserts = machineSeeds.map((seed) => {
+    const normalizedCode = seed.code.trim().toUpperCase();
+    return Machine.findOneAndUpdate(
+      { code: normalizedCode },
+      {
+        $set: {
+          code: normalizedCode,
+          name: seed.name,
+          status: seed.status || machineStatuses.UNKNOWN,
+          tags: seed.tags || [],
+          isActive: true,
+        },
+      },
+      { upsert: true, new: true },
+    );
+  });
+  const results = await Promise.all(upserts);
+  console.log(`Makine kayıtları güncellendi (${results.length})`);
+};
+
 const run = async () => {
   try {
     await connectDatabase();
@@ -323,6 +361,7 @@ const run = async () => {
     const roleDocs = await seedRoles();
     await seedAdminUser(roleDocs);
     await seedSysUser(roleDocs);
+    await seedMachines();
     console.log('Seed işlemi tamamlandı.');
     process.exit(0);
   } catch (err) {

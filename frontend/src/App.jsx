@@ -4,6 +4,7 @@ import LoginPage from '@/features/auth/pages/login.jsx';
 import DashboardPage from '@/features/dashboard/pages/dashboard.jsx';
 import ReportsPage from '@/features/reports/pages/reports.jsx';
 import UsersPage from '@/features/users/pages/users.jsx';
+import MachinesPage from '@/features/machines/pages/machines.jsx';
 import NotFoundPage from '@/components/feedback/not-found.jsx';
 import PrivateRoute from '@/app/routes/private-route.jsx';
 import PermissionGuard from '@/app/routes/permission-guard.jsx';
@@ -36,6 +37,14 @@ const App = () => (
           element={
             <PermissionGuard requiredPermissions={["users.manage"]}>
               <UsersPage />
+            </PermissionGuard>
+          }
+        />
+        <Route
+          path="/machines"
+          element={
+            <PermissionGuard requiredPermissions={["machines.read"]}>
+              <MachinesPage />
             </PermissionGuard>
           }
         />

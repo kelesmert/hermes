@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const machineStatuses = require('../../../constants/machine-statuses');
+const { applyDefaultToJSON } = require('../../../utils/to-json-transform');
 
 const MACHINE_STATUS_VALUES = Object.values(machineStatuses);
 
@@ -35,5 +36,7 @@ const machineSchema = new mongoose.Schema(
     timestamps: true,
   },
 );
+
+applyDefaultToJSON(machineSchema);
 
 module.exports = mongoose.model('Machine', machineSchema);
