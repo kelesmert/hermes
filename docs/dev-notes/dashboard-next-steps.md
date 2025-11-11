@@ -7,6 +7,7 @@ Bu not, telemetry → OEE → board akışına dair planlanan iyileştirmeleri v
 - **Reports ekranı:** `/reports` sayfası board/OEE verisine bağlanacak; downtime listesi, telemetry trend tablosu vb. için API ihtiyaçları belirlenecek (muhtemel yeni endpoint: `/api/reports/downtimes`).
 - **Data-gen gerçekçilik:** Delta ayarları `.env` ile yönetiliyor (`DATA_GEN_*_DELTA`); ileride makine bazlı profil veya iş emri entegrasyonu gerektiğinde script genişletilecek.
 - **Veri yok → alarm:** OEE tarafındaki `signalTimeoutMs` kuralı downtime oluşturuyor; ayrıca “telemetry akışı kesildi” alarmını board veya ayrı bir endpoint üzerinden raporlamak planlandı.
+- **Monitoring grafikleri:** Frontend monitoring ekranı artık backend’in `telemetryWindowMs` değeriyle senkron çalışan time-scale X eksenine sahip. Sonraki adım olarak çoklu makine karşılaştırması, gradient vurgular veya alarm eşikleri için referans çizgileri eklenebilir (`frontend/src/features/monitoring/pages/monitoring.jsx`).
 - **OEE Job Order Entegrasyonu:** OEE domain’ine iş emri (job order) yönetimi eklenecek; belirli duruş tiplerinde otomatik iş emri açma/güncelleme akışı tasarlanacak (ileride detaylandırılacak).
 
 ## Referanslar

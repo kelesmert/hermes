@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import {
   Alert,
   Box,
@@ -13,7 +13,7 @@ import {
   Select,
   Stack,
   Typography,
-} from '@mui/material';
+} from "@mui/material";
 import {
   Line,
   LineChart,
@@ -21,43 +21,45 @@ import {
   Tooltip as RechartsTooltip,
   XAxis,
   YAxis,
-} from 'recharts';
-import { fetchMachines } from '@/features/machines/services/machines-api.js';
+} from "recharts";
+import { fetchMachines } from "@/features/machines/services/machines-api.js";
 import {
   fetchMachineBoardMetrics,
   fetchMachineTelemetrySeries,
-} from '@/features/dashboard/services/board-api.js';
-import { format } from 'date-fns';
-import { tr } from 'date-fns/locale';
+} from "@/features/dashboard/services/board-api.js";
+import { format } from "date-fns";
+import { tr } from "date-fns/locale";
 
 const LINES = [
-  { id: 'line-alpha', label: 'Line Alpha (placeholder)' },
-  { id: 'line-beta', label: 'Line Beta (placeholder)' },
+  { id: "line-alpha", label: "Line Alpha (placeholder)" },
+  { id: "line-beta", label: "Line Beta (placeholder)" },
 ];
 
 const formatNumber = (value) => {
-  if (value === null || value === undefined) return '-';
-  return Number(value).toLocaleString('tr-TR', { maximumFractionDigits: 2 });
+  if (value === null || value === undefined) return "-";
+  return Number(value).toLocaleString("tr-TR", { maximumFractionDigits: 2 });
 };
 
 const MonitoringPage = () => {
-  const [selectedMachineId, setSelectedMachineId] = useState('');
-  const [selectedLineId, setSelectedLineId] = useState(LINES[0]?.id || '');
+  const [selectedMachineId, setSelectedMachineId] = useState("");
+  const [selectedLineId, setSelectedLineId] = useState(LINES[0]?.id || "");
 
   const machinesQuery = useQuery({
-    queryKey: ['machines', 'monitoring'],
+    queryKey: ["machines", "monitoring"],
     queryFn: fetchMachines,
     staleTime: 30000,
   });
 
   useEffect(() => {
     if (!selectedMachineId && machinesQuery.data?.length) {
-      setSelectedMachineId(machinesQuery.data[0].id || machinesQuery.data[0]._id);
+      setSelectedMachineId(
+        machinesQuery.data[0].id || machinesQuery.data[0]._id
+      );
     }
   }, [machinesQuery.data, selectedMachineId]);
 
   const machineMetricsQuery = useQuery({
-    queryKey: ['monitoringMachineMetrics', selectedMachineId],
+    queryKey: ["monitoringMachineMetrics", selectedMachineId],
     queryFn: () => fetchMachineBoardMetrics(selectedMachineId),
     enabled: Boolean(selectedMachineId),
     refetchInterval: 10000,
@@ -85,7 +87,8 @@ const MonitoringPage = () => {
         if (!isMounted) return;
         setTrendData(payload.series || []);
         if (payload.series?.length) {
-          lastTimestampRef.current = payload.series[payload.series.length - 1].timestamp;
+          lastTimestampRef.current =
+            payload.series[payload.series.length - 1].timestamp;
         } else {
           lastTimestampRef.current = null;
         }
@@ -110,7 +113,7 @@ const MonitoringPage = () => {
             ? new Date(payload.windowStart).getTime()
             : Date.now() - 10 * 60 * 1000;
           const filtered = merged.filter(
-            (point) => new Date(point.timestamp).getTime() >= windowStart,
+            (point) => new Date(point.timestamp).getTime() >= windowStart
           );
           if (filtered.length > 240) {
             filtered.splice(0, filtered.length - 240);
@@ -118,14 +121,15 @@ const MonitoringPage = () => {
           return filtered;
         });
         lastTimestampRef.current =
-          payload.series[payload.series.length - 1].timestamp || lastTimestampRef.current;
+          payload.series[payload.series.length - 1].timestamp ||
+          lastTimestampRef.current;
       } catch (error) {
         setTrendError(error);
       }
     };
 
     loadInitial();
-    intervalRef.current = setInterval(loadIncremental, 10000);
+    intervalRef.current = setInterval(loadIncremental, 2000);
 
     return () => {
       isMounted = false;
@@ -142,13 +146,13 @@ const MonitoringPage = () => {
       <Card>
         <CardContent>
           <Stack
-            direction={{ xs: 'column', md: 'row' }}
+            direction={{ xs: "column", md: "row" }}
             spacing={2}
             justifyContent="space-between"
-            alignItems={{ xs: 'stretch', md: 'center' }}
+            alignItems={{ xs: "stretch", md: "center" }}
           >
             <Typography variant="h6">Monitoring</Typography>
-            <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
+            <Stack direction={{ xs: "column", md: "row" }} spacing={2}>
               <FormControl size="small" fullWidth>
                 <InputLabel id="line-select-label">Hat</InputLabel>
                 <Select
@@ -164,7 +168,11 @@ const MonitoringPage = () => {
                   ))}
                 </Select>
               </FormControl>
-              <FormControl size="small" fullWidth disabled={machinesQuery.isLoading}>
+              <FormControl
+                size="small"
+                fullWidth
+                disabled={machinesQuery.isLoading}
+              >
                 <InputLabel id="machine-select-label">Makine</InputLabel>
                 <Select
                   labelId="machine-select-label"
@@ -173,7 +181,10 @@ const MonitoringPage = () => {
                   onChange={(event) => setSelectedMachineId(event.target.value)}
                 >
                   {(machinesQuery.data || []).map((machine) => (
-                    <MenuItem key={machine.id || machine._id} value={machine.id || machine._id}>
+                    <MenuItem
+                      key={machine.id || machine._id}
+                      value={machine.id || machine._id}
+                    >
                       {machine.code} — {machine.name}
                     </MenuItem>
                   ))}
@@ -192,12 +203,12 @@ const MonitoringPage = () => {
                 Anlık Durum
               </Typography>
               {machineMetricsQuery.isLoading ? (
-                <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
                   <CircularProgress size={28} />
                 </Box>
               ) : machineMetricsQuery.isError ? (
                 <Alert severity="error">
-                  Makine verisi alınamadı:{' '}
+                  Makine verisi alınamadı:{" "}
                   {machineMetricsQuery.error?.response?.data?.message ||
                     machineMetricsQuery.error?.message}
                 </Alert>
@@ -208,33 +219,41 @@ const MonitoringPage = () => {
                   </Typography>
                   <Typography variant="h5">
                     {machineMetricsQuery.data.telemetry.avgTemperatureC
-                      ? `${formatNumber(machineMetricsQuery.data.telemetry.avgTemperatureC)} °C`
-                      : '-'}
+                      ? `${formatNumber(
+                          machineMetricsQuery.data.telemetry.avgTemperatureC
+                        )} °C`
+                      : "-"}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
                     Ortalama Tork
                   </Typography>
                   <Typography variant="h5">
                     {machineMetricsQuery.data.telemetry.avgTorqueNm
-                      ? `${formatNumber(machineMetricsQuery.data.telemetry.avgTorqueNm)} Nm`
-                      : '-'}
+                      ? `${formatNumber(
+                          machineMetricsQuery.data.telemetry.avgTorqueNm
+                        )} Nm`
+                      : "-"}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
                     Son Sinyal
                   </Typography>
                   <Typography variant="h5">
                     {machineMetricsQuery.data.signal.lastValue === null
-                      ? '-'
+                      ? "-"
                       : machineMetricsQuery.data.signal.lastValue === 1
-                      ? 'Çalışıyor'
-                      : 'Duruşta'}
+                      ? "Çalışıyor"
+                      : "Duruşta"}
                   </Typography>
                   <Typography variant="caption" color="text.secondary">
                     {machineMetricsQuery.data.signal.lastAt
-                      ? format(new Date(machineMetricsQuery.data.signal.lastAt), 'dd.MM.yyyy HH:mm', {
-                          locale: tr,
-                        })
-                      : ''}
+                      ? format(
+                          new Date(machineMetricsQuery.data.signal.lastAt),
+                          "dd.MM.yyyy HH:mm",
+                          {
+                            locale: tr,
+                          }
+                        )
+                      : ""}
                   </Typography>
                 </Stack>
               ) : null}
@@ -251,16 +270,21 @@ const MonitoringPage = () => {
                     Sinyal (0/1)
                   </Typography>
                   {trendLoading ? (
-                    <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
+                    <Box
+                      sx={{ display: "flex", justifyContent: "center", py: 3 }}
+                    >
                       <CircularProgress size={24} />
                     </Box>
                   ) : trendError ? (
                     <Alert severity="error">
-                      Trend verisi alınamadı:{' '}
-                      {trendError?.response?.data?.message || trendError?.message}
+                      Trend verisi alınamadı:{" "}
+                      {trendError?.response?.data?.message ||
+                        trendError?.message}
                     </Alert>
                   ) : trendData.length === 0 ? (
-                    <Typography color="text.secondary">Trend verisi bulunamadı.</Typography>
+                    <Typography color="text.secondary">
+                      Trend verisi bulunamadı.
+                    </Typography>
                   ) : (
                     <Box sx={{ height: 140 }}>
                       <ResponsiveContainer width="100%" height="100%">
@@ -270,7 +294,9 @@ const MonitoringPage = () => {
                             stroke="#888"
                             fontSize={12}
                             tickFormatter={(value) =>
-                              format(new Date(value), 'HH:mm:ss', { locale: tr })
+                              format(new Date(value), "HH:mm:ss", {
+                                locale: tr,
+                              })
                             }
                           />
                           <YAxis
@@ -281,7 +307,9 @@ const MonitoringPage = () => {
                           />
                           <RechartsTooltip
                             labelFormatter={(value) =>
-                              format(new Date(value), 'dd.MM.yyyy HH:mm:ss', { locale: tr })
+                              format(new Date(value), "dd.MM.yyyy HH:mm:ss", {
+                                locale: tr,
+                              })
                             }
                           />
                           <Line
@@ -301,16 +329,21 @@ const MonitoringPage = () => {
                     Telemetry (°C / Nm / kWh)
                   </Typography>
                   {trendLoading ? (
-                    <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
+                    <Box
+                      sx={{ display: "flex", justifyContent: "center", py: 3 }}
+                    >
                       <CircularProgress size={24} />
                     </Box>
                   ) : trendError ? (
                     <Alert severity="error">
-                      Trend verisi alınamadı:{' '}
-                      {trendError?.response?.data?.message || trendError?.message}
+                      Trend verisi alınamadı:{" "}
+                      {trendError?.response?.data?.message ||
+                        trendError?.message}
                     </Alert>
                   ) : trendData.length === 0 ? (
-                    <Typography color="text.secondary">Trend verisi bulunamadı.</Typography>
+                    <Typography color="text.secondary">
+                      Trend verisi bulunamadı.
+                    </Typography>
                   ) : (
                     <Box sx={{ height: 220 }}>
                       <ResponsiveContainer width="100%" height="100%">
@@ -320,13 +353,21 @@ const MonitoringPage = () => {
                             stroke="#888"
                             fontSize={12}
                             tickFormatter={(value) =>
-                              format(new Date(value), 'HH:mm:ss', { locale: tr })
+                              format(new Date(value), "HH:mm:ss", {
+                                locale: tr,
+                              })
                             }
                           />
-                          <YAxis stroke="#666" fontSize={12} tickFormatter={(value) => `${value}`} />
+                          <YAxis
+                            stroke="#666"
+                            fontSize={12}
+                            tickFormatter={(value) => `${value}`}
+                          />
                           <RechartsTooltip
                             labelFormatter={(value) =>
-                              format(new Date(value), 'dd.MM.yyyy HH:mm:ss', { locale: tr })
+                              format(new Date(value), "dd.MM.yyyy HH:mm:ss", {
+                                locale: tr,
+                              })
                             }
                           />
                           <Line

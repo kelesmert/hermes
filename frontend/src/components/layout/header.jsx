@@ -16,9 +16,10 @@ const Header = () => {
       sx={{
         borderBottom: '1px solid #e5e7eb',
         backgroundColor: 'background.paper',
+        width: '100%',
       }}
     >
-      <Toolbar sx={{ display: 'flex', gap: 2 }}>
+      <Toolbar sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
         <Box
           sx={{
             flexGrow: 1,
@@ -35,25 +36,27 @@ const Header = () => {
           <InputBase placeholder="Genel arama (yakında)" fullWidth sx={{ fontSize: 14 }} />
         </Box>
 
-        <IconButton color="inherit">
-          <Badge color="error" variant="dot">
-            <NotificationsNoneIcon />
-          </Badge>
-        </IconButton>
-
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Avatar sx={{ bgcolor: 'primary.main', width: 36, height: 36 }}>
-            {user?.firstName?.[0] || 'H'}
-          </Avatar>
-          <Box sx={{ textAlign: 'left' }}>
-            <Typography variant="subtitle2">{user?.fullName || 'Hermes Admin'}</Typography>
-            <Typography variant="caption" color="text.secondary">
-              {primaryRoleLabel}
-            </Typography>
-          </Box>
-          <IconButton color="inherit" onClick={logout}>
-            <LogoutIcon fontSize="small" />
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, ml: 'auto' }}>
+          <IconButton color="inherit">
+            <Badge color="error" variant="dot">
+              <NotificationsNoneIcon />
+            </Badge>
           </IconButton>
+
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Avatar sx={{ bgcolor: 'primary.main', width: 36, height: 36 }}>
+              {user?.firstName?.[0] || 'H'}
+            </Avatar>
+            <Box sx={{ textAlign: 'left' }}>
+              <Typography variant="subtitle2">{user?.fullName || 'Hermes Admin'}</Typography>
+              <Typography variant="caption" color="text.secondary">
+                {primaryRoleLabel}
+              </Typography>
+            </Box>
+            <IconButton color="inherit" onClick={logout}>
+              <LogoutIcon fontSize="small" />
+            </IconButton>
+          </Box>
         </Box>
       </Toolbar>
     </AppBar>

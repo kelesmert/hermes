@@ -136,3 +136,9 @@ Yeni kararlar alındıkça bu dosyaya tarih/başlık/gerekçe formatıyla ekleme
 - **Karar:** Varsayılan roller `master > supervisor > operator > viewer` olarak güncellendi; execution ve vardiya yönetimi için yeni permission anahtarları (`work_orders.execute`, `shifts.manage`) eklendi.
 - **Gerekçe:** Rol tanımları üretim süreçlerine göre netleştirildi; supervisor operatörleri yönetebilmek, operator ise sadece atanmış istasyonlarda işlem yapabilmek zorunda.
 - **Etkisi:** Seed script’i yeni rollerle güncellendi, viewer fallback korundu, frontend fallback haritası ve rol yönetim UI’sı yeni izin kategorilerini gösteriyor.
+
+### Monitoring Grafiklerini Gerçek Zamanlılaştırma
+
+- **Karar:** Monitoring sayfasındaki Recharts temelli sinyal ve telemetry grafiklerinin veri modeli ve zaman ekseni güncellendi. Telemetri noktaları frontend’de normalize edilerek `timestampMs` (epoch) alanı ile tutuluyor; X ekseni `type="number" scale="time"` konfigürasyonu ve sunucudan gelen `telemetryWindowMs` ile hizalanan `chartDomain` üzerinden yönetiliyor.
+- **Gerekçe:** 10 dakikalık kayan pencere içinde veri güncellenirken eksen etiketleri “zıplıyor” ve grafik zaman çizgisi gerçek aralığı yansıtmıyordu. Ayrıca sık polling (2 sn) sırasında Date parse işlemleri CPU’ya yük bindiriyordu.
+- **Etkisi:** Grafikler artık gerçekte olduğu gibi son 10 dakikalık aralığı sabit genişlikte gösteriyor, yeni örnek geldikçe eksen sürekli kayıyor. Tooltip ve tick formatlayıcıları da aynı normalleştirilmiş zamanı kullanıyor; böylece görsel kayma hissi azaldı ve incremental fetch sonrası state hesapları daha hafif hale geldi.
