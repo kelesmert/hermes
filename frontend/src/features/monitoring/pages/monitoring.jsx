@@ -35,6 +35,21 @@ const LINES = [
   { id: "line-beta", label: "Line Beta (placeholder)" },
 ];
 
+const METRICS_POLL_INTERVAL_MS = 2000;
+const TELEMETRY_POLL_INTERVAL_MS = 2000;
+const TELEMETRY_POLL_INTERVAL_SECONDS = TELEMETRY_POLL_INTERVAL_MS / 1000;
+const DEFAULT_TELEMETRY_WINDOW_MS = 10 * 60 * 1000;
+
+const normalizeTrendPoint = (point) => {
+  const timestampMs = point?.timestamp
+    ? new Date(point.timestamp).getTime()
+    : Date.now();
+  return {
+    ...point,
+    timestampMs,
+  };
+};
+
 const formatNumber = (value) => {
   if (value === null || value === undefined) return "-";
   return Number(value).toLocaleString("tr-TR", { maximumFractionDigits: 2 });
@@ -62,14 +77,23 @@ const MonitoringPage = () => {
     queryKey: ["monitoringMachineMetrics", selectedMachineId],
     queryFn: () => fetchMachineBoardMetrics(selectedMachineId),
     enabled: Boolean(selectedMachineId),
-    refetchInterval: 10000,
+    refetchInterval: METRICS_POLL_INTERVAL_MS,
   });
 
   const [trendData, setTrendData] = useState([]);
   const [trendLoading, setTrendLoading] = useState(false);
   const [trendError, setTrendError] = useState(null);
+  const [trendWindowStartMs, setTrendWindowStartMs] = useState(
+    Date.now() - DEFAULT_TELEMETRY_WINDOW_MS
+  );
+  const [nowMs, setNowMs] = useState(Date.now());
   const lastTimestampRef = useRef(null);
   const intervalRef = useRef(null);
+
+  useEffect(() => {
+    const timer = setInterval(() => setNowMs(Date.now()), 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     if (!selectedMachineId) return () => {};
@@ -77,6 +101,7 @@ const MonitoringPage = () => {
     setTrendData([]);
     setTrendError(null);
     setTrendLoading(true);
+    setTrendWindowStartMs(Date.now() - DEFAULT_TELEMETRY_WINDOW_MS);
 
     const loadInitial = async () => {
       try {
@@ -85,10 +110,18 @@ const MonitoringPage = () => {
           limit: 120,
         });
         if (!isMounted) return;
-        setTrendData(payload.series || []);
-        if (payload.series?.length) {
+        const windowStartMs = payload.windowStart
+          ? new Date(payload.windowStart).getTime()
+          : Date.now() - DEFAULT_TELEMETRY_WINDOW_MS;
+        const normalizedSeries = (payload.series || []).map(
+          normalizeTrendPoint
+        );
+        setTrendWindowStartMs(windowStartMs);
+        setTrendData(normalizedSeries);
+        if (normalizedSeries.length) {
           lastTimestampRef.current =
-            payload.series[payload.series.length - 1].timestamp;
+            normalizedSeries[normalizedSeries.length - 1].timestamp ||
+            lastTimestampRef.current;
         } else {
           lastTimestampRef.current = null;
         }
@@ -107,13 +140,15 @@ const MonitoringPage = () => {
           since: lastTimestampRef.current,
         });
         if (!payload.series?.length) return;
+        const windowStartMs = payload.windowStart
+          ? new Date(payload.windowStart).getTime()
+          : Date.now() - DEFAULT_TELEMETRY_WINDOW_MS;
+        const normalizedSeries = payload.series.map(normalizeTrendPoint);
+        setTrendWindowStartMs(windowStartMs);
         setTrendData((prev) => {
-          const merged = [...prev, ...payload.series];
-          const windowStart = payload.windowStart
-            ? new Date(payload.windowStart).getTime()
-            : Date.now() - 10 * 60 * 1000;
+          const merged = [...prev, ...normalizedSeries];
           const filtered = merged.filter(
-            (point) => new Date(point.timestamp).getTime() >= windowStart
+            (point) => point.timestampMs >= windowStartMs
           );
           if (filtered.length > 240) {
             filtered.splice(0, filtered.length - 240);
@@ -121,7 +156,7 @@ const MonitoringPage = () => {
           return filtered;
         });
         lastTimestampRef.current =
-          payload.series[payload.series.length - 1].timestamp ||
+          normalizedSeries[normalizedSeries.length - 1].timestamp ||
           lastTimestampRef.current;
       } catch (error) {
         setTrendError(error);
@@ -129,7 +164,10 @@ const MonitoringPage = () => {
     };
 
     loadInitial();
-    intervalRef.current = setInterval(loadIncremental, 2000);
+    intervalRef.current = setInterval(
+      loadIncremental,
+      TELEMETRY_POLL_INTERVAL_MS
+    );
 
     return () => {
       isMounted = false;
@@ -140,6 +178,14 @@ const MonitoringPage = () => {
       lastTimestampRef.current = null;
     };
   }, [selectedMachineId]);
+
+  const chartDomain = useMemo(() => {
+    const windowStart = Math.max(0, nowMs - DEFAULT_TELEMETRY_WINDOW_MS);
+    if (!trendData.length) {
+      return [windowStart, nowMs];
+    }
+    return [windowStart, "auto"];
+  }, [nowMs, trendData.length]);
 
   return (
     <Stack spacing={3}>
@@ -265,6 +311,11 @@ const MonitoringPage = () => {
           <Card>
             <CardContent>
               <Stack spacing={3}>
+                <Typography variant="caption" color="text.secondary">
+                  Grafikler {TELEMETRY_POLL_INTERVAL_SECONDS} sn aralıkla sorgulanan
+                  telemetri verisine göre güncellenir; yeni numune gelmezse eksen yine
+                  gerçek zamana göre akmaya devam eder.
+                </Typography>
                 <Box>
                   <Typography variant="subtitle2" gutterBottom>
                     Sinyal (0/1)
@@ -290,13 +341,18 @@ const MonitoringPage = () => {
                       <ResponsiveContainer width="100%" height="100%">
                         <LineChart data={trendData}>
                           <XAxis
-                            dataKey="timestamp"
+                            dataKey="timestampMs"
+                            type="number"
+                            scale="time"
+                            domain={chartDomain}
                             stroke="#888"
                             fontSize={12}
                             tickFormatter={(value) =>
-                              format(new Date(value), "HH:mm:ss", {
-                                locale: tr,
-                              })
+                              typeof value === "number"
+                                ? format(new Date(value), "HH:mm:ss", {
+                                    locale: tr,
+                                  })
+                                : value
                             }
                           />
                           <YAxis
@@ -307,9 +363,11 @@ const MonitoringPage = () => {
                           />
                           <RechartsTooltip
                             labelFormatter={(value) =>
-                              format(new Date(value), "dd.MM.yyyy HH:mm:ss", {
-                                locale: tr,
-                              })
+                              typeof value === "number"
+                                ? format(new Date(value), "dd.MM.yyyy HH:mm:ss", {
+                                    locale: tr,
+                                  })
+                                : value
                             }
                           />
                           <Line
@@ -349,13 +407,18 @@ const MonitoringPage = () => {
                       <ResponsiveContainer width="100%" height="100%">
                         <LineChart data={trendData}>
                           <XAxis
-                            dataKey="timestamp"
+                            dataKey="timestampMs"
+                            type="number"
+                            scale="time"
+                            domain={chartDomain}
                             stroke="#888"
                             fontSize={12}
                             tickFormatter={(value) =>
-                              format(new Date(value), "HH:mm:ss", {
-                                locale: tr,
-                              })
+                              typeof value === "number"
+                                ? format(new Date(value), "HH:mm:ss", {
+                                    locale: tr,
+                                  })
+                                : value
                             }
                           />
                           <YAxis
@@ -365,27 +428,29 @@ const MonitoringPage = () => {
                           />
                           <RechartsTooltip
                             labelFormatter={(value) =>
-                              format(new Date(value), "dd.MM.yyyy HH:mm:ss", {
-                                locale: tr,
-                              })
+                              typeof value === "number"
+                                ? format(new Date(value), "dd.MM.yyyy HH:mm:ss", {
+                                    locale: tr,
+                                  })
+                                : value
                             }
                           />
                           <Line
-                            type="monotone"
+                            type="linear"
                             dataKey="metrics.temperatureC"
                             stroke="#ff7043"
                             name="Sıcaklık (°C)"
                             dot={false}
                           />
                           <Line
-                            type="monotone"
+                            type="linear"
                             dataKey="metrics.torqueNm"
                             stroke="#42a5f5"
                             name="Tork (Nm)"
                             dot={false}
                           />
                           <Line
-                            type="monotone"
+                            type="linear"
                             dataKey="metrics.energyKwh"
                             stroke="#66bb6a"
                             name="Enerji (kWh)"

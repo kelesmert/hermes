@@ -33,7 +33,7 @@
   ],
   "aggregation": {
     "telemetryWindowMs": 600000,
-    "pollIntervalMs": 5000,
+    "pollIntervalMs": 2000,
     "batchSize": 500
   }
 }

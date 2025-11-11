@@ -23,7 +23,7 @@ const loadRules = () => {
         },
       },
       aggregation: {
-        pollIntervalMs: 5000,
+        pollIntervalMs: 2000,
         batchSize: 200,
       },
     };
@@ -36,10 +36,10 @@ const defaultSignalRule = rules.signals?.default || {
   recoverySignal: 1,
   reasonCode: 'unplanned_stop',
 };
-const aggregationRules = rules.aggregation || { pollIntervalMs: 5000, batchSize: 200 };
+const aggregationRules = rules.aggregation || { pollIntervalMs: 2000, batchSize: 200 };
 const signalTimeoutMs = defaultSignalRule.signalTimeoutMs || 10000;
 
-const pollIntervalMs = aggregationRules.pollIntervalMs || 5000;
+const pollIntervalMs = aggregationRules.pollIntervalMs || 2000;
 const batchSize = aggregationRules.batchSize || 200;
 
 const getMachineState = async (machineId) => {

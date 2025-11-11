@@ -9,7 +9,7 @@ require('../src/models');
 const Machine = require('../src/domains/machines/models/machine-model');
 const MachineTelemetry = require('../src/domains/machines/models/machine-telemetry-model');
 
-const INTERVAL_MS = Number(process.env.DATA_GEN_INTERVAL_MS) || 5000;
+const INTERVAL_MS = Number(process.env.DATA_GEN_INTERVAL_MS) || 2000;
 const MACHINE_REFRESH_MS = Number(process.env.DATA_GEN_MACHINE_REFRESH_MS) || 60000;
 const TEMP_DELTA = Number(process.env.DATA_GEN_TEMP_DELTA) || 0.3;
 const TORQUE_DELTA = Number(process.env.DATA_GEN_TORQUE_DELTA) || 3;
