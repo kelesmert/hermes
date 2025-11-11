@@ -27,20 +27,24 @@
   3. Gerektiğinde yeni `machine_events` kayıtları oluşturur veya kapatır.
   4. OEE ve duruş analizlerini üretir.
 - Bu domain telemetry kayıtlarını tüketir, kuralları uygular, gerektiğinde machine_events koleksiyonuna yeni kayıt açar/kapatır ve OEE hesaplarını dayanıklı biçimde sağlar.
-- Kuralların parametrik olması (ör. downtime eşiği 30 sn) için JSON tabanlı bir konfigürasyon dosyası/collection kullanılacak; gerektiğinde yalnızca bu JSON düzenlenerek eşikler güncellenebilecek. İleride sadece duruş kurallarını yöneten ayrı bir domain kurgulamak mümkün.
+- Kuralların parametrik olması (ör. downtime eşiği 30 sn) için JSON tabanlı bir konfigürasyon kullanılacak (`backend/src/domains/oee/config/oee-rules.json`); sinyal bazlı eşikler, reason code → kategori map’i ve aggregation ayarları bu dosyadan okunacak. Gerektiğinde yalnızca bu JSON düzenlenerek eşikler güncellenebilecek. İleride sadece duruş kurallarını yöneten ayrı bir domain kurgulamak mümkün.
 - Kısa vadede telemetry tüketimi cron + polling yaklaşımıyla yapılacak: belirli aralıklarla (örn. 5-10 sn) son işlenen timestamp’ten sonraki kayıtlar çekilip kurallar uygulanır.
 - Yoğun senaryoda telemetry queue + sliding window yaklaşımına geçilecek: yeni kayıtlar FIFO işlenir, time bucket’lar halinde batch’lenir, işlenen kayıtlar flag’lenir/arşivlenir ve özet tablolar güncellenir. Gerekirse bu yapı ileride mesaj kuyruğu veya change stream ile desteklenebilir.
+- Sunucu açıldığında `backend/src/jobs/oee-processor-job.js` devreye girer ve `pollIntervalMs` değerine göre `processTelemetryBatch` fonksiyonunu tetikler; job tek instance’da tutulur.
 
 ## Dashboard / Board Domaini
 
 - `domains/board` adıyla ayrı bir katman kurulacak; OEE domaininin ürettiği özet metrikleri toplayıp frontend’e özel endpointler (/api/board/metrics vb.) üzerinden sunacak.
 - Dashboard tarafı başlangıçta 5-10 sn aralıklarla polling yapacak; ileride gerekirse websocket/SSE ile canlılık artırılabilir.
+- `/api/board/metrics` endpoint’i toplam/running/downtime makine sayıları, telemetry ortalamaları ve seçili zaman penceresindeki toplam downtime süresini döner; `/api/board/machines/:id/metrics` endpoint’i ise seçili makine için pencere bazlı ortalamalar ve son sinyal bilgisini sağlar. Her iki endpoint de `dashboard.read` izni gerektirir.
 
 ## Data Generator (data-gen)
 
 - Sadece ham telemetry + sinyal değerlerini üretir; gerçek makine verisi gelene kadar sistemi canlı tutmak için kullanılacak.
 - Uygulama ayaktayken ayrı bir süreç gibi çalıştırılır (seed değil); başlatıldığında periyodik olarak `machine_telemetry` koleksiyonuna yazmaya devam eder.
 - Üretilen veriler `machine_telemetry` koleksiyonuna doğrudan Mongo insert olarak düşer; kurallar backend’de uygulanır. İleride ihtiyaç olursa ingest endpoint’i eklenebilir.
+- Seed script’i test amaçlı birkaç telemetry kaydı ekler (`source: seed`); OEE job’u bu verileri işleyip board metrics endpoint’inin doğrulanmasını kolaylaştırır.
+- `npm run data:gen` komutu yeni `scripts/data-gen.js` script’ini çalıştırır; interval değerleri `.env` üzerinden (`DATA_GEN_INTERVAL_MS`, `DATA_GEN_MACHINE_REFRESH_MS`) konfigüre edilebilir.
 
 ## Sonraki Adımlar
 

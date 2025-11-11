@@ -27,7 +27,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import EventNoteIcon from '@mui/icons-material/EventNote';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { format } from 'date-fns';
+import { format, formatDistanceToNow } from 'date-fns';
 import { tr } from 'date-fns/locale';
 import { toast } from 'react-hot-toast';
 import {
@@ -55,6 +55,15 @@ const formatDate = (value) => {
     return format(new Date(value), 'dd.MM.yyyy HH:mm', { locale: tr });
   } catch (_err) {
     return value;
+  }
+};
+
+const formatRelativeTime = (value) => {
+  if (!value) return '-';
+  try {
+    return formatDistanceToNow(new Date(value), { locale: tr, addSuffix: true });
+  } catch (_err) {
+    return '-';
   }
 };
 
@@ -200,7 +209,12 @@ const MachineTable = () => {
                       <TableCell>{machine.code}</TableCell>
                       <TableCell>{machine.name}</TableCell>
                       <TableCell>
-                        <Chip label={status.label} color={status.color} size="small" />
+                        <Stack spacing={0.5}>
+                          <Chip label={status.label} color={status.color} size="small" />
+                          <Typography variant="caption" color="text.secondary">
+                            {formatRelativeTime(machine.lastEventAt)}
+                          </Typography>
+                        </Stack>
                       </TableCell>
                       <TableCell>{formatDate(machine.lastEventAt)}</TableCell>
                       <TableCell>

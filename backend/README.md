@@ -19,6 +19,13 @@ Seed sonrası örnek hesaplar:
 - Master: `admin / ChangeMe123!`
 - Sys/test: `sys / syssys`
  - Örnek makineler: `MCH-001 (Simülasyon Presi)` ve `MCH-002 (CNC Kesim)` varsayılan olarak eklenir.
+- Telemetry testi için seed script’i her makineye ait örnek `machine_telemetry` kayıtları oluşturur; OEE job’u ve `/api/board/metrics` endpoint’i bu verilerle hemen doğrulanabilir.
+- Canlı telemetri simülasyonu için:
+  ```bash
+  npm run data:gen
+  ```
+  Bu script veri tabanına düzenli aralıklarla sinyal/telemetri yazar, OEE job’unu ve dashboard’u canlı tutar.
+  - Interval değerleri `.env` dosyasındaki `DATA_GEN_INTERVAL_MS` ve `DATA_GEN_MACHINE_REFRESH_MS` ile ayarlanabilir.
 
 ## Dizin Yapısı
 ```

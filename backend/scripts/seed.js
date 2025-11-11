@@ -12,6 +12,7 @@ const Permission = require('../src/domains/auth/models/permission-model');
 const Role = require('../src/domains/auth/models/role-model');
 const User = require('../src/domains/auth/models/user-model');
 const Machine = require('../src/domains/machines/models/machine-model');
+const MachineTelemetry = require('../src/domains/machines/models/machine-telemetry-model');
 const { hashPassword } = require('../src/utils/password');
 
 const sanitizeUsernameBase = (value) =>
@@ -352,6 +353,67 @@ const seedMachines = async () => {
   });
   const results = await Promise.all(upserts);
   console.log(`Makine kayıtları güncellendi (${results.length})`);
+  return results;
+};
+
+const seedTelemetry = async (machines) => {
+  if (!machines || machines.length === 0) {
+    console.log('Telemetry seed için makine bulunamadı.');
+    return;
+  }
+
+  await MachineTelemetry.deleteMany({ source: 'seed' });
+
+  const baseTime = Date.now();
+  const docs = [];
+
+  machines.forEach((machine, index) => {
+    const tempBase = 55 + index * 5;
+    const torqueBase = 110 + index * 8;
+    const energyBase = 2.5 + index * 0.5;
+
+    docs.push(
+      {
+        machine: machine._id,
+        timestamp: new Date(baseTime - 10 * 60 * 1000 + index * 1000),
+        signalValue: 1,
+        metrics: {
+          temperatureC: tempBase,
+          torqueNm: torqueBase,
+          energyKwh: energyBase,
+        },
+        intervalMs: 5000,
+        source: 'seed',
+      },
+      {
+        machine: machine._id,
+        timestamp: new Date(baseTime - 2 * 60 * 1000 + index * 1000),
+        signalValue: 0,
+        metrics: {
+          temperatureC: tempBase + 3,
+          torqueNm: torqueBase - 10,
+          energyKwh: energyBase * 0.3,
+        },
+        intervalMs: 5000,
+        source: 'seed',
+      },
+      {
+        machine: machine._id,
+        timestamp: new Date(baseTime - 30 * 1000 + index * 1000),
+        signalValue: 1,
+        metrics: {
+          temperatureC: tempBase + 1,
+          torqueNm: torqueBase + 5,
+          energyKwh: energyBase + 0.4,
+        },
+        intervalMs: 5000,
+        source: 'seed',
+      },
+    );
+  });
+
+  await MachineTelemetry.insertMany(docs);
+  console.log(`Telemetry seed kayıtları eklendi (${docs.length})`);
 };
 
 const run = async () => {
@@ -361,7 +423,8 @@ const run = async () => {
     const roleDocs = await seedRoles();
     await seedAdminUser(roleDocs);
     await seedSysUser(roleDocs);
-    await seedMachines();
+    const machines = await seedMachines();
+    await seedTelemetry(machines);
     console.log('Seed işlemi tamamlandı.');
     process.exit(0);
   } catch (err) {

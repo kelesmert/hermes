@@ -3,12 +3,14 @@ require('./models');
 const app = require('./app');
 const config = require('./config');
 const { connectDatabase } = require('./config/database');
+const startOeeProcessorJob = require('./jobs/oee-processor-job');
 
 const server = http.createServer(app);
 
 const startServer = async () => {
   try {
     await connectDatabase();
+    startOeeProcessorJob();
 
     server.listen(config.port, () => {
       console.log(`MES API ${config.port} portunda çalışıyor (${config.env})`);

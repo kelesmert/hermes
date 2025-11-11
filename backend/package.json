@@ -7,7 +7,8 @@
     "dev": "nodemon src/server.js",
     "start": "node src/server.js",
     "test": "echo \"Test komutlari backend kurulumundan sonra eklenecek\" && exit 1",
-    "seed": "node scripts/seed.js"
+    "seed": "node scripts/seed.js",
+    "data:gen": "node scripts/data-gen.js"
   },
   "keywords": [],
   "author": "",

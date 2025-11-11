@@ -1,0 +1,38 @@
+{
+  "signals": {
+    "default": {
+      "downtimeThresholdMs": 30000,
+      "recoverySignal": 1,
+      "reasonCode": "unplanned_stop",
+      "reasonCategory": "unplanned"
+    },
+    "plannedBreak": {
+      "downtimeThresholdMs": 900000,
+      "recoverySignal": 1,
+      "reasonCode": "planned_break",
+      "reasonCategory": "planned"
+    }
+  },
+  "reasonCatalog": [
+    {
+      "code": "unplanned_stop",
+      "label": "Plansız Duruş",
+      "category": "unplanned"
+    },
+    {
+      "code": "planned_break",
+      "label": "Planlı Mola",
+      "category": "planned"
+    },
+    {
+      "code": "maintenance",
+      "label": "Bakım",
+      "category": "maintenance"
+    }
+  ],
+  "aggregation": {
+    "telemetryWindowMs": 600000,
+    "pollIntervalMs": 5000,
+    "batchSize": 500
+  }
+}
