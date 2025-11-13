@@ -10,4 +10,6 @@ module.exports = {
   AUDIT_READ: 'audit.read',
   WORK_ORDERS_EXECUTE: 'work_orders.execute',
   SHIFTS_MANAGE: 'shifts.manage',
+  PARTS_READ: 'parts.read',
+  PARTS_MANAGE: 'parts.manage',
 };

@@ -142,3 +142,15 @@ Yeni kararlar alındıkça bu dosyaya tarih/başlık/gerekçe formatıyla ekleme
 - **Karar:** Monitoring sayfasındaki Recharts temelli sinyal ve telemetry grafiklerinin veri modeli ve zaman ekseni güncellendi. Telemetri noktaları frontend’de normalize edilerek `timestampMs` (epoch) alanı ile tutuluyor; X ekseni `type="number" scale="time"` konfigürasyonu ve sunucudan gelen `telemetryWindowMs` ile hizalanan `chartDomain` üzerinden yönetiliyor.
 - **Gerekçe:** 10 dakikalık kayan pencere içinde veri güncellenirken eksen etiketleri “zıplıyor” ve grafik zaman çizgisi gerçek aralığı yansıtmıyordu. Ayrıca sık polling (2 sn) sırasında Date parse işlemleri CPU’ya yük bindiriyordu.
 - **Etkisi:** Grafikler artık gerçekte olduğu gibi son 10 dakikalık aralığı sabit genişlikte gösteriyor, yeni örnek geldikçe eksen sürekli kayıyor. Tooltip ve tick formatlayıcıları da aynı normalleştirilmiş zamanı kullanıyor; böylece görsel kayma hissi azaldı ve incremental fetch sonrası state hesapları daha hafif hale geldi.
+
+### Parts Domain ve RBAC İzinleri
+
+- **Karar:** Parça tanımları bağımsız bir Parts domain’i altında modellendi; `/api/parts` için CRUD servis/controller/route eklendi ve `parts.read`/`parts.manage` izinleri tanımlandı.
+- **Gerekçe:** Production roadmap’teki job order akışları, makine uyumluluk doğrulamaları ve simülasyon scripti parça bilgisine ihtiyaç duyuyor; aynı zamanda bu domain diğer modüller (inventory, quality vb.) tarafından da kullanılacak.
+- **Etkisi:** Supervisor ve üstü roller parçaları yönetebiliyor, operator seviyeleri sadece okuyabiliyor; data-gen ve future job order servisleri tekil kod/kategori/varsayılan ayarlara sahip parçaları referans alabilecek.
+
+### Viewer Hesabı ve Seed Güncellemeleri
+
+- **Karar:** Seed script’e sadece `dashboard.read` ve `machines.read` izinlerine sahip viewer kullanıcısı eklendi; mevcut admin/sys/viewer hesaplarının şifreleri env değiştiğinde yeniden hash’lenip güncelleniyor. Ayrıca seed süreci örnek vida/profil parçalarını database’e yazıyor.
+- **Gerekçe:** RBAC doğrulamasını ve read-only kullanıcı deneyimini test etmek için ayrı bir hesap gerekliydi; parça CRUD’unu doğrulamak için de başlangıç verisi gerekiyor.
+- **Etkisi:** `npm run seed` çalıştırıldığında admin/sys/viewer hesapları güncel parolalarla hazır hale geliyor, iki örnek parça otomatik oluşuyor ve viewer hesabıyla parçalar veya diğer write endpoint’lerine erişim engeli kolayca test edilebiliyor.

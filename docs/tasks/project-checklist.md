@@ -24,6 +24,7 @@
 - [x] Roller/izinler için CRUD endpoint’leri ve permission yönetim API’si
 - [x] Makine domaini Faz 1: `machines` + `machine_events` modelleri, CRUD ve event API’leri, denormalize durum alanları
 - [x] Makine domaini Faz 2: Veri simülasyon script’i (cron/scheduler) ve API’ye entegre event üretimi
+- [x] Parts domaini: model + CRUD endpointleri + RBAC izinleri ve seed verileri
 - [ ] Event zamanlarının lokal timezone desteği (UTC+3 gibi) için helper/formatlama katmanı
 - [ ] Raporlama endpointleri (verimlilik, duruş süreleri vb.)
 - [ ] CSV/Excel export servisi

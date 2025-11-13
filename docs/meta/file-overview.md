@@ -25,6 +25,7 @@ Bu doküman, projedeki önemli dosya ve klasörlerin ne işe yaradığını hız
 - `backend/src/domains/users/`: Kullanıcı yönetimi domain’i; `users-controller`, `users-routes` burada bulunur.
 - `backend/src/domains/machines/`: Makine domain’i; ilk etapta `models/machine-model.js` ile `machines` koleksiyonunu tanımlar, ileride ilgili controller/service/route dosyaları burada yer alacak.
 - `backend/src/domains/machines/models/machine-telemetry-model.js`: Makineye ait anlık telemetry/sinyal kayıtlarını (`machine_telemetry` koleksiyonu) saklar; 0/1 sinyal değeri, timestamp ve metrikler içerir.
+- `backend/src/domains/parts/`: Parça tanımları için domain; `models/part-model.js` parça, ideal süre ve üretilebildiği makineleri tutar, ileride controller/service/route’lar buraya eklenir.
 - `backend/src/domains/oee/config/oee-rules.json`: OEE/sinyal işleme domaini için downtime eşikleri, reason kod haritaları ve aggregation ayarlarının tutulduğu JSON konfigurasyonu.
 - `backend/src/domains/oee/models/oee-machine-state-model.js`: Her makine için son sinyal değerini, aktif duruş event’ini ve sıfır (0) serisinin başlangıcını tutar; OEE job’u bu tabloyu kullanır.
 - `backend/src/domains/oee/services/oee-processor.js`: Telemetry kayıtlarını batch halinde okuyup kuralları uygulayan servis; gerektiğinde `machine_events` üzerinde duruş başlatma/bitirme işlemleri yapar.

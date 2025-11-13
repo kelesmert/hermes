@@ -45,7 +45,7 @@ Bu rehber, backend ve frontend’i MVP hedefiyle nasıl kurduğumuzu öğretici 
 
 ## 7) Seed Script (Başlangıç Verileri)
 - Dosya: `backend/scripts/seed.js`.
-- Yapar: Permission’ları ve rolleri upsert eder; `.env` ile verilen admin hesabını oluşturur/günceller.
+- Yapar: Permission/rol upsert, `.env` bazlı admin & sys hesaplarını güncelleme, yalnızca `dashboard.read + machines.read` iznine sahip viewer hesabı oluşturma, örnek makineler + parçalar + telemetry kayıtları ekleme. Seed tekrar çalıştırıldığında mevcut hesapların şifreleri `.env` değerine göre otomatik güncellenir.
 - Çalıştırma: `cd backend && npm run seed`.
 
 ## 8) API’ler (Şu Ana Kadar)
@@ -63,6 +63,9 @@ Bu rehber, backend ve frontend’i MVP hedefiyle nasıl kurduğumuzu öğretici 
   - `GET /api/roles` → tüm rol kayıtlarını döner (`roles.manage` veya `users.manage` izni gerektirir).
   - `POST /api/roles`, `PATCH /api/roles/:id`, `DELETE /api/roles/:id` → rol CRUD işlemleri (`roles.manage`).
   - `GET /api/permissions` → izin sözlüğünü döner (`roles.manage` veya `users.manage`).
+- Parçalar (`/api/parts`):
+  - `GET /api/parts` → parça listesi, kategori/makine filtreleri (`parts.read`).
+  - `POST /api/parts`, `PATCH /api/parts/:id`, `DELETE /api/parts/:id` → parça CRUD işlemleri (`parts.manage`).
 
 ## 9) Doğrulama (Postman)
 - Login: `POST /api/auth/login` (JSON body: `username` + `password`) → `tokens.accessToken`’ı kopyala.
@@ -125,5 +128,6 @@ Bu rehber, backend ve frontend’i MVP hedefiyle nasıl kurduğumuzu öğretici 
 - Durum enumları `backend/src/constants/machine-statuses.js` içinde tutulur (running/idle/downtime/maintenance/unknown) ve event sistemi bu değerleri kullanarak makine kaydındaki `status` + `lastEventAt` alanlarını güncelleyecektir.
 - Event’ler ayrı koleksiyonda (`machine_events`, yapım aşamasında) saklanacak; makine modeli sadece son durumu özetlemek için denormalize alanlara sahiptir.
 - Telemetry kayıtları `backend/src/domains/machines/models/machine-telemetry-model.js` ile `machine_telemetry` koleksiyonunda tutulur; her kayıt makine id’si, sinyal (0/1), timestamp ve seçili metrikleri içerir. Sinyal/OEE domain’i bu veriyi izleyip kuralları çalıştırır.
+- `backend/src/domains/parts/models/part-model.js` parça tanımlarını ve hangi makinelerde üretilebileceğini tutar; production/job order akışı başlamadan önce bu domain’in geçerliliği kontrol edilmelidir.
 - `backend/src/domains/oee/services/oee-processor.js` telemetry verilerini JSON konfigine göre işler; sinyal zaman aşımı kuralı sayesinde belirli süre veri gelmeyen makineler otomatik duruşa alınır. `backend/src/jobs/oee-processor-job.js` belirli aralıklarla bu servisi tetikler ve duruş eventlerini otomatik oluşturur/kapatır.
 - `backend/src/domains/board/services/board-service.js` OEE sonuçları + telemetry ortalamalarını birleştirerek `/api/board/metrics` endpoint’ine veri sağlar (Dashboard izinli kullanıcılar varsayılan 2 sn polling ile tüketir; değer çevresel olarak ayarlanabilir).
