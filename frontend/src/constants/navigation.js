@@ -3,6 +3,7 @@ import AssessmentOutlinedIcon from '@mui/icons-material/AssessmentOutlined';
 import PeopleAltOutlinedIcon from '@mui/icons-material/PeopleAltOutlined';
 import PrecisionManufacturingOutlinedIcon from '@mui/icons-material/PrecisionManufacturingOutlined';
 import SensorsOutlinedIcon from '@mui/icons-material/SensorsOutlined';
+import CategoryOutlinedIcon from '@mui/icons-material/CategoryOutlined';
 
 export const NAV_ITEMS = [
   {
@@ -34,5 +35,11 @@ export const NAV_ITEMS = [
     path: '/machines',
     icon: PrecisionManufacturingOutlinedIcon,
     permission: 'machines.read',
+  },
+  {
+    label: 'Parçalar',
+    path: '/parts',
+    icon: CategoryOutlinedIcon,
+    permission: 'parts.read',
   },
 ];

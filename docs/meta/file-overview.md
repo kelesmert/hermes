@@ -88,6 +88,7 @@ Bu doküman, projedeki önemli dosya ve klasörlerin ne işe yaradığını hız
 - `frontend/src/components/layout`: Sidebar, header, breadcrumbs ve kabuk bileşenleri.
 - `frontend/src/features/*`: Domain odaklı modüller (auth, dashboard, raporlar, kullanıcılar vb.).
 - `frontend/src/features/machines/`: Makine yönetimi modülü; liste, CRUD dialogları ve duruş kayıtlarını içeren bileşenler.
+- `frontend/src/features/parts/`: Parça tanımları için liste + CRUD modülü; backend Parts domain’i ile çalışır, makine uyumluluğu ve varsayılan ayarların girildiği form bileşenlerini içerir.
 - `frontend/src/features/monitoring/pages/monitoring.jsx`: Makine/hat seçimi yaparak anlık telemetry ve sinyal trendini gösteren canlı izleme sayfası.
 - `frontend/src/features/users/components/`: Kullanıcı tablosu, kullanıcı formu, rol/permission yönetimi gibi modüler bileşenler.
 - `frontend/src/lib/api/client.js`: Tüm frontend HTTP çağrılarını yapan axios instance; `baseURL` her zaman `VITE_API_URL`'dir.

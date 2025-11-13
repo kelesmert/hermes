@@ -8,4 +8,6 @@ export const PERMISSIONS = {
   MACHINES_UPDATE_OWN: 'machines.update_own',
   WORK_ORDERS_EXECUTE: 'work_orders.execute',
   SHIFTS_MANAGE: 'shifts.manage',
+  PARTS_READ: 'parts.read',
+  PARTS_MANAGE: 'parts.manage',
 };

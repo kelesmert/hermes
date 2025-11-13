@@ -43,13 +43,8 @@ const partSchema = new mongoose.Schema(
         ref: 'Machine',
       },
     ],
-    // Opsiyonel: parça için makine bazında varsayılan parametreler (örn. spindle, feed rate).
     defaultMachineSettings: {
-      type: {
-        feedRate: Number,
-        spindleSpeed: Number,
-        coolant: String,
-      },
+      type: mongoose.Schema.Types.Mixed,
       default: undefined,
     },
     createdBy: {

@@ -46,6 +46,7 @@
 - [x] `/api/users` listesini TanStack Table ile entegre et; aktif/pasif toggle, rol atama ve filtreleme akışlarını tamamla
 - [x] Dashboard layout ve genel metrik kartları
 - [ ] Makine kartları (durum renkleri, aksiyon butonları, polling/WS)
+- [x] Parça yönetimi sayfası (liste + ekle/düzenle/sil formları)
 - [ ] Raporlama sayfası + filtreler
 - [x] Roller/izinler için yönetim ekranı; permission set düzenleme ve kullanıcıya rol atama modalları
 - [x] Dashboard/rapor placeholder’larını gerçek makine/event verileriyle besleyip React Query polling/WebSocket desteği ekle *(dashboard kısmı tamamlandı, rapor ekranı beklemede)*
