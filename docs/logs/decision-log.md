@@ -154,3 +154,9 @@ Yeni kararlar alındıkça bu dosyaya tarih/başlık/gerekçe formatıyla ekleme
 - **Karar:** Seed script’e sadece `dashboard.read` ve `machines.read` izinlerine sahip viewer kullanıcısı eklendi; mevcut admin/sys/viewer hesaplarının şifreleri env değiştiğinde yeniden hash’lenip güncelleniyor. Ayrıca seed süreci örnek vida/profil parçalarını database’e yazıyor.
 - **Gerekçe:** RBAC doğrulamasını ve read-only kullanıcı deneyimini test etmek için ayrı bir hesap gerekliydi; parça CRUD’unu doğrulamak için de başlangıç verisi gerekiyor.
 - **Etkisi:** `npm run seed` çalıştırıldığında admin/sys/viewer hesapları güncel parolalarla hazır hale geliyor, iki örnek parça otomatik oluşuyor ve viewer hesabıyla parçalar veya diğer write endpoint’lerine erişim engeli kolayca test edilebiliyor.
+
+### Parça Kategorileri ve Varsayılan Makine Ayarları
+
+- **Karar:** Laptop fabrikası senaryosuna uygun olarak üç sabit parça kategorisi belirlendi (`fasteners`, `electronics`, `mechanical_plastics`). Her kategori izin verilen birim listesini ve kategoriye özgü varsayılan makine ayarı alanlarını (feed rate, reflow temp, mold temp vb.) tanımlıyor. Backend Parts servisi bu sözlüğe göre validasyon yapıyor; frontend formu da aynı sabitlerden türetilen select/input setleri gösteriyor.
+- **Gerekçe:** Parça formunun kategoriden bağımsız serbest metin olması üretim planlamasında yanlış birimlerin kullanılmasına yol açıyordu. Ayrıca farklı kategoriler farklı makine parametreleri talep ediyor (vida = spindle/torque, elektronik = reflow temp vb.), dolayısıyla kategori seçimi somut bir etkiye sahip olmalı.
+- **Etkisi:** Parçalar artık yalnızca sözlükteki kategorilerden biri ile oluşturulabiliyor, ilgili birim listesi ve varsayılan makine ayarı alanları otomatik değişiyor. Seed verileri ve frontend sayfası yeni yapıdan besleniyor; ileride kategori eklemek sadece constants dosyalarına kayıt eklemekle mümkün olacak.

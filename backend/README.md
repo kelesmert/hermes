@@ -3,8 +3,9 @@
 Node.js + Express tabanlı Hermes API’si bu klasörde yer alır. Mevcut sürüm:
 - JWT + refresh token tabanlı auth ve kullanıcı adıyla giriş,
 - RBAC yönetim uçları (`/api/users`, `/api/roles`, `/api/permissions`),
+- Parts domain’i (`/api/parts`) ile kategori/birim/varsayılan makine ayarı sözlüğüne bağlı parça tanımları,
 - Makine domaini için `machines` ve `machine_events` modelleri ile CRUD/event endpointleri,
-- Seed script ile master/supervisor/operator/viewer rollerini, test hesaplarını ve örnek makineleri üretir.
+- Seed script ile master/supervisor/operator/viewer rollerini, test hesaplarını, örnek makineleri ve örnek parçaları üretir (env’deki şifreler değişirse kayıtlar güncellenir).
 
 ## Kurulum
 ```bash
@@ -18,7 +19,10 @@ npm run dev    # http://localhost:5000
 Seed sonrası örnek hesaplar:
 - Master: `admin / ChangeMe123!`
 - Sys/test: `sys / syssys`
- - Örnek makineler: `MCH-001 (Simülasyon Presi)` ve `MCH-002 (CNC Kesim)` varsayılan olarak eklenir.
+- Viewer: `viewer@hermes.local / Viewer123!` (sadece dashboard + makineler okunabilir)
+- Örnek makineler: `MCH-001 (Simülasyon Presi)` ve `MCH-002 (CNC Kesim)` varsayılan olarak eklenir.
+- Örnek parçalar: Vida, profil ve anakart seti gibi üç kategori (`fasteners`, `mechanical_plastics`, `electronics`) için kayıtlar eklenir; kategori/birim/varsayılan makine ayarları `src/domains/parts/constants/part-categories.js` sözlüğüne göre doğrulanır.
+
 - Telemetry testi için seed script’i her makineye ait örnek `machine_telemetry` kayıtları oluşturur; OEE job’u ve `/api/board/metrics` endpoint’i bu verilerle hemen doğrulanabilir.
 - Canlı telemetri simülasyonu için:
   ```bash

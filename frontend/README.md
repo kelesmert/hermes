@@ -12,12 +12,12 @@ npm run dev
 ```
 
 Varsayılan adres: `http://localhost:5173/`
-- Login ekranında kullanıcı adı + şifre kullanılır (örn. `admin / ChangeMe123!`). `/users` rotasında kullanıcı tablosu ve `roles.manage` izni olanlar için rol/permission sekmesi bulunur.
+- Login ekranında kullanıcı adı + şifre kullanılır (örn. `admin / ChangeMe123!`). `/users` rotasında kullanıcı tablosu ve `roles.manage` izni olanlar için rol/permission sekmesi bulunur. `/parts` sayfası `parts.read` izni ile açılır; parçaları listeleyip `parts.manage` izni olan kullanıcıların parça ekleme/düzenleme/silme yapmasına izin verir.
 
 ## Yapı
 - `src/app` → Providers, tema ve route guard bileşenleri.
 - `src/components/layout` → Sidebar, header, breadcrumbs ve kabuk bileşenleri.
-- `src/features/*` → Domain odaklı modüller (auth, dashboard, raporlar, kullanıcılar vb.).
+- `src/features/*` → Domain odaklı modüller (auth, dashboard, raporlar, kullanıcılar, makineler, parçalar vb.).
 - `src/lib` → axios client, query client ve yardımcılar.
 - `src/styles/global.css` → Global CSS reset/tema ayarları.
 

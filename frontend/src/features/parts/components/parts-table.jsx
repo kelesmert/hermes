@@ -31,6 +31,7 @@ import { fetchMachines } from '@/features/machines/services/machines-api.js';
 import PartFormDialog from '@/features/parts/components/part-form-dialog.jsx';
 import usePermissions from '@/hooks/use-permissions.js';
 import { PERMISSIONS } from '@/constants/permissions.js';
+import { PART_CATEGORY_MAP } from '@/features/parts/constants/part-categories.js';
 
 const formatMachineNames = (ids = [], map) => {
   if (!ids?.length) return '-';
@@ -62,17 +63,26 @@ const formatTags = (tags = []) => {
   );
 };
 
-const formatSettings = (settings = {}) => {
-  const entries = Object.entries(settings || {}).filter(([, value]) => value !== undefined);
+const formatSettings = (settings = {}, categoryId) => {
+  const category = PART_CATEGORY_MAP.get(categoryId);
+  const fields = category?.machineSettings || [];
+  const entries = fields
+    .map((field) => ({ ...field, value: settings?.[field.key] }))
+    .filter((field) => field.value !== undefined && field.value !== null && field.value !== '');
+
   if (!entries.length) return '-';
   return (
     <Stack spacing={0.5}>
-      {entries.map(([key, value]) => (
-        <Typography variant="caption" key={key}>{`${key}: ${value}`}</Typography>
+      {entries.map((field) => (
+        <Typography variant="caption" key={field.key}>
+          {`${field.label}: ${field.value}`}
+        </Typography>
       ))}
     </Stack>
   );
 };
+
+const getCategoryLabel = (categoryId) => PART_CATEGORY_MAP.get(categoryId)?.label || categoryId || '-';
 
 const PartsTable = () => {
   const queryClient = useQueryClient();
@@ -207,10 +217,12 @@ const PartsTable = () => {
                   <TableCell>Kod</TableCell>
                   <TableCell>Ad</TableCell>
                   <TableCell>Kategori</TableCell>
+                  <TableCell>Birim</TableCell>
                   <TableCell>İdeal Süre (sn)</TableCell>
                   <TableCell>Etiketler</TableCell>
                   <TableCell>Uyumlu Makineler</TableCell>
                   <TableCell>Varsayılan Ayarlar</TableCell>
+                  <TableCell>Açıklama</TableCell>
                   {canManage && <TableCell align="right">İşlemler</TableCell>}
                 </TableRow>
               </TableHead>
@@ -219,13 +231,15 @@ const PartsTable = () => {
                   <TableRow key={part.id || part._id} hover>
                     <TableCell>{part.code}</TableCell>
                     <TableCell>{part.name}</TableCell>
-                    <TableCell>{part.category || '-'}</TableCell>
+                    <TableCell>{getCategoryLabel(part.category)}</TableCell>
+                    <TableCell>{part.unit || '-'}</TableCell>
                     <TableCell>{part.idealCycleTime ?? '-'}</TableCell>
                     <TableCell>{formatTags(part.tags)}</TableCell>
                     <TableCell>
                       {formatMachineNames(part.compatibleMachines, machineMap)}
                     </TableCell>
-                    <TableCell>{formatSettings(part.defaultMachineSettings)}</TableCell>
+                    <TableCell>{formatSettings(part.defaultMachineSettings, part.category)}</TableCell>
+                    <TableCell sx={{ maxWidth: 220 }}>{part.description || '-'}</TableCell>
                     {canManage && (
                       <TableCell align="right">
                         <Tooltip title="Düzenle">

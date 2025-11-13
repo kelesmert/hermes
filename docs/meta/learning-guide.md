@@ -66,6 +66,7 @@ Bu rehber, backend ve frontend’i MVP hedefiyle nasıl kurduğumuzu öğretici 
 - Parçalar (`/api/parts`):
   - `GET /api/parts` → parça listesi, kategori/makine filtreleri (`parts.read`).
   - `POST /api/parts`, `PATCH /api/parts/:id`, `DELETE /api/parts/:id` → parça CRUD işlemleri (`parts.manage`).
+  - Kategoriler/birimler/varsayılan makine ayarı alanları `backend/src/domains/parts/constants/part-categories.js` sözlüğünden doğrulanır; frontend formu da aynı sözlükle (kopya) beslenir.
 
 ## 9) Doğrulama (Postman)
 - Login: `POST /api/auth/login` (JSON body: `username` + `password`) → `tokens.accessToken`’ı kopyala.

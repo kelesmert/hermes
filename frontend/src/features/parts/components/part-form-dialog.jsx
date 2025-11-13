@@ -12,28 +12,31 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import { Controller, useForm } from 'react-hook-form';
+import { Controller, useForm, useWatch } from 'react-hook-form';
+import { PART_CATEGORIES, getCategoryById } from '@/features/parts/constants/part-categories.js';
+
+const FIRST_CATEGORY = PART_CATEGORIES[0]?.id || '';
 
 const defaultValues = {
   code: '',
   name: '',
   description: '',
-  category: '',
-  unit: '',
+  category: FIRST_CATEGORY,
+  unit: PART_CATEGORIES[0]?.defaultUnit || '',
   tags: '',
   idealCycleTime: '',
   compatibleMachines: [],
-  feedRate: '',
-  spindleSpeed: '',
-  coolant: '',
+  settings: {},
 };
 
 const PartFormDialog = ({ open, onClose, onSubmit, initialData, isSubmitting, machines }) => {
   const {
-    control,
     register,
     handleSubmit,
     reset,
+    control,
+    setValue,
+    getValues,
     formState: { errors },
   } = useForm({ defaultValues });
 
@@ -43,56 +46,62 @@ const PartFormDialog = ({ open, onClose, onSubmit, initialData, isSubmitting, ma
         code: initialData.code || '',
         name: initialData.name || '',
         description: initialData.description || '',
-        category: initialData.category || '',
+        category: initialData.category || FIRST_CATEGORY,
         unit: initialData.unit || '',
         tags: (initialData.tags || []).join(', '),
         idealCycleTime: initialData.idealCycleTime ?? '',
         compatibleMachines: (initialData.compatibleMachines || []).map((id) => id?.toString?.() || id),
-        feedRate: initialData.defaultMachineSettings?.feedRate ?? '',
-        spindleSpeed: initialData.defaultMachineSettings?.spindleSpeed ?? '',
-        coolant: initialData.defaultMachineSettings?.coolant ?? '',
+        settings: initialData.defaultMachineSettings || {},
       });
     } else {
       reset(defaultValues);
     }
   }, [initialData, reset]);
 
+  const selectedCategory = useWatch({ control, name: 'category' });
+  const categoryConfig = getCategoryById(selectedCategory) || getCategoryById(FIRST_CATEGORY) || PART_CATEGORIES[0];
+
+  useEffect(() => {
+    if (!categoryConfig) return;
+    const currentUnit = getValues('unit');
+    if (!currentUnit || !categoryConfig.units.includes(currentUnit)) {
+      setValue('unit', categoryConfig.defaultUnit || categoryConfig.units[0] || '', {
+        shouldDirty: true,
+      });
+    }
+  }, [categoryConfig, getValues, setValue]);
+
   const handleClose = () => {
     if (!isSubmitting) onClose();
   };
 
   const handleSubmitForm = (values) => {
+    const tags = values.tags
+      .split(',')
+      .map((tag) => tag.trim())
+      .filter(Boolean);
+
+    const defaultMachineSettings = {};
+    const settings = values.settings || {};
+    (categoryConfig?.machineSettings || []).forEach((field) => {
+      const raw = settings?.[field.key];
+      if (raw === undefined || raw === null || raw === '') return;
+      defaultMachineSettings[field.key] = field.type === 'number' ? Number(raw) : raw;
+    });
+
     const payload = {
       code: values.code.trim(),
       name: values.name.trim(),
       description: values.description?.trim() || '',
-      category: values.category?.trim() || '',
-      unit: values.unit?.trim() || '',
-      tags: values.tags
-        .split(',')
-        .map((tag) => tag.trim())
-        .filter(Boolean),
-      idealCycleTime: Number(values.idealCycleTime) || 0,
+      category: values.category,
+      unit: values.unit,
+      tags,
+      idealCycleTime: Number(values.idealCycleTime),
       compatibleMachines: values.compatibleMachines || [],
+      defaultMachineSettings: Object.keys(defaultMachineSettings).length
+        ? defaultMachineSettings
+        : undefined,
     };
-
-    const defaultMachineSettings = {
-      feedRate:
-        values.feedRate === '' || values.feedRate === null ? undefined : Number(values.feedRate),
-      spindleSpeed:
-        values.spindleSpeed === '' || values.spindleSpeed === null
-          ? undefined
-          : Number(values.spindleSpeed),
-      coolant: values.coolant?.trim() || undefined,
-    };
-
-    const cleanedSettings = Object.fromEntries(
-      Object.entries(defaultMachineSettings).filter(([, val]) => val !== undefined && val !== ''),
-    );
-
-    if (Object.keys(cleanedSettings).length) {
-      payload.defaultMachineSettings = cleanedSettings;
-    }
 
     onSubmit(payload);
   };
@@ -120,16 +129,36 @@ const PartFormDialog = ({ open, onClose, onSubmit, initialData, isSubmitting, ma
                 fullWidth
               />
             </Stack>
-            <TextField
-              label="Açıklama"
-              {...register('description')}
-              multiline
-              minRows={2}
-              fullWidth
-            />
+
+            <TextField label="Açıklama" {...register('description')} multiline minRows={2} fullWidth />
+
             <Stack direction={{ xs: 'column', md: 'row' }} spacing={2.5}>
-              <TextField label="Kategori" {...register('category')} fullWidth />
-              <TextField label="Birim" {...register('unit')} fullWidth />
+              <TextField
+                select
+                label="Kategori"
+                {...register('category', { required: 'Bu alan zorunludur.' })}
+                fullWidth
+              >
+                {PART_CATEGORIES.map((category) => (
+                  <MenuItem key={category.id} value={category.id}>
+                    {category.label}
+                  </MenuItem>
+                ))}
+              </TextField>
+
+              <TextField
+                select
+                label="Birim"
+                {...register('unit', { required: 'Bu alan zorunludur.' })}
+                fullWidth
+              >
+                {categoryConfig?.units?.map((unit) => (
+                  <MenuItem key={unit} value={unit}>
+                    {unit}
+                  </MenuItem>
+                ))}
+              </TextField>
+
               <TextField
                 label="İdeal Çevrim Süresi (sn)"
                 type="number"
@@ -140,7 +169,9 @@ const PartFormDialog = ({ open, onClose, onSubmit, initialData, isSubmitting, ma
                 fullWidth
               />
             </Stack>
+
             <TextField label="Etiketler (virgülle ayır)" {...register('tags')} fullWidth />
+
             <Controller
               name="compatibleMachines"
               control={control}
@@ -164,26 +195,22 @@ const PartFormDialog = ({ open, onClose, onSubmit, initialData, isSubmitting, ma
                 </TextField>
               )}
             />
+
             <Box>
               <Typography variant="subtitle2" gutterBottom>
-                Varsayılan Makine Ayarları (opsiyonel)
+                {categoryConfig?.label} için Varsayılan Makine Ayarları
               </Typography>
-              <Stack direction={{ xs: 'column', md: 'row' }} spacing={2.5}>
-                <TextField
-                  label="Feed Rate"
-                  type="number"
-                  inputProps={{ step: 0.01 }}
-                  {...register('feedRate')}
-                  fullWidth
-                />
-                <TextField
-                  label="Spindle Speed"
-                  type="number"
-                  inputProps={{ step: 1 }}
-                  {...register('spindleSpeed')}
-                  fullWidth
-                />
-                <TextField label="Soğutma" {...register('coolant')} fullWidth />
+              <Stack direction={{ xs: 'column', md: 'row' }} spacing={2.5} flexWrap="wrap">
+                {(categoryConfig?.machineSettings || []).map((field) => (
+                  <TextField
+                    key={field.key}
+                    label={field.label}
+                    type={field.type === 'number' ? 'number' : 'text'}
+                    inputProps={field.type === 'number' ? { step: field.step || 1 } : undefined}
+                    {...register(`settings.${field.key}`)}
+                    sx={{ flex: '1 1 260px' }}
+                  />
+                ))}
               </Stack>
             </Box>
           </Stack>
@@ -215,12 +242,10 @@ PartFormDialog.propTypes = {
     unit: PropTypes.string,
     tags: PropTypes.arrayOf(PropTypes.string),
     idealCycleTime: PropTypes.number,
-    compatibleMachines: PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.object])),
-    defaultMachineSettings: PropTypes.shape({
-      feedRate: PropTypes.number,
-      spindleSpeed: PropTypes.number,
-      coolant: PropTypes.string,
-    }),
+    compatibleMachines: PropTypes.arrayOf(
+      PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
+    ),
+    defaultMachineSettings: PropTypes.object,
   }),
   isSubmitting: PropTypes.bool,
   machines: PropTypes.arrayOf(
