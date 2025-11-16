@@ -1,5 +1,20 @@
 # Production & Parts Domain Roadmap
 
+## Implementation Status (Güncel Durum)
+
+### Tamamlanan Domainler
+
+- **Parts Domain**: Model, CRUD endpoint'leri, kategori sistemi (fasteners/electronics/mechanical_plastics), makine uyumluluğu tamamlandı.
+- **OEE Domain (Kısmi)**: MachineTelemetry modeli, OEE Processor Job (otomatik downtime detection), OeeMachineState modeli ile **Availability** hesaplaması tamamlandı. Performance ve Quality hesaplamaları için JobOrder domain'i gerekli.
+- **Board Domain**: Dashboard metrik endpoint'leri (`/api/board/metrics`, `/api/board/machines/:id/metrics`, `/api/board/machines/:id/telemetry`) tamamlandı.
+- **Monitoring Frontend**: Canlı telemetry grafikler (2sn polling, 10dk kayan pencere, Recharts) tamamlandı.
+
+### Bekleyen Domainler
+
+- **Production Domain**: JobOrder ve ProductionEvent modelleri henüz oluşturulmadı. Bu domain, OEE'nin Performance ve Quality bileşenleri için gerekli.
+
+---
+
 ## Amaç
 
 Bu dokümantasyon, MES (Manufacturing Execution System) projesi kapsamında oluşturulacak **temel domainleri** ve bunların entegrasyonunu açıklar.
@@ -252,58 +267,64 @@ GET    /api/production/job-orders/:id/events     → İş emrine ait tüm olayla
 
 ## Yol Haritası (MVP)
 
-### **Faz 1: Parts Domain (1-2 Gün)**
+### **Faz 1: Parts Domain** ✅ TAMAMLANDI
 
 **Backend:**
 
-- Part modeli oluştur
-- Part service (CRUD işlemleri)
-- Part controller
-- Parts routes (`/api/parts`)
-- API test (Postman/Thunder Client)
+- ✅ Part modeli oluştur
+- ✅ Part service (CRUD işlemleri)
+- ✅ Part controller
+- ✅ Parts routes (`/api/parts`)
+- ✅ API test (Postman/Thunder Client)
 
 **Frontend:**
 
-- Parts sayfası (parça listesi + oluşturma formu)
-- Parça detay sayfası
-- Parça düzenleme ve silme işlemleri
+- ✅ Parts sayfası (parça listesi + oluşturma formu)
+- ✅ Parça düzenleme ve silme işlemleri
+- ✅ Kategori/birim/makine uyumluluğu entegrasyonu
 
 ---
 
-### **Faz 2: Production Domain (3-4 Gün)**
+### **Faz 2: Production Domain** ⏳ BEKLEMEDE
 
 **Backend:**
 
-- JobOrder modeli oluştur
-- ProductionEvent modeli oluştur
-- JobOrder service (CRUD + start/produce/pause/resume/complete)
-- JobOrder controller
-- Production routes (`/api/production/job-orders`)
-- Machine modeline `currentJobOrder` alanı ekle
-- API test (Postman/Thunder Client)
+- [ ] JobOrder modeli oluştur
+- [ ] ProductionEvent modeli oluştur
+- [ ] JobOrder service (CRUD + start/produce/pause/resume/complete)
+- [ ] JobOrder controller
+- [ ] Production routes (`/api/production/job-orders`)
+- [ ] Machine modeline `currentJobOrder` alanı ekle
+- [ ] API test (Postman/Thunder Client)
 
 **Frontend:**
 
-- Production sayfası (iş emri listesi + oluşturma formu)
-- İş emri detay sayfası
-- İş emri başlatma/durdurma/tamamlama işlemleri
-- Parça seçiminde uyumlu makineleri göster
+- [ ] Production sayfası (iş emri listesi + oluşturma formu)
+- [ ] İş emri detay sayfası
+- [ ] İş emri başlatma/durdurma/tamamlama işlemleri
+- [ ] Parça seçiminde uyumlu makineleri göster
 
 ---
 
-### **Faz 3: Data Generation & OEE Entegrasyonu (2-3 Gün)**
+### **Faz 3: Data Generation & OEE Entegrasyonu** ⚠️ KISMEN TAMAMLANDI
 
 **Backend:**
 
-- Data-gen scriptini güncelle (JobOrder bazlı üretim simülasyonu)
-- OEE processor'ı güncelle (Performance ve Quality hesaplamaları)
-- Parts ve JobOrder için seed data oluştur
+- ✅ MachineTelemetry modeli (0/1 sinyal, timestamp, metrikler)
+- ✅ OEE Processor Job (otomatik downtime detection)
+- ✅ OeeMachineState modeli (son sinyal, aktif event, sıfır serisi)
+- ✅ Data-gen scriptini güncelle (Telemetry simülasyonu)
+- ✅ Availability hesaplaması (telemetry bazlı)
+- [ ] Performance hesaplaması (JobOrder bazlı, beklemede)
+- [ ] Quality hesaplaması (JobOrder bazlı, beklemede)
 
 **Frontend:**
 
-- Dashboard'a anlık üretim kartları ekle
-- Reports sayfasına OEE metrikleri göster (Availability × Performance × Quality)
-- Parça bazlı performans raporları
+- ✅ Monitoring sayfası (canlı telemetry grafikler, 2sn polling, Recharts)
+- ✅ Dashboard'a makine kartları ekle (polling ile güncelleme)
+- ✅ Board domain endpoint'leri entegrasyonu
+- [ ] Reports sayfasına OEE metrikleri göster (Availability × Performance × Quality)
+- [ ] Parça bazlı performans raporları
 
 ---
 

@@ -58,6 +58,9 @@ frontend/
   - `PermissionGuard`: `requiredPermissions` dizisindeki tüm izinlerin varlığını kontrol eder (backend ile uyumlu).
 - `/users` rotası TanStack Table ile kullanıcı listesini gösterir; kullanıcı silme/düzenleme dialogları yalnızca `users.manage` iznine sahip kullanıcılar için aktiftir. Aynı sayfadaki “Roller & İzinler” sekmesi `roles.manage` iznine sahip kullanıcılara açıktır.
 - `/machines` rotası makine tablosu, CRUD modalları ve event diyaloğunu içerir; menüde `machines.read` izni ile görünür. Durum kaydı ekleyebilmek için kullanıcıların `machines.write` iznine sahip olması zorunludur.
+- **Monitoring Sayfası (`/monitoring`):** Seçili makinenin canlı telemetry grafiklerini gösterir. TanStack Query `refetchInterval: 2000` ile backend'den telemetry serisi çeker. 10 dakikalık kayan pencere (telemetryWindowMs) içindeki veriler Recharts kütüphanesi ile görselleştirilir. Metrikler: Sinyal durumu (0/1), sıcaklık, tork, enerji tüketimi.
+- **Dashboard Makine Kartları (`/dashboard`):** Board domain endpoint'leri (`/api/board/metrics`, `/api/board/machines/:id/metrics`) üzerinden veri alır. React Query `refetchInterval` ile polling yapılır; kart bileşenleri MUI Card + Grid yapısı kullanır.
+- **Parts Sayfası (`/parts`):** Parça listesi TanStack Table ile gösterilir. CRUD modalları kategori/birim/makine uyumluluğu seçimlerini içerir. Kategori seçimi yapıldığında frontend `part-categories.js` konfigürasyonuna göre izin verilen birim ve makine ayarı alanlarını dinamik olarak gösterir.
 
 ## 5. Veri Erişimi ve Hata Yönetimi
 

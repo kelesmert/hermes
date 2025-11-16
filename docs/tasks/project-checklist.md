@@ -22,15 +22,19 @@
 - [x] Admin kullanıcı seed script’i
 - [ ] (Opsiyonel) Tokenları cookie tabanlı yönetime geçir (HTTP-only, Secure, SameSite), CSRF koruması ekle ve çoklu cihaz oturum yönetimi + aktif refresh listesi hazırla
 - [x] Roller/izinler için CRUD endpoint’leri ve permission yönetim API’si
-- [x] Makine domaini Faz 1: `machines` + `machine_events` modelleri, CRUD ve event API’leri, denormalize durum alanları
-- [x] Makine domaini Faz 2: Veri simülasyon script’i (cron/scheduler) ve API’ye entegre event üretimi
+- [x] Makine domaini Faz 1: `machines` + `machine_events` modelleri, CRUD ve event API'leri, denormalize durum alanları
+- [x] Makine domaini Faz 2: Veri simülasyon script'i (cron/scheduler) ve API'ye entegre event üretimi
+- [x] MachineTelemetry modeli: 0/1 sinyal değeri, timestamp, metrikler (sıcaklık, tork, enerji)
+- [x] OEE Processor Job: Telemetry batch processing, otomatik downtime detection (sıfır serisi > threshold → MachineEvent)
+- [x] OeeMachineState modeli: Makine başına son sinyal, aktif event, sıfır serisi başlangıç zamanı
+- [x] Board domain: Dashboard metrik endpoint'leri (`/api/board/metrics`, `/api/board/machines/:id/metrics`, `/api/board/machines/:id/telemetry`)
 - [x] Parts domaini: model + CRUD endpointleri + RBAC izinleri ve seed verileri
 - [ ] Event zamanlarının lokal timezone desteği (UTC+3 gibi) için helper/formatlama katmanı
 - [ ] Raporlama endpointleri (verimlilik, duruş süreleri vb.)
 - [ ] CSV/Excel export servisi
 - [ ] Audit log middleware’i ve kayıt koleksiyonu
 - [ ] AI analiz modülü (kural tabanlı veya model entegrasyonu)
-- [ ] Dashboard/rapor veri kaynaklarını gerçek makine/event akışıyla besleyecek polling/push servisleri
+- [ ] Dashboard/rapor veri kaynaklarını gerçek makine/event akışıyla besleyecek polling/push servisleri _(Board domain ile kısmen tamamlandı; raporlama beklemede)_
 - [ ] Auth akışı için refresh/logout endpoint testleri ve Postman senaryoları
 
 ## Frontend
@@ -44,12 +48,13 @@
 - [x] Auth sayfaları (login, logout, rol yönlendirmeleri)
 - [x] Geçici localStorage tabanlı refresh token yönetimi (cookie geçişine hazırlık)
 - [x] `/api/users` listesini TanStack Table ile entegre et; aktif/pasif toggle, rol atama ve filtreleme akışlarını tamamla
-- [x] Dashboard layout ve genel metrik kartları
-- [ ] Makine kartları (durum renkleri, aksiyon butonları, polling/WS)
-- [x] Parça yönetimi sayfası (liste + ekle/düzenle/sil formları)
+- [x] Dashboard layout ve genel metrik kartları (Board domain endpoint'leri, polling)
+- [x] Makine kartları (durum renkleri, polling/React Query refetchInterval)
+- [x] Monitoring sayfası: Seçili makine için canlı telemetry grafikler (2sn polling, 10dk kayan pencere, Recharts)
+- [x] Parça yönetimi sayfası (liste + ekle/düzenle/sil formları, kategori/birim/makine uyumluluğu)
 - [ ] Raporlama sayfası + filtreler
 - [x] Roller/izinler için yönetim ekranı; permission set düzenleme ve kullanıcıya rol atama modalları
-- [x] Dashboard/rapor placeholder’larını gerçek makine/event verileriyle besleyip React Query polling/WebSocket desteği ekle *(dashboard kısmı tamamlandı, rapor ekranı beklemede)*
+- [x] Dashboard/rapor placeholder’larını gerçek makine/event verileriyle besleyip React Query polling/WebSocket desteği ekle _(dashboard kısmı tamamlandı, rapor ekranı beklemede)_
 - [ ] CSV/Excel export butonları ve kullanıcı geri bildirimi
 - [ ] Audit log görüntüleme ekranı
 - [ ] AI analiz sonuçlarını gösteren bileşen

@@ -36,24 +36,36 @@ Bu proje, Node.js/Express backend, React frontend ve MongoDB veritabanı kullana
 4. **Makine İzleme**
    - Makine listesi ve durum renk kodları (Running/Idle/Downtime).
    - Detay ekranında geçmiş olaylar, notlar ve durum değiştirme aksiyonları.
-5. **Parça Yönetimi**
+   - MachineTelemetry sistemi: Her makine için 0/1 sinyal değeri, timestamp ve metrikler (sıcaklık, tork, enerji) kaydedilir.
+   - OEE Processor Job: Telemetry verilerini arka planda işler, belirli süre 0 sinyali algılandığında otomatik downtime kaydı oluşturur.
+   - OeeMachineState: Her makine için son sinyal değeri, aktif duruş event'i ve sıfır serisi başlangıcını tutar.
+5. **Canlı İzleme (Monitoring)**
+   - Monitoring sayfası: Seçili makinenin canlı telemetry grafiklerini gösterir (Recharts).
+   - 2 saniye polling interval ile backend'den telemetry serisi çekilir.
+   - 10 dakikalık kayan pencere (telemetryWindowMs) içindeki veriler görüntülenir.
+   - Metrikler: Sinyal durumu, sıcaklık, tork, enerji tüketimi.
+6. **Dashboard**
+   - Aktif makine sayısı, duruş süreleri, ortalama telemetry metrikleri gibi özet bilgiler.
+   - Board domain endpoint'leri (`/api/board/metrics`, `/api/board/machines/:id/metrics`) üzerinden veri alır.
+   - Makine kartları polling ile güncellenir (React Query refetchInterval).
+7. **Parça Yönetimi**
    - Laptop fabrikası senaryosuna uygun sabit kategoriler (fasteners, electronics, mechanical_plastics) üzerinden parçalar tanımlanır.
    - Her kategori izin verilen birim listesini ve varsayılan makine ayarı alanlarını (ör. spindle hızı, reflow sıcaklığı, kalıp sıcaklığı) belirler; kullanıcı formda kategori seçince ilgili birim/ayar seçenekleri gösterilir.
    - Bir parça birden fazla makineyle eşleştirilebilir; backend bu uyumluluğu doğrular ve job order planlamasında kullanılacak kategori snapshot’ını saklar.
-6. **Veri Simülasyonu**
+8. **Veri Simülasyonu**
    - Script belirli aralıklarla rastgele durum değişiklikleri üretir.
    - Üretilen olaylar MongoDB’ye kaydedilir; gerekirse API üzerinden sisteme iletilir.
-7. **Raporlama & Export**
+9. **Raporlama & Export**
    - Verimlilik, OEE benzeri metrikler veya makine bazlı uptime/downtime süreleri.
    - Zaman aralığı/rol/etiket filtreleri.
    - CSV veya Excel çıktısı indirme.
-8. **AI Destekli Analiz**
-   - Toplanan verilerden “en stabil makine”, “duruş sebebi tahmini” gibi özetler.
-   - İlk etapta kural tabanlı veya hazır servis kullanımı; ileride model genişletilebilir.
-9. **Audit Log**
-   - Login, kritik CRUD işlemleri, rol değişimleri gibi aksiyonlar kaydedilecek.
-   - Basit arama/filtre arayüzü ile görüntülenebilecek.
-10. **Bildirimler (Opsiyonel)**
+10. **AI Destekli Analiz**
+    - Toplanan verilerden “en stabil makine”, “duruş sebebi tahmini” gibi özetler.
+    - İlk etapta kural tabanlı veya hazır servis kullanımı; ileride model genişletilebilir.
+11. **Audit Log**
+    - Login, kritik CRUD işlemleri, rol değişimleri gibi aksiyonlar kaydedilecek.
+    - Basit arama/filtre arayüzü ile görüntülenebilecek.
+12. **Bildirimler (Opsiyonel)**
 
 - Kritik duruşlarda e-posta veya sistem içi uyarılar (MVP’de sadece dashboard bildirimleri).
 
@@ -73,6 +85,9 @@ Bu proje, Node.js/Express backend, React frontend ve MongoDB veritabanı kullana
 - `permissions`: sistem genelindeki aksiyonların (örn. `machines.read`, `reports.export`) tanımı; roller bu koleksiyondan izin referansı alır.
 - `machines`: makine adı/kodu, açıklama, bağlı operatörler, mevcut durum.
 - `machine_events`: makine, durum, başlangıç/bitiş zamanları, notlar, tetikleyen kullanıcı/script bilgisi.
+- `machine_telemetry`: makine id, timestamp, sinyal değeri (0/1), metrikler (sıcaklık, tork, enerji), kaynak bilgisi (simulator/edge_gateway).
+- `oee_machine_states`: Makine başına son sinyal değeri, aktif downtime event referansı, sıfır serisi başlangıç zamanı; OEE processor job tarafından kullanılır.
+- `parts`: parça adı/kodu, kategori, birim, ideal cycle time, uyumlu makineler, varsayılan makine ayarları.
 - `reports`: rapor tipi, filtreler, sonuç özeti, oluşturulma tarihi.
 - `audit_logs`: kullanıcı, aksiyon tipi, hedef kaynak, timestamp, ek bilgiler.
 - `ai_insights`: algoritma tipi, çıktı, güven skoru, oluşturulma zamanı.
@@ -83,6 +98,7 @@ Bu proje, Node.js/Express backend, React frontend ve MongoDB veritabanı kullana
 - **Users:** `GET/POST/PATCH/DELETE /users`, `PATCH /users/:id/role`.
 - **Machines:** `GET /machines`, `POST /machines`, `PATCH /machines/:id`, `POST /machines/:id/state`, `GET /machines/:id/events`.
 - **Parts:** `GET /parts`, `POST /parts`, `PATCH /parts/:id`, `DELETE /parts/:id`, `GET /parts/:id/compatible-machines`.
+- **Board (Dashboard):** `GET /board/metrics` (global metrikler), `GET /board/machines/:id/metrics` (tekil makine), `GET /board/machines/:id/telemetry` (telemetry serisi).
 - **Reports:** `GET /reports/summary`, `GET /reports/export`.
 - **AI Insights:** `GET /insights/latest`, `POST /insights/recompute` (admin).
 - **Audit:** `GET /audit?user=&action=&date=`.
@@ -91,9 +107,11 @@ Bu proje, Node.js/Express backend, React frontend ve MongoDB veritabanı kullana
 ## 8. Frontend Modülleri
 
 - Auth sayfaları (login, şifre sıfırlama placeholder).
-- Role-based yönlendirme guard’ları.
-- Dashboard (özet kartlar, grafikler, uyarı listesi).
+- Role-based yönlendirme guard'ları.
+- Dashboard (özet kartlar, makine kartları, polling ile güncelleme).
+- Monitoring sayfası (canlı telemetry grafikler, 2sn polling, Recharts).
 - Makine listesi + detay modal/ekranı.
+- Parts listesi + CRUD modal/ekranı (kategori/birim/makine uyumluluğu).
 - Raporlama ekranı (filtreler + tablo/grafik + export butonu).
 - AI içgörü paneli.
 - Kullanıcı yönetimi ekranları.

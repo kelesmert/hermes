@@ -57,7 +57,11 @@ backend/
 - Kullanıcı kayıtlarında `username` alanı zorunlu ve unique’tir. E-posta alanı opsiyoneldir ve yalnızca bildirim/şifre sıfırlama gibi süreçlerde kullanılır.
 - Varsayılan rol piramidi `master > supervisor > operator > viewer` olarak tanımlıdır; master tüm izinlere sahiptir, supervisor üretim/operatör yönetimi yapar, operator yalnızca atanmış istasyonda iş yürütür.
 - RBAC yönetimi için `domains/access-control` altında rol ve permission CRUD endpointleri bulunur (`/api/roles`, `/api/permissions`); kullanıcı yönetimi `/api/users` üzerinden yapılır.
-- Makine domaini `domains/machines` altında konumlandırılacak; model katmanı `machines` ve `machine_events` koleksiyonlarını içerir, durum enumları `src/constants/machine-statuses.js` dosyasından okunur. Event oluşturulduğunda makine kaydındaki `status` + `lastEventAt` alanları güncellenir.
+- Makine domaini `domains/machines` altında konumlandırılacak; model katmanı `machines`, `machine_events` ve `machine_telemetry` koleksiyonlarını içerir, durum enumları `src/constants/machine-statuses.js` dosyasından okunur. Event oluşturulduğunda makine kaydındaki `status` + `lastEventAt` alanları güncellenir.
+- **MachineTelemetry sistemi:** Her makine için 0/1 sinyal değeri, timestamp ve metrikler (sıcaklık, tork, enerji) `machine_telemetry` koleksiyonunda saklanır. `scripts/data-gen.js` bu verileri 2 saniye aralıklarla simüle eder.
+- **OEE Domain:** `domains/oee` altında `OeeMachineState` modeli ve processor job bulunur. OEE Processor Job (`src/jobs/oee-processor-job.js`) telemetry verilerini batch olarak işler ve belirli süre (threshold) 0 sinyali algılandığında otomatik downtime kaydı (`machine_events`) oluşturur. `OeeMachineState` modeli her makine için son sinyal değeri, aktif duruş event'i ve sıfır serisi başlangıç zamanını tutar.
+- **Board Domain:** `domains/board` altında dashboard için özet metrik endpoint'leri bulunur (`/api/board/metrics`, `/api/board/machines/:id/metrics`, `/api/board/machines/:id/telemetry`). Bu endpoint'ler frontend'in polling ile güncel veri çekmesini sağlar.
+- **Parts Domain:** `domains/parts` altında parça yönetimi bulunur. Parçalar sabit kategoriler (fasteners, electronics, mechanical_plastics) üzerinden tanımlanır. Her kategori, izin verilen birim listesi ve varsayılan makine ayarı alanlarını (spindle hızı, reflow sıcaklığı, kalıp sıcaklığı) `src/parts/constants/part-categories.js` dosyasından okur. Bir parça birden fazla makineyle eşleştirilebilir; backend bu uyumluluğu doğrular.
 
 ## 4. Seed ve Konfigürasyon
 
