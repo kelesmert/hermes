@@ -1,6 +1,14 @@
 # Hermes Frontend (Vite + React)
 
-Bu klasör Hermes MES MVP’nin React tabanlı kullanıcı arayüzünü barındırır. Teknoloji seçimleri ve zorunlu kurallar için `docs/standart/frontend-decisions.md` dosyasını referans alın.
+## Güncelleme Kuralları
+
+**Ne zaman:** Yeni komut/script, kurulum değişikliği, yeni env
+
+**Format:** Setup adımları, npm script'leri
+
+---
+
+Bu klasör Hermes MES MVP'nin React tabanlı kullanıcı arayüzünü barındırır. Teknoloji seçimleri ve zorunlu kurallar için `docs/standart/frontend-decisions.md` dosyasını referans alın.
 
 ## Kurulum
 
@@ -12,9 +20,11 @@ npm run dev
 ```
 
 Varsayılan adres: `http://localhost:5173/`
+
 - Login ekranında kullanıcı adı + şifre kullanılır (örn. `admin / ChangeMe123!`). `/users` rotasında kullanıcı tablosu ve `roles.manage` izni olanlar için rol/permission sekmesi bulunur. `/parts` sayfası `parts.read` izni ile açılır; parçaları listeleyip `parts.manage` izni olan kullanıcıların parça ekleme/düzenleme/silme yapmasına izin verir.
 
 ## Yapı
+
 - `src/app` → Providers, tema ve route guard bileşenleri.
 - `src/components/layout` → Sidebar, header, breadcrumbs ve kabuk bileşenleri.
 - `src/features/*` → Domain odaklı modüller (auth, dashboard, raporlar, kullanıcılar, makineler, parçalar vb.).

@@ -1,5 +1,15 @@
 # Production & Parts Domain Roadmap
 
+## Güncelleme Kuralları
+
+**Ne zaman güncellenir:** Domain implementasyonu devam ettiğinde, fazlar tamamlandığında, "Implementation Status" bölümü güncellenirken.
+
+**Format:** Status güncelleme: ✅ Tamamlandı, 🔄 Devam ediyor, ⏳ Henüz başlanmadı. "Implementation Status" bölümüne ekle/güncelle.
+
+**Önemli:** Roadmap dosyaları **SİLİNMEZ**. Tarihsel kayıt ve onboarding materyali olarak kalır. Gerçek implementasyon plandan farklı olabilir.
+
+---
+
 ## Implementation Status (Güncel Durum)
 
 ### Tamamlanan Domainler

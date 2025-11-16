@@ -1,5 +1,15 @@
 # Dashboard / Telemetry – Sıradaki Adımlar
 
+## Güncelleme Kuralları
+
+**Ne zaman güncellenir:** Yeni TODO/bug/iyileştirme eklendiğinde, TODO tamamlandığında.
+
+**Format:** Maddeli liste, checkbox kullan ([ ] / [x]), kısa ve öz.
+
+**Önemli:** Bu dosya GEÇİCİ notlardır. TODO'lar tamamlanınca dosya sılınebilir veya arkaive taşınabilir. Kalıcı bilgiler diğer dokümanlara taşınmalı.
+
+---
+
 Bu not, telemetry → OEE → board akışına dair planlanan iyileştirmeleri ve nerede tutulduklarını hızlıca hatırlatmak için yazıldı.
 
 ## Bugs / İyileştirmeler

@@ -1,5 +1,30 @@
 # MES MVP Checklist
 
+## Güncelleme Kuralları
+
+**Ne zaman güncellenir:**
+
+- Yeni bir feature/task tamamlandığında: `[ ]` → `[x]` işaretle
+- Yeni bir görev kararı alındığında: İlgili bölüme (Backend/Frontend/Test) ekle
+- Gelecek için planlanan işler: `[ ] (İleride)` etiketi ile ekle
+- Opsiyonel iyileştirmeler: `[ ] (Opsiyonel)` etiketi ile ekle
+
+**Format:**
+
+- `[x]` Tamamlanan görev açıklaması
+- `[ ]` Bekleyen görev açıklaması
+- `[ ] (İleride)` Gelecek için planlanan görev açıklaması
+- `[ ] (Opsiyonel)` Zorunlu olmayan iyileştirme açıklaması
+
+**Önemli:**
+
+- Görevler asla silinmez, sadece işaretlenir
+- Her tamamlanan görev mutlaka `[x]` ile işaretlenmeli
+- Yeni görevler eklenirken ilgili bölüme (Hazırlık/Backend/Frontend/Test ve Dağıtım) ekle
+- Her context window sonunda checklist durumu gözden geçirilmeli
+
+---
+
 ## Hazırlık
 
 - [x] Kararlar ve kurallar dokümanı (`docs/project-guidelines.md`)

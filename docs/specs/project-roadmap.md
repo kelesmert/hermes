@@ -1,5 +1,29 @@
 # MES MVP Yol Haritası
 
+## Güncelleme Kuralları
+
+**Ne zaman güncellenir:**
+
+- Bir faz/milestone tamamlandığında
+- Faz status değiştiğinde (Planlanan → Devam Ediyor → Tamamlandı)
+- Yeni faz eklendiğinde
+- Zaman planı değiştiğinde
+
+**Format:**
+
+- Status etiketlerini kullan: ✅ Tamamlandı, 🔄 Devam ediyor, ⏳ Planlanan
+- Her fazın checkbox durumunu güncelle: `[ ]` → `[x]`
+- Tamamlanan fazlar "Tamamlanan Fazlar" bölümüne taşı
+- Devam eden fazlar "Devam Eden Fazlar" bölümünde kal
+
+**Önemli:**
+
+- Fazlar silinmez, tarihsel kayıt olarak kalır
+- Gerçek implementasyon plandan farklı olabilir, roadmap sadece "nasıl planlandı" bilgisi içerir
+- Büyük değişiklikler `docs/logs/decision-log.md`'ye de yansıtılmalı
+
+---
+
 ## 1. Genel Bakış
 
 Amaç, Node.js/Express backend, React frontend ve MongoDB veritabanı kullanarak hafif ama işlevsel bir MES MVP'si geliştirmektir. Sistem kullanıcı kimlik doğrulama/rol yönetimi, makine durumu takibi, raporlama + AI destekli analiz ve audit log altyapısını kapsar. Tüm veri makine simülasyon script'i üzerinden üretilecektir.

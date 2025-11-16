@@ -9,6 +9,28 @@
 > Buradaki kurallar, güncellenene kadar **değiştirilemez** kabul edilir.
 > Neden böyle seçildiğini merak edersen `../logs/decision-log.md` ve `../logs/tech-decision-logs.md` dosyalarındaki kayıtları oku.
 
+## Güncelleme Kuralları
+
+**Ne zaman güncellenir:**
+
+- Yeni frontend standardı/kuralı belirlendiğinde
+- Component pattern değiştiğinde
+- Yeni feature pattern'i eklendiğinde
+- Zorunlu kural ekleme/değişikliği yapıldığında
+
+**Format:**
+
+- Her kural bölüm başlığı altında olmalı (## Feature Yapısı, ## Component Kuralları vb.)
+- Zorunluluk seviyesini belirt: "zorunlu", "önerilen", "opsiyonel"
+- Örnek kod varsa ekle
+- Gerekçeyi kısa açıkla
+
+**Önemli:**
+
+- Bu dosya zorunlu kuralları içerir, kararlar `docs/logs/decision-log.md`'de
+- Kurallar implementation bitmeden önce eklenmeli
+- Her kural `docs/project-guidelines.md`'de referans edilmeli
+
 ## 1. Temel Teknolojiler
 
 - **Build Tool:** Vite (React + JavaScript template). TypeScript’e geçiş gerekiyorsa bu dosya güncellenecek.

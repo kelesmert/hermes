@@ -1,6 +1,27 @@
 # Hermes MES – Hızlı Özet
 
-Bu doküman, yeni bir geliştiricinin projeyi en kısa sürede kavraması için hazırlanmış bir “ön okuma”dır. Daha detaylı bilgi için ilgili dokümanlara yönlendirmeler içerir.
+Bu doküman, yeni bir geliştiricinin projeyi en kısa sürede kavraması için hazırlanmış bir "ön okuma"dır. Daha detaylı bilgi için ilgili dokümanlara yönlendirmeler içerir.
+
+## Güncelleme Kuralları
+
+**Ne zaman güncellenir:**
+
+- Büyük bir domain tamamlandığında ("Tamamlanan Domainler" bölümü)
+- Teknoloji stack'i değiştiğinde (bağımlılık ekleme/çıkarma)
+- Mimari yaklaşım değiştiğinde
+- Yeni bir bölüm (örn: deployment, test) eklendiğinde
+
+**Format:**
+
+- Kısa ve öz, maksimum 60 satır tut
+- Tablo formatını koru (Katman | Teknolojiler | Kapsam)
+- "Kaynak Dosyalar" bölümünde diğer dokümanlara referans ver
+
+**Önemli:**
+
+- Bu dosya özet olarak kalmalı, detay diğer dosyalara taşınmalı
+- Her context window başında okunacak kısa bir "ön bilgi" sağlamalı
+- Büyük değişiklikler dışında sık güncellenmemeli
 
 ## 1. Amaç ve Kapsam
 

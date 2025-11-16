@@ -1,5 +1,15 @@
 # MES MVP Gereksinim Dokümanı
 
+## Güncelleme Kuralları
+
+**Ne zaman güncellenir:** Gereksinim değiştiğinde, yeni özellik eklendiğinde, risk/açık soru ortaya çıktığında.
+
+**Format:** Bölüm başlıklarına ekle (örn: ## Fonksiyonel Gereksinimler, ## Açık Sorular & Riskler), maddeli liste kullan.
+
+**Önemli:** Büyük değişiklikler `decision-log.md`'ye de yansıtılmalı. Gerçekleşen gereksinimler silinmez, "Tamamlandı" işareti ile işaretlenir.
+
+---
+
 ## 1. Proje Özeti
 
 Bu proje, Node.js/Express backend, React frontend ve MongoDB veritabanı kullanarak hafif fakat işlevsel bir Manufacturing Execution System (MES) prototipi geliştirmeyi amaçlar. Sistem sahadaki gerçek makineler yerine bir simülasyon script’i tarafından üretilen verilerle beslenecek; kullanıcı yönetimi, makine izleme, raporlama ve temel yapay zekâ analizleri sağlayacaktır.

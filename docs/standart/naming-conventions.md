@@ -1,5 +1,15 @@
 # Naming Convention Standardı
 
+## Güncelleme Kuralları
+
+**Ne zaman güncellenir:** Yeni isimlendirme kuralı belirlendiğinde, mevcut kural değiştiğinde, yeni dosya türü eklendiğinde.
+
+**Format:** Bölüm başlığı altında (örn: ## Backend, ## Frontend, ## Docs), örnek dosya adları ve kod içi kullanım göster.
+
+**Önemli:** Her yeni kural zorunlu olmalı, tutarlılık için tüm projeye uygulanmalı.
+
+---
+
 ## Genel Kural
 
 **Tüm dosya adları kebab-case, sadece React bileşenleri PascalCase**

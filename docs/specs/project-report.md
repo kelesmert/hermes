@@ -1,5 +1,15 @@
 # MES MVP Proje Raporu
 
+## Güncelleme Kuralları
+
+**Ne zaman güncellenir:** Tez raporuna eklenecek büyük değişiklik olduğunda (mimari değişiklik, yeni domain ekleme, sonuçlar bölümü).
+
+**Format:** Akademik rapor formatı, bölüm başlıklarına ekle (## Gereksinimler, ## Mimari, ## Uygulama, ## Sonuçlar).
+
+**Önemli:** Bu dosya akademik tez için kullanılır. Detaylı ve resmi dil kullan. Sık güncellenmez.
+
+---
+
 ## 1. Giriş ve Amaç
 
 Bu doküman, mezuniyet projesi kapsamında geliştirilecek olan hafif bir Manufacturing Execution System (MES) prototipinin teknik zeminini ve uygulama sürecini anlatmak için hazırlanmıştır. Amaç, Node.js/Express tabanlı bir backend, React tabanlı bir frontend ve MongoDB veritabanı ile çalışan; kullanıcı kimlik doğrulaması, rol bazlı yetkilendirme, makine durumu takibi ve temel raporlama fonksiyonlarını içeren bir MVP ortaya koymaktır. Proje gerçek makine verisine bağlı değildir; makine olayları bir simülasyon script’i ile üretilecek ve veritabanına işlenecektir. Bu rapor, tez yazımında referans alınabilecek kararları, mimari yaklaşımları ve ilerleyen aşamalarda yapılacak genişletmeleri kayıt altında tutmayı hedefler.

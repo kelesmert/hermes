@@ -2,6 +2,23 @@
 
 Bu doküman projede kullanılan veya ileride kullanılacak teknolojileri, neden seçildiklerini ve temel görevlerini kayıt altına almak için tutulur. Yeni bağımlılık eklendiğinde ilgili başlık güncellenecektir.
 
+## Güncelleme Kuralları
+
+**Ne zaman güncellenir:** Yeni npm paketi eklendiğinde, mevcut paket versiyonu güncellendiğinde, teknoloji değiştiğinde.
+
+**Format:**
+
+```markdown
+### [paket-adı]
+
+- **Neden?** [Seçim gerekçesi]
+- **Görev:** [Ne işe yarıyor]
+```
+
+**Önemli:** Her paket için "Neden?" ve "Görev" mutlaka belirtilmeli. Büyük paket değişiklikleri `decision-log.md`'ye de eklenmeli.
+
+---
+
 ## Backend Bağımlılıkları
 
 ### express

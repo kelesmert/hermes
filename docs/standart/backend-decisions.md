@@ -9,6 +9,28 @@
 > Buradaki kurallar, güncellenene kadar **değiştirilemez** kabul edilir.
 > Neden böyle seçildiğini merak edersen `../logs/decision-log.md` ve `../logs/tech-decision-logs.md` dosyalarındaki kayıtları oku.
 
+## Güncelleme Kuralları
+
+**Ne zaman güncellenir:**
+
+- Yeni backend standardı/kuralı belirlendiğinde
+- Mimari pattern değiştiğinde
+- Yeni domain pattern'i eklendiğinde
+- Zorunlu kural ekleme/değişikliği yapıldığında
+
+**Format:**
+
+- Her kural bölüm başlığı altında olmalı (## Domain Yapısı, ## Auth & RBAC vb.)
+- Zorunluluk seviyesini belirt: "zorunlu", "önerilen", "opsiyonel"
+- Örnek kod varsa ekle
+- Gerekçeyi kısa açıkla
+
+**Önemli:**
+
+- Bu dosya zorunlu kuralları içerir, kararlar `docs/logs/decision-log.md`'de
+- Kurallar implementation bitmeden önce eklenmeli
+- Her kural `docs/project-guidelines.md`'de referans edilmeli
+
 ## 1. Temel Teknolojiler
 
 - **Runtime & Framework:** Node.js (LTS) + Express 5.

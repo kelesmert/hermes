@@ -1,6 +1,6 @@
 # Teknik / Operasyonel Zorunlu Kararlar
 
-> Bu dosya, frontend ve backend’e doğrudan bağlı olmayan,
+> Bu dosya, frontend ve backend'e doğrudan bağlı olmayan,
 > ancak proje için zorunlu olan **teknik/operasyonel kararları** içerir
 > (örneğin DevOps, CI/CD, container imajları, izleme araçları vb.).
 >
@@ -9,10 +9,18 @@
 > - Kritik komut, pipeline veya metod kullanım örnekleri
 >
 > Buradaki kurallar, güncellenene kadar **değiştirilemez** kabul edilir.
-> Genel kültür veya “Türkçe / İngilizce dili” gibi kurallar
+> Genel kültür veya "Türkçe / İngilizce dili" gibi kurallar
 > `project-guidelines.md` içinde tutulur.
 > Neden böyle seçildiğini görmek için `../logs/decision-log.md` ve
 > `../logs/tech-decision-logs.md` dosyalarına bak.
+
+## Güncelleme Kuralları
+
+**Ne zaman güncellenir:** Config/env değişikliği, test/deployment stratejisi değişikliği, güvenlik/performans kuralı eklendiğinde.
+
+**Format:** Bölüm başlığı altında (## Config, ## Test, ## Deployment vb.), zorunluluk seviyesi belirt, örnek ekle.
+
+**Önemli:** Zorunlu kurallar burada, kararlar `decision-log.md`'de.
 
 ## 1. Repo Yapısı
 

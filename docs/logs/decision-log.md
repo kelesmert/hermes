@@ -1,6 +1,32 @@
 # Karar Kaydı (Decision Log)
 
-Bu dosya, projede alınan mimarî ve teknolojik kararları, gerekçelerini ve beklenen etkilerini tek yerde toplar. Tez yazımı veya gelecekteki tartışmalar sırasında “neden böyle yaptık?” sorusuna hızlı cevap vermek için düzenli olarak güncellenecektir.
+Bu dosya, projede alınan mimarî ve teknolojik kararları, gerekçelerini ve beklenen etkilerini tek yerde toplar. Tez yazımı veya gelecekteki tartışmalar sırasında "neden böyle yaptık?" sorusuna hızlı cevap vermek için düzenli olarak güncellenecektir.
+
+## Güncelleme Kuralları
+
+**Ne zaman güncellenir:**
+
+- Teknik bir karar alındığında (teknoloji seçimi, mimari tercih, pattern belirleme)
+- Standart/kural belirlendiğinde (zorunlu kural değil, karar seviyesi)
+- Uygulama yapılırken önemli tasarım kararı alındığında
+
+**Format:**
+
+```markdown
+### [Karar Başlığı - Kısa ve Açıklayıcı]
+
+- **Domain:** [Backend/Frontend/Ortak] - [Spesifik domain adı]
+- **Karar:** [Ne kararlaştırıldı, kısa ve net]
+- **Gerekçe:** [Neden bu karar alındı, hangi sorunu çözüyor]
+- **Etki:** [Hangi dosyalar/sistemler etkilenecek, neleri değiştirecek]
+```
+
+**Önemli:**
+
+- Domain bölümü hem katman (Backend/Frontend/Ortak) hem de spesifik domain (auth, users, machines, vb.) belirtmeli
+- Gerekçe net olmalı, "neden bu kararı aldık?" sorusunu cevaplamalı
+- Etki hangi dosyaların/sistemlerin etkileneceğini açıkça belirtmeli
+- Kararlar silinmez, tarihsel kayıt olarak kalır
 
 ## Backend Kararları
 
@@ -125,6 +151,7 @@ Bu dosya, projede alınan mimarî ve teknolojik kararları, gerekçelerini ve be
 ---
 
 Yeni kararlar alındıkça bu dosyaya tarih/başlık/gerekçe formatıyla ekleme yapılmalıdır.
+
 - ### Kullanıcı Adı Bazlı Kimlik Doğrulama
 
 - **Karar:** Kullanıcı girişleri e-posta yerine zorunlu `username` alanı ile yapılacak; e-posta opsiyonel olup sadece bildirim/şifre sıfırlama için saklanacak. Seed script’i admin/sys hesaplarına username tanımlar ve mevcut kullanıcıların eksik username alanlarını doldurur.

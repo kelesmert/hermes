@@ -1,5 +1,15 @@
 # Proje Kuralları ve Kararlar
 
+## Güncelleme Kuralları
+
+**Ne zaman güncellenir:** Politika seviyesinde kural değiştiğinde, doküman harita güncellemesi gerektiğinde, iletişim kuralları değiştiğinde.
+
+**Format:** Bölüm başlıklarına ekle (örn: ## İletişim Kuralları, ## Doküman Haritası), maddeli liste kullan.
+
+**Önemli:** Bu dosya politika seviyesi kuralları içerir. Teknik kurallar `docs/standart/` altında.
+
+---
+
 ## İletişim Kuralları
 
 - Tüm yanıtlar Türkçe olacak.

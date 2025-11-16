@@ -2,6 +2,16 @@
 
 > **AMAÇ:** Yeni bir AI asistan oturumunda projeyi tamamen hatırlamak ve geliştirmeye kaldığımız yerden devam edebilmek için gereken tüm bilgileri yüklemek.
 
+## Güncelleme Kuralları
+
+**Ne zaman güncellenir:** Yeni kritik dosya eklendiğinde, okuma sırası değiştiğinde, büyük yapısal değişiklik olduğunda.
+
+**Format:** Dosya yolu + "Ne öğrenilecek" açıklaması, önem sırasına göre sırala.
+
+**Önemli:** Bu dosya sadece "hangi dosyalar okunmalı" rehberidir. Detay bilgi içermez, sadece yönlendirir.
+
+---
+
 ---
 
 ## ⚡ HIZLI BAŞLANGIÇ - İLK OKUMALAR
