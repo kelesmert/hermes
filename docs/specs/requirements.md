@@ -32,20 +32,24 @@ Bu proje, Node.js/Express backend, React frontend ve MongoDB veritabanı kullana
 4. **Makine İzleme**
    - Makine listesi ve durum renk kodları (Running/Idle/Downtime).
    - Detay ekranında geçmiş olaylar, notlar ve durum değiştirme aksiyonları.
-5. **Veri Simülasyonu**
+5. **Parça Yönetimi**
+   - Laptop fabrikası senaryosuna uygun sabit kategoriler (fasteners, electronics, mechanical_plastics) üzerinden parçalar tanımlanır.
+   - Her kategori izin verilen birim listesini ve varsayılan makine ayarı alanlarını (ör. spindle hızı, reflow sıcaklığı, kalıp sıcaklığı) belirler; kullanıcı formda kategori seçince ilgili birim/ayar seçenekleri gösterilir.
+   - Bir parça birden fazla makineyle eşleştirilebilir; backend bu uyumluluğu doğrular ve job order planlamasında kullanılacak kategori snapshot’ını saklar.
+6. **Veri Simülasyonu**
    - Script belirli aralıklarla rastgele durum değişiklikleri üretir.
    - Üretilen olaylar MongoDB’ye kaydedilir; gerekirse API üzerinden sisteme iletilir.
-6. **Raporlama & Export**
+7. **Raporlama & Export**
    - Verimlilik, OEE benzeri metrikler veya makine bazlı uptime/downtime süreleri.
    - Zaman aralığı/rol/etiket filtreleri.
    - CSV veya Excel çıktısı indirme.
-7. **AI Destekli Analiz**
+8. **AI Destekli Analiz**
    - Toplanan verilerden “en stabil makine”, “duruş sebebi tahmini” gibi özetler.
    - İlk etapta kural tabanlı veya hazır servis kullanımı; ileride model genişletilebilir.
-8. **Audit Log**
+9. **Audit Log**
    - Login, kritik CRUD işlemleri, rol değişimleri gibi aksiyonlar kaydedilecek.
    - Basit arama/filtre arayüzü ile görüntülenebilecek.
-9. **Bildirimler (Opsiyonel)**
+10. **Bildirimler (Opsiyonel)**
    - Kritik duruşlarda e-posta veya sistem içi uyarılar (MVP’de sadece dashboard bildirimleri).
 
 ## 5. İşlevsel Olmayan Gereksinimler
@@ -70,6 +74,7 @@ Bu proje, Node.js/Express backend, React frontend ve MongoDB veritabanı kullana
 - **Auth:** `POST /auth/login`, `POST /auth/refresh`, `POST /auth/logout`, `POST /auth/register` (sadece admin).
 - **Users:** `GET/POST/PATCH/DELETE /users`, `PATCH /users/:id/role`.
 - **Machines:** `GET /machines`, `POST /machines`, `PATCH /machines/:id`, `POST /machines/:id/state`, `GET /machines/:id/events`.
+- **Parts:** `GET /parts`, `POST /parts`, `PATCH /parts/:id`, `DELETE /parts/:id`, `GET /parts/:id/compatible-machines`.
 - **Reports:** `GET /reports/summary`, `GET /reports/export`.
 - **AI Insights:** `GET /insights/latest`, `POST /insights/recompute` (admin).
 - **Audit:** `GET /audit?user=&action=&date=`.

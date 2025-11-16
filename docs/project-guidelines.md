@@ -35,7 +35,7 @@
 - Frontend iskeleti oluşturuldu: `AppProviders` (QueryClient + MUI Theme + Router + SessionProvider), `AppLayout` (sidebar + header + breadcrumbs), mock login formu ve placeholder dashboard/rapor/kullanıcı sayfaları hazır. Backend API’leri açıldıkça yalnızca ilgili feature modülleri genişletmek yeterli olacak.
 - RBAC yapısı `permissions -> roles -> users` şeklinde organize edilecek; her kullanıcı birden fazla role sahip olabilir, roller izin koleksiyonuna referans verir.
 - Kimlik doğrulama JWT tabanlı olacak, rol bazlı yetkilendirme (RBAC) zorunlu.
-- Makine verisi gerçek cihazlardan değil, simülasyon script’i tarafından üretilecek.
+- Makine verisi gerçek cihazlardan değil, simülasyon script’i tarafından üretilecek; parça tanımları `backend/src/domains/parts/constants/part-categories.js` içindeki sabit kategorilere (fasteners, electronics, mechanical_plastics) göre yapılacak ve frontend formu da aynı sözlükten beslenecek. Seed script her seed çalıştırıldığında örnek parçaları bu sözlükten üretir ve env’deki şifreler değişmişse kullanıcı kayıtlarını günceller.
 - Audit log altyapısı planın ilerleyen aşamalarında kurulacak.
 - Raporlama katmanında verimlilik ve duruş analizleri sağlanacak; AI temelli kısa içgörü üretilmesi hedeflenecek.
 - İsimlendirmelerde şirket/proje adı olan “hermes” kullanılacak (örn. `hermes_dev` veritabanı); “mes” etiketi sadece konsepti açıklamak için kullanılacak.

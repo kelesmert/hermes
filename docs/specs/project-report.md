@@ -29,9 +29,9 @@ Bu doküman, mezuniyet projesi kapsamında geliştirilecek olan hafif bir Manufa
 
 - Node.js + Express uygulaması; katmanlı yapı (routes → middleware → controllers → services → models → utils).
 - Auth/RBAC altyapısı JWT + refresh token kombinasyonu ile kuruluyor; ileride cookie tabanlı yönetime geçilecek.
-- MongoDB/Mongoose veri modeli: `users`, `roles`, `permissions`, `refresh_tokens`, devamında `machines`, `machine_events`, `reports`, `audit_logs`, `ai_insights`.
+- MongoDB/Mongoose veri modeli: `users`, `roles`, `permissions`, `refresh_tokens`, `parts` (kategori/birim/varsayılan makine ayarı sözlüğüne bağlı), `machines`, `machine_events`, `reports`, `audit_logs`, `ai_insights`. Production domain (job orders + üretim eventleri) bir sonraki fazda bu parçalar ve makinelerle birleşecek.
 
-### Frontend
+-### Frontend
 
 - SPA yaklaşımı: Vite + React (JavaScript). Gerektiğinde TypeScript’e geçiş yapılabilir.
 - UI katmanı: MUI temel bileşenleri; gerektiğinde formlar/grafikler için alternatif kütüphaneler eklenebilir.
@@ -46,6 +46,7 @@ Bu doküman, mezuniyet projesi kapsamında geliştirilecek olan hafif bir Manufa
 - Layout: Sol sidebar + üst header kombinasyonu standart olacak; sidebar tüm navigasyonu tutacak, header’da kullanıcı menüsü, genel arama ve notifications dropdown yer alacak. Breadcrumbs her korumalı sayfada gösterilecek. Mobil ekranlar şu etapta hedeflenmiyor ancak tablet boyutunda uyum gözlenecek.
 - Tema kararı “hafif ve sade” hedefiyle daha sonra netleştirilecek.
 - Client state: Öncelik Context + custom hook; ihtiyaç olursa Zustand devreye alınacak.
+- `src/features/parts` modülü, backend Parts API’siyle çalışarak kategoriye göre dinamik bir form ve tablo (liste/düzenle/sil) sağlıyor; makine uyumluluğu ve varsayılan ayarlar aynı sözlükten besleniyor.
 
 ### Ortak Entegrasyonlar
 

@@ -26,10 +26,10 @@ Bu doküman, yeni bir geliştiricinin projeyi en kısa sürede kavraması için 
 ## 4. Öne Çıkan Özellikler
 1. **RBAC**: `permissions → roles → users` zinciri; kullanıcılar en az bir role sahip.
 2. **Auth Akışı**: Username + şifre, JWT access token, Mongo’da saklanan hash’li refresh token, rotation destekli.
-3. **API’ler**: `/api/auth/*`, `/api/users`, `/api/roles`, `/api/permissions`, `/api/health`, **/api/machines + /api/machines/:id/events** ve telemetry/OEE altyapısı (data-gen’in beslediği `machine_telemetry`, otomatik duruş tespiti yapan OEE job’u). Dashboard metrikleri `/api/board/metrics` üzerinden tüketiliyor; rapor endpointleri roadmap’te.
-4. **Seed Script**: Default roller (master/supervisor/operator/viewer) ve admin/sys kullanıcılarını üretir.
-5. **Frontend UI**: Sidebar + header layout, guarded routing (PrivateRoute + PermissionGuard), TanStack Table tabanlı kullanıcı listesi, rol & izin yönetim modalları.
-6. **Makine Domaini (Yeni)**: `machines` koleksiyonu (code, name, status, lastEventAt, tags, isActive) ve event modelleri hazır; endpointler makine CRUD’u ve event kaydını destekliyor, status güncellemeleri backend’de otomatik gerçekleşiyor, frontend’de `/machines` sayfası üzerinden yönetilebiliyor.
+3. **API’ler**: `/api/auth/*`, `/api/users`, `/api/roles`, `/api/permissions`, `/api/parts`, **/api/machines + /api/machines/:id/events** ve telemetry/OEE altyapısı (data-gen’in beslediği `machine_telemetry`, otomatik duruş tespiti yapan OEE job’u). Dashboard metrikleri `/api/board/metrics` üzerinden tüketiliyor; rapor endpointleri roadmap’te.
+4. **Seed Script**: Default roller (master/supervisor/operator/viewer) ve admin/sys/viewer kullanıcılarını üretir; kategori sözlüğüne göre örnek parçalar + makineler + telemetry verisi ekler.
+5. **Frontend UI**: Sidebar + header layout, guarded routing (PrivateRoute + PermissionGuard), TanStack Table tabanlı kullanıcı listesi, rol & izin yönetim modalları, makineler ve parçalar için CRUD ekranları.
+6. **Makine & Parça Domainleri**: `machines` koleksiyonu (code, name, status, lastEventAt, tags, isActive) ve event modelleri hazır; `parts` domain’i kategori/birim/varsayılan makine ayarı sözlüğü ile uyumlu CRUD servisine sahip. Endpointler makine/parça yönetimini destekliyor, frontend’de `/machines` ve `/parts` sayfaları üzerinden yönetilebiliyor.
 
 ## 5. Roadmap ve Eksikler
 - Makine modeli + simülasyon script’i + raporlama endpointleri.
