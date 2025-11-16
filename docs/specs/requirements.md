@@ -1,23 +1,27 @@
 # MES MVP Gereksinim Dokümanı
 
 ## 1. Proje Özeti
+
 Bu proje, Node.js/Express backend, React frontend ve MongoDB veritabanı kullanarak hafif fakat işlevsel bir Manufacturing Execution System (MES) prototipi geliştirmeyi amaçlar. Sistem sahadaki gerçek makineler yerine bir simülasyon script’i tarafından üretilen verilerle beslenecek; kullanıcı yönetimi, makine izleme, raporlama ve temel yapay zekâ analizleri sağlayacaktır.
 
 ## 2. Kapsam
+
 - **Dahil:** RBAC tabanlı kimlik doğrulama, dashboard, makine durum takibi, veri simülasyonu, raporlama/export, AI destekli içgörü, audit log, lokal çalışma/dokümantasyon.
 - **Hariç:** Gerçek cihaz entegrasyonları, karmaşık üretim planlama modülleri, mobil uygulamalar, yüksek hacimli load testing, kurumsal SSO/OAuth (ileride eklenebilir).
 
 ## 3. Kullanıcı Rolleri
-| Rol      | Açıklama | Yetkiler |
-|----------|----------|----------|
-| Master   | Sistemdeki tüm yetkilere sahip | Tüm modüllere erişim, kullanıcı/rol yönetimi, rapor/audit/AI onayı |
-| Supervisor | Üretim yöneticisi | Dashboard (read), makineler (read/write), iş emri & vardiya kontrolü, rapor görüntüleme, operatör yönetimi |
-| Operator | Saha operatörü | Atanmış istasyonda iş emri yürütme, makine durum güncelleme, telemetri girişi |
-| Viewer   | Misafir/izleyici | Dashboard ve rapor ekranlarını görüntüler |
+
+| Rol        | Açıklama                       | Yetkiler                                                                                                   |
+| ---------- | ------------------------------ | ---------------------------------------------------------------------------------------------------------- |
+| Master     | Sistemdeki tüm yetkilere sahip | Tüm modüllere erişim, kullanıcı/rol yönetimi, rapor/audit/AI onayı                                         |
+| Supervisor | Üretim yöneticisi              | Dashboard (read), makineler (read/write), iş emri & vardiya kontrolü, rapor görüntüleme, operatör yönetimi |
+| Operator   | Saha operatörü                 | Atanmış istasyonda iş emri yürütme, makine durum güncelleme, telemetri girişi                              |
+| Viewer     | Misafir/izleyici               | Dashboard ve rapor ekranlarını görüntüler                                                                  |
 
 > Not: Her kullanıcı en az bir role sahip olmak zorunda olup ihtiyaç halinde birden fazla rol atanabilir. Roller, merkezi bir izin (permission) koleksiyonuna bağlı olarak yetki kazanır.
 
 ## 4. Fonksiyonel Gereksinimler
+
 1. **Kimlik Doğrulama & RBAC**
    - JWT tabanlı login/logout.
    - Tüm oturumlar kullanıcı adı + şifre ile açılır; e-posta adresi opsiyonel olup yalnızca bildirim/sıfırlama gibi durumlar için saklanır.
@@ -50,9 +54,11 @@ Bu proje, Node.js/Express backend, React frontend ve MongoDB veritabanı kullana
    - Login, kritik CRUD işlemleri, rol değişimleri gibi aksiyonlar kaydedilecek.
    - Basit arama/filtre arayüzü ile görüntülenebilecek.
 10. **Bildirimler (Opsiyonel)**
-   - Kritik duruşlarda e-posta veya sistem içi uyarılar (MVP’de sadece dashboard bildirimleri).
+
+- Kritik duruşlarda e-posta veya sistem içi uyarılar (MVP’de sadece dashboard bildirimleri).
 
 ## 5. İşlevsel Olmayan Gereksinimler
+
 - **Performans:** Aynı anda onlarca kullanıcıyı sorunsuz idare edecek; istek başına < 500ms hedefi.
 - **Güvenlik:** Şifreler bcrypt ile hash’lenecek, env değişkenleri gizli tutulacak, CORS ve rate limit ayarları yapılacak.
 - **Denetlenebilirlik:** Audit log ve rapor sorguları geriye dönük analiz imkânı sunacak.
@@ -61,6 +67,7 @@ Bu proje, Node.js/Express backend, React frontend ve MongoDB veritabanı kullana
 - **Dağıtılabilirlik:** Lokal çalıştırma yanında Docker ile hızlı kurulum opsiyonu.
 
 ## 6. Veri Modeli (Taslak)
+
 - `users`: ad, soyad, e-posta, şifre hash, roller dizisi (en az bir rol), aktiflik durumu.
 - `roles`: rol adı, açıklama, permission referansları, varsayılan rol bilgisi.
 - `permissions`: sistem genelindeki aksiyonların (örn. `machines.read`, `reports.export`) tanımı; roller bu koleksiyondan izin referansı alır.
@@ -71,6 +78,7 @@ Bu proje, Node.js/Express backend, React frontend ve MongoDB veritabanı kullana
 - `ai_insights`: algoritma tipi, çıktı, güven skoru, oluşturulma zamanı.
 
 ## 7. API Taslağı
+
 - **Auth:** `POST /auth/login`, `POST /auth/refresh`, `POST /auth/logout`, `POST /auth/register` (sadece admin).
 - **Users:** `GET/POST/PATCH/DELETE /users`, `PATCH /users/:id/role`.
 - **Machines:** `GET /machines`, `POST /machines`, `PATCH /machines/:id`, `POST /machines/:id/state`, `GET /machines/:id/events`.
@@ -81,6 +89,7 @@ Bu proje, Node.js/Express backend, React frontend ve MongoDB veritabanı kullana
 - **Simulation:** `POST /simulator/trigger` (opsiyonel manuel tetikleme).
 
 ## 8. Frontend Modülleri
+
 - Auth sayfaları (login, şifre sıfırlama placeholder).
 - Role-based yönlendirme guard’ları.
 - Dashboard (özet kartlar, grafikler, uyarı listesi).
@@ -91,23 +100,27 @@ Bu proje, Node.js/Express backend, React frontend ve MongoDB veritabanı kullana
 - Audit log tablosu.
 
 ## 9. Veri Simülasyon Gereksinimleri
+
 - Çalışma aralığı konfigüre edilebilir olmalı (örn. her 30 saniye).
 - Script tek seferde birden fazla makineyi güncelleyebilmeli.
 - Oluşturulan olaylar, kaynağın “simulator” olduğu bilgisiyle etiketlenecek.
 - Script ayrı bir Node süreci veya cron job olarak çalıştırılabilecek; CLI parametreleri desteklenecek.
 
 ## 10. Test & Doğrulama
+
 - Auth, makine ve raporlama endpoint’leri için birim/entegrasyon testleri (Jest/Supertest).
 - Frontend kritik bileşenleri için React Testing Library ile smoke testler.
 - Manuel senaryolar: login → dashboard → makine durumu güncelle → rapor indir → audit log kontrolü.
 - Simülasyon script’i için dry-run modu (console çıktısı ile doğrulama).
 
 ## 11. Açık Sorular & Riskler
+
 - AI analizinin kapsamı kural tabanlı mı kalacak, yoksa dış servis kullanımı mı gerekecek? (Karar verilmedi.)
 - WebSocket gerçek zamanlılık gerekli mi, yoksa kısa aralıklı polling yeterli mi? (Şimdilik polling planlandı.)
 - Deployment sadece lokal mi olacak yoksa basit bir bulut ortamı mı hedeflenecek? (Daha sonra kararlaştırılacak.)
 
 ## 12. Frontend Teknik Kararları
+
 - Mimari: Vite + React (SPA) ve JavaScript; gerektiğinde TypeScript’e geçiş yapılacak.
 - UI: MUI temel bileşenleri, ihtiyaç halinde spesifik formlar/grafikler için ek kütüphaneler kullanılacak.
 - Router: React Router v6.

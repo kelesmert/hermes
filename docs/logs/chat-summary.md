@@ -1,56 +1,117 @@
-# Konuşma Özeti (Context Window)
+# Context Window Geçmişi
 
-Bu dosya, mevcut sohbet oturumunda alınan kararları ve yapılan işleri özetler. Yeni bir sohbet başlatıldığında bu özet hatırlatma amacıyla kullanılabilir.
+> Bu dosya her context window sonunda güncellenir. Tarihsel bir kayıt olarak, her oturumda yapılan işleri, alınan kararları ve sonraki adımları özetler.
 
-- Node.js + Express backend iskeleti hazır; MongoDB/Mongoose bağlantısı aktif, modeller `backend/src/models/index.js` üzerinden yükleniyor.
-- Auth servisi (register/login/refresh/logout) ve RBAC middleware’leri çalışıyor; seed script permission/role/admin kullanıcıyı oluşturuyor.
-- Postman ile `/api/auth/login → refresh → users → logout` senaryosu doğrulandı.
+---
 
-## Dokümantasyon
+## 📅 16 Kasım 2025 - Context Window #4
 
-- `docs/specs/project-report.md`, `docs/project-guidelines.md`, `docs/tasks/project-checklist.md`, `docs/specs/requirements.md`, `docs/specs/project-roadmap.md`, `docs/meta/file-overview.md`, `docs/meta/learning-guide.md`, `docs/logs/tech-decision-logs.md` güncel.
-- Yeni dosyalar/güncellemeler: `docs/meta/learning-guide.md` içine frontend iskeleti anlatımı eklendi; `docs/logs/chat-summary.md` (bu dosya) güncel.
-- Karar kayıtları için `docs/logs/decision-log.md` güncellendi; tüm yeni tercihler buraya ekleniyor.
-- Checklist’e yeni TODO’lar: cookie tabanlı token yönetimi + Postman cookie senaryoları (opsiyonel olarak işaretlendi).
-- Frontend stack kararları kaydedildi ve uygulandı: Vite + React (JS), MUI, React Router v6, TanStack Query, axios, React Hook Form + Zod, TanStack Table + MUI, Recharts, react-hot-toast; tema ileride netleşecek, durum yönetimi için önce Context/custom hook, gerekirse Zustand; `VITE_API_URL` ile backend `http://localhost:5000/api`.
-- Frontend iskeleti kuruldu: `AppProviders`, `AppLayout`, `PrivateRoute`/`PermissionGuard`, mock login formu, sidebar/header/breadcrumbs, dashboard & placeholder rapor/kullanıcı sayfaları ve axios client hazır. Refresh token geçici olarak `localStorage`’da saklanıyor; alias `@/` aktif.
-- Auth entegrasyonu tamamlandı: login/refresh/logout gerçek API ile çalışıyor; SessionProvider rol ve izinleri normalize ediyor, axios interceptors 401 durumunda oturumu sıfırlıyor.
+### Yapılanlar
+- Context başlatma sistemi yeniden yapılandırıldı
+- `context-initialization-prompt.md` sadeleştirildi (sadece yol haritası kaldı)
+- `chat-summary.md` tarihsel log formatına çevrildi
+- Backend/Frontend detayları `file-overview.md`'ye yönlendirildi
+- Cross-domain bağımlılıklar `doc-maintenance.md`'ye referans verildi
 
-## Frontend Auth
+### Alınan Kararlar
+- **Context init rolü:** Sadece "hangi dosyalar okunmalı" rehberi olacak
+- **Chat summary rolü:** Her context window sonunda güncellenen tarihsel kayıt
+- **Detay kaynakları:** file-overview, learning-guide, doc-maintenance dosyaları kullanılacak
 
-- `frontend/src/features/auth/components/login-form.jsx`: Mock login kaldırıldı, backend `/auth/login` çağrısı yapılıyor; hatalar toast olarak gösteriliyor.
-- `frontend/src/features/auth/context/session-context.jsx`: Backend yanıtı normalize edilip roller string, izinler `ROLE_PERMISSIONS` üzerinden türetiliyor; uygulama açılışında `/auth/refresh`, logout’ta `/auth/logout` tetikleniyor.
-- `frontend/src/lib/api/client.js`: Axios instance `VITE_API_URL` tabanlı, 401 yakalanınca session temizleyip `hermes:session-expired` eventi yayınlıyor.
-- `frontend/src/constants/permissions.js` ve `role-permissions.js`: Tüm izinler tek noktada tanımlı; UI guard’ları bu listeden besleniyor.
-- Login → dashboard → sayfa yenileme → logout akışı tarayıcıda test edildi, sorunsuz çalışıyor.
+### Dokümantasyon Güncellemeleri
+- ✅ `context-initialization-prompt.md` → 600+ satırdan ~200 satıra düştü
+- ✅ `chat-summary.md` → Yeni format uygulandı
+- ✅ `doc-maintenance.md` → Cross-domain referansları eklendi
+- ✅ `project-guidelines.md` → Doküman haritası güncellendi
 
-## RBAC Yönetimi
+### Sonraki Adım
+Reports backend entegrasyonu veya Audit Log UI geliştirmesi
 
-- Backend’e `/api/roles`, `/api/permissions` ve `/api/users` (create/update) uçları eklendi; role CRUD, viewer fallback (rol silinince tek kalan kullanıcıları viewer’a atama) ve permission listesi API’si hazır.
-- Seed script master/supervisor/operator/viewer rollerini güncelledi, sys & admin (master) hesaplarına username tanımlıyor; viewer rolü zorunlu olduğundan fallback senaryosu güvence altında.
-- Auth servisleri artık rol->permission ilişkisini payload’a ekliyor; SessionProvider bu bilgiyi saklayarak UI guard’larını dinamik hale getiriyor.
-- Frontend kullanıcı sayfası TanStack Table ile `/api/users` verisini gösteriyor; kullanıcı ekleme/düzenleme/aktif-pasif akışları ve rol atama dialogları tamamlandı.
-- Roller & izinler sekmesi (sadece `roles.manage`) role CRUD + permission kategorili seçim ekranı sağlıyor; silme işleminde viewer fallback mesajı gösteriliyor.
-- Kimlik doğrulama artık kullanıcı adı + şifre ile yapılıyor; e-posta opsiyonel olup seed script admin/sys hesaplarına username atıyor ve eksik username alanlarını dolduruyor. Kullanıcı tablosu username’i gösteriyor, kullanıcı silme butonu `users.manage` izniyle kontrol ediliyor.
-- Kullanıcı silme API’si + onay diyaloğu eklendi; buton yalnızca `users.manage` izni olanlarda aktif ve işlemden sonra liste otomatik yenileniyor.
+---
 
-## Backend Domain Structure
+## 📅 15 Kasım 2025 - Context Window #3
 
-- `backend/src/domains/auth` ve `backend/src/domains/users` klasörleri oluşturuldu; controller/service/route/model dosyaları buraya taşındı.
-- `routes/index.js` ve `models/index.js` yeni path'lere göre güncellendi, eski `controllers/` ve `services/` klasörleri kaldırıldı.
-- `docs/standart/backend-decisions.md`, `docs/project-guidelines.md`, `docs/meta/file-overview.md` ve `docs/dev-notes/backend-domain-plan.md` domain bazlı yapıyı belgeledi.
+### Yapılanlar
+- Monitoring UI tamamlandı (canlı telemetry grafikler, 2sn polling)
+- Monitoring grafikleri time-scale X ekseni ile güncellendi
+- Dashboard gerçek veriye bağlandı (10sn polling)
+- Parts domain kategori sistemi eklendi (fasteners, electronics, mechanical_plastics)
+- OEE background job devreye alındı
 
-- Frontend entegrasyonu: Makine listesi/detay sayfası, dashboard kartları ve event geçmişi bu API’lerden beslenecek.
+### Alınan Kararlar
+- **Monitoring grafikler:** `telemetryWindowMs` backend'den alınacak, frontend senkron çalışacak
+- **Parts kategorileri:** Sabit sözlük olacak, dinamik kategori ekleme ileride değerlendirilecek
+- **OEE job:** Her 2 saniyede telemetry batch işleme yapacak
 
-## Doğrulama
+### Teknik Detaylar
+- Recharts `type="number" scale="time"` kullanıldı
+- `part-categories.js` constants dosyası oluşturuldu
+- `oee-processor-job.js` server başlangıcında çalışıyor
 
-- `npm run seed` ve `npm run dev` çalışıyor; Postman ile login → refresh → protected endpoint → logout senaryosu doğrulandı.
-- Frontend’de login sonrası dashboard görüntüleniyor, sayfa yenilemesinde refresh token ile oturum korunuyor, logout header’dan çalışıyor.
+### Sonraki Adım
+Dashboard metrik kartlarını test et, Reports backend entegrasyonuna başla
 
-## Sonraki Adımlara Dair Notlar
+---
 
-- Frontend iskeleti: Login ekranı + rol bazlı yönlendirme (ör. admin/operator sayfaları) planlandı ama uygulanmadı.
-- Lint/test altyapısı, makine modeli/simülasyon, raporlama/Audit, frontend ekranları gibi roadmap maddeleri beklemede.
-- Token’ları cookie tabanlı yönetime geçirmek ve CSRF koruması eklemek opsiyonel TODO olarak listede duruyor.
+## 📅 14 Kasım 2025 - Context Window #2
 
-Bu özet yeni sohbetlerde bağlam sağlamak için kullanılabilir; ayrıntılar için ilgili dokümanlara bakılması yeterlidir.
+### Yapılanlar
+- Machines domain tamamlandı (CRUD + events)
+- OEE domain modelleri oluşturuldu (telemetry işleme altyapısı)
+- Board domain API'si hazırlandı (`/api/board/metrics`)
+- Parts domain CRUD tamamlandı
+- Data generation script eklendi (`npm run data:gen`)
+
+### Alınan Kararlar
+- **Machine status:** Denormalize alanlar kullanılacak (`lastEventAt`, `status`)
+- **Telemetry:** `machine_telemetry` koleksiyonu, 0/1 sinyal değeri
+- **OEE işleme:** Batch processing, `oee-rules.json` ile konfigure edilecek
+
+### Teknik Detaylar
+- `machine-model.js`: code (unique), name, status, lastEventAt
+- `machine-telemetry-model.js`: signalValue, timestamp, metrics
+- `oee-processor.js`: Downtime algılama mantığı
+
+### Sonraki Adım
+Monitoring UI geliştir, Dashboard'u gerçek veriye bağla
+
+---
+
+## 📅 13 Kasım 2025 - Context Window #1
+
+### Yapılanlar
+- Backend domain yapısına geçiş yapıldı
+- Auth, Users, Access Control domainleri oluşturuldu
+- Frontend auth entegrasyonu tamamlandı (SessionProvider)
+- Users yönetim ekranı TanStack Table ile geliştirildi
+- RBAC yönetim UI'sı eklendi (rol/permission CRUD)
+
+### Alınan Kararlar
+- **Domain yapısı:** `src/domains/<domain>/` klasör organizasyonu
+- **Username bazlı login:** E-posta opsiyonel, username zorunlu
+- **Viewer fallback:** Rol silindiğinde kullanıcılar viewer rolüne atanacak
+- **Frontend auth:** localStorage + refresh token, cookie geçişi opsiyonel
+
+### Teknik Detaylar
+- JWT access token (kısa ömür) + refresh token (MongoDB'de hash'li)
+- RBAC: `permissions → roles → users` zinciri
+- SessionProvider backend yanıtını normalize ediyor
+- axios interceptors 401'de session temizliyor
+
+### Sonraki Adım
+Machines domain geliştir, OEE altyapısını kur
+
+---
+
+## 📝 Daha Eski Kayıtlar
+
+Daha önceki context window kayıtları için:
+```
+/home/kelesmert/Desktop/projects/hermes/docs/logs/chat-summary-OLD-BACKUP.md
+```
+
+---
+
+**Son güncelleme:** 16 Kasım 2025 23:45  
+**Context window sayısı:** 4  
+**Proje durumu:** MVP Faz 2 (Dashboard, Monitoring, Parts tamamlandı)

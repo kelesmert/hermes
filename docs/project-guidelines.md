@@ -58,7 +58,7 @@
 - [standart/naming-conventions.md](standart/naming-conventions.md): Detaylı isimlendirme kuralları ve örnekleri.
 - [logs/decision-log.md](logs/decision-log.md): Alınan kararların gerekçeleri ve beklenen etkileri; günlük niteliğinde.
 - [logs/tech-decision-logs.md](logs/tech-decision-logs.md): Kullanılan/planlanan teknolojilerin neden seçildiği; bilgi amaçlı.
-- [logs/chat-summary.md](logs/chat-summary.md): Aktif sohbet özetleri ve hızlı bağlam.
+- [logs/chat-summary.md](logs/chat-summary.md): **[ESKİ FORMAT - ARTİK KULLANILMIYOR]** Yeni context window için `meta/context-initialization-prompt.md` kullanın.
 - [specs/requirements.md](specs/requirements.md): Ürün gereksinimleri, roller, veri modeli ve açık sorular.
 - [specs/project-report.md](specs/project-report.md): Tez raporu taslağı; mimari ve bulguların akademik anlatımı.
 - [specs/project-roadmap.md](specs/project-roadmap.md): Faz planları ve kilometre taşları.
@@ -67,6 +67,7 @@
 - [meta/learning-guide.md](meta/learning-guide.md): Öğretici rehber; akışların adım adım açıklaması.
 - [meta/summary.md](meta/summary.md): Projenin hızlı panoraması; yeni geliştiriciler için ilk okunacak dosya.
 - [meta/doc-maintenance.md](meta/doc-maintenance.md): Kod değişikliklerine göre hangi dokümanların güncelleneceğini belirleyen bakım rehberi.
+- [meta/context-initialization-prompt.md](meta/context-initialization-prompt.md): **[YENİ - ÖNEMLİ]** Yeni context window başlatma promptu. Proje durumu, domain/feature haritası, cross-domain bağımlılıklar, geliştirme senaryoları ve adım adım hafıza yükleme talimatları. **Yeni bir AI oturumu açıldığında bu dosyayı kullan!**
 - `frontend/README.md`: Frontend kurulumu (Vite + React), dizin yapısı ve alias kullanımına dair hızlı rehber.
 
 ## Kod Kalitesi ve Tasarım Prensipleri

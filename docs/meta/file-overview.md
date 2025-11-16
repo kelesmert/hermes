@@ -1,6 +1,20 @@
-# Dosya Açıklamaları
+# Dosya Yapısı ve Açıklamaları
 
-Bu doküman, projedeki önemli dosya ve klasörlerin ne işe yaradığını hızlıca öğrenebilmek için tutulur. Yeni dosyalar eklendikçe güncellenecektir.
+Bu doküman, **projedeki TÜM önemli dosya ve klasörlerin** konumunu ve amacını listeler.
+Yeni geliştirici projeyi anlamak için bu dosyaya bakmalıdır.
+
+## Kapsam
+
+- ✅ **Backend:** Tüm domain'ler (models/services/controllers/routes), config, middleware, utils, constants, scripts
+- ✅ **Frontend:** Tüm feature modülleri, ana bileşenler, lib klasörü, app providers, routing
+- ✅ **Docs:** Tüm dokümantasyon dosyaları ve klasör yapısı
+
+## Güncelleme Kuralı
+
+- **Her yeni dosya eklendiğinde** ilgili bölüme ekle (domain, model, service, controller, route, component, vb.)
+- **Format:** Dosya yolu + Ne yapar? (1-2 satır, kısa ve öz)
+- **Küçük helper/util dosyaları:** Önemliyse ekle, çok spesifik ise opsiyonel
+- **Her context window sonunda** gözden geçirilmeli
 
 ## Kök Dizin
 
@@ -52,33 +66,48 @@ Bu doküman, projedeki önemli dosya ve klasörlerin ne işe yaradığını hız
 - `docs/project-guidelines.md`: Ana rehber; kuralların özeti ve doküman haritası.
 
 ### docs/standart
+
 - `docs/standart/backend-decisions.md`: Backend için zorunlu teknoloji ve mimari kurallar.
 - `docs/standart/frontend-decisions.md`: Frontend için zorunlu teknoloji ve component/layout kuralları.
 - `docs/standart/technical-decisions.md`: DevOps, repo yapısı ve çapraz teknik zorunluluklar.
 - `docs/standart/naming-conventions.md`: İsimlendirme standartları ve örnekleri.
 
 ### docs/logs
+
 - `docs/logs/decision-log.md`: Alınan kararların gerekçeleri ve etkileri.
 - `docs/logs/tech-decision-logs.md`: Kullanılan/planlanan teknolojilerin neden seçildiği.
 - `docs/logs/chat-summary.md`: Sohbet özetleri ve hızlı bağlam.
 
 ### docs/specs
+
 - `docs/specs/requirements.md`: Proje gereksinimleri, roller, veri modeli.
 - `docs/specs/project-report.md`: Tez raporu taslağı ve mimari anlatım.
 - `docs/specs/project-roadmap.md`: Geliştirme fazları ve kilometre taşları.
 
+### docs/roadmaps
+
+- `docs/roadmaps/production-roadmap.md`: Parts ve Production domain'i için özel roadmap; gelecek domainler için de benzer dosyalar oluşturulacak.
+
 ### docs/tasks
+
 - `docs/tasks/project-checklist.md`: Yapılacak işler listesi; tamamlananlar işaretli kalır.
 
 ### docs/meta
+
 - `docs/meta/file-overview.md`: (Bu dosya) Önemli dosya ve klasörlerin kısa açıklamaları.
 - `docs/meta/learning-guide.md`: Öğretici rehber; mimari ve akışların adım adım anlatımı.
 - `docs/meta/summary.md`: Projeyi hızlıca kavramak için genel bakış dokümanı.
 - `docs/meta/doc-maintenance.md`: Kod değişikliklerine göre hangi dokümanların güncelleneceğini anlatan bakım rehberi.
+- `docs/meta/context-initialization-prompt.md`: **[YENİ]** Yeni context window açıldığında projeyi tamamen hatırlamak için kapsamlı başlatma promptu. Domain/feature haritası, cross-domain bağımlılıklar, geliştirme senaryoları ve adım adım talimatlar içerir.
+
+### docs/roadmaps
+
+- `docs/roadmaps/production-roadmap.md`: Parts ve Production domain'i için özel roadmap (Model şemaları, API endpoints, fazlar, bağımlılıklar). Gelecek domainler için de benzer dosyalar oluşturulacak.
+- **Not:** Roadmap dosyaları kalıcıdır (silinmez); yeni geliştirici onboarding ve benzer domain ekleme template'i olarak kullanılır.
 
 ### docs/dev-notes
-- `docs/dev-notes/backend-domain-plan.md`: Backend'i domain bazlı klasör yapısına taşımak için geçiş planı ve adımları.
-- `docs/dev-notes/dashboard-next-steps.md`: Telemetry → OEE → board akışındaki gelecek iyileştirme planları ve hızlı bakım notları.
+
+- `docs/dev-notes/dashboard-next-steps.md`: Telemetry → OEE → board akışındaki gelecek iyileştirme planları ve hızlı bakım notları (TODO'lar tamamlanınca silinir).
 
 ## Frontend
 
