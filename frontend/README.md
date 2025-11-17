@@ -2,9 +2,11 @@
 
 ## Güncelleme Kuralları
 
-**Ne zaman:** Yeni komut/script, kurulum değişikliği, yeni env
+**Ne zaman güncellenir:** Yeni komut/script eklendiğinde, kurulum adımları değiştiğinde, yeni env değişkeni eklendiğinde.
 
-**Format:** Setup adımları, npm script'leri
+**Format:** Kurulum adımları, npm script'leri, env açıklamaları.
+
+**Önemli:** Bu dosya teknik setup rehberidir. Kısa ve uygulamalı olmalı. Mimari detay `docs/` altında.
 
 ---
 

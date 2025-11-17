@@ -36,19 +36,23 @@
 - 21 MD dosyası kontrol edildi (içerik + güncelleme kuralları uyumu)
 - decision-log.md tarih alanı kaldırılması doğrulandı
 - project-checklist.md checkbox format örnekleri korundu doğrulandı
+- doc-maintenance.md'ye "Genel Markdown Kuralları" bölümü eklendi (3 zorunlu kural)
+- decision-log.md'ye "Markdown Doküman Kuralları" kararı eklendi
 
 ### Alınan Kararlar
 
 - **Doküman sistemi tamamlandı:** doc-maintenance.md = trigger/router, her MD = kendi format kuralı
 - **Güncelleme kuralları optimize edildi:** Descriptive ve detailed format korundu, minimizasyon yapılmadı
 - **chat-summary.md güncel tutulacak:** Her context window sonunda oturum kaydı eklenecek
+- **Markdown kuralları zorunlu:** (1) Başlıklarda noktalama yok, (2) Emoji yok, (3) Kod bloklarında dil belirt (text/bash/javascript vb.)
 
 ### Dokümantasyon Durumu
 
 - ✅ 20/21 dosya güncelleme kurallarına %100 uyumlu
-- ✅ decision-log.md: Tarih alanı yok (Domain/Karar/Gerekçe/Etki)
+- ✅ decision-log.md: Tarih alanı yok (Domain/Karar/Gerekçe/Etki) + Markdown kuralları kararı eklendi
 - ✅ project-checklist.md: Checkbox format örnekleri korunmuş
 - ✅ Tüm MD dosyaları "Güncelleme Kuralları" bölümüne sahip
+- ✅ doc-maintenance.md: Genel Markdown Kuralları bölümü eklendi
 
 ### Sonraki Adımlar
 

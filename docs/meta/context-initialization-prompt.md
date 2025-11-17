@@ -1,6 +1,6 @@
-# 🚀 Hermes MES - Context Window Başlatma Promptu
+# Hermes MES - Context Window Başlatma Promptu
 
-> **AMAÇ:** Yeni bir AI asistan oturumunda projeyi tamamen hatırlamak ve geliştirmeye kaldığımız yerden devam edebilmek için gereken tüm bilgileri yüklemek.
+> **AMAÇ:** Yeni bir AI asistan oturumunda projeyi verimli şekilde yüklemek. İlk okuma ile temel yapıyı anla, sonra task bazlı detaylı okumalar yap.
 
 ## Güncelleme Kuralları
 
@@ -12,342 +12,326 @@
 
 ---
 
+## STRATEJI: Verimli Context Yükleme
+
+**İlk Aşama (TEMEL YÜKLEME):**
+
+- Projenin temelini anlamak için minimum dosya oku
+- Amaç: "Ne yapıyoruz, nasıl yapıyoruz, nerede kaldık?" sorularını cevapla
+- Detaylara girme, sadece genel yapıyı kavra
+
+**İkinci Aşama (TASK BAZLI DETAY):**
+
+- Kullanıcı spesifik task/soru sorduğunda ilgili dosyaları TAM detay ile oku
+- Örnek: "Parts domain'i genişlet" → parts ile ilgili TÜM dosyaları oku
+- Örnek: "Dashboard'a yeni metrik ekle" → dashboard/board/oee dosyalarını oku
+
+**Bu yaklaşım neden verimli:**
+
+- Token tasarrufu: İlk aşamada minimum okuma
+- Yüksek kalite: Task geldiğinde tam detay okuma
+- Hızlı başlangıç: Kullanıcı beklemeden hazır
+
 ---
 
-## ⚡ HIZLI BAŞLANGIÇ - İLK OKUMALAR
+## AŞAMA 1: TEMEL YÜKLEME
 
-Yeni bir context window açıldığında, **ilk olarak** aşağıdaki dosyaları **sırasıyla** oku. Bu dosyalar projenin temelini, kurallarını ve mevcut durumunu içerir:
+Yeni context window açıldığında şu dosyaları sırasıyla oku:
 
-### 1️⃣ Proje Temel Bilgileri (3 dakika)
-
+```text
+docs/meta/summary.md
+docs/project-guidelines.md
+docs/tasks/project-checklist.md
+docs/meta/doc-maintenance.md
+docs/logs/chat-summary.md
 ```
-/home/kelesmert/Desktop/projects/hermes/README.md
-/home/kelesmert/Desktop/projects/hermes/docs/meta/summary.md
-/home/kelesmert/Desktop/projects/hermes/docs/project-guidelines.md
-```
 
-**ÖĞRENİLECEKLER:**
+**Bu 5 dosyadan öğrenilecekler:**
 
-- Projenin amacı: Hafif MES MVP (Manufacturing Execution System)
+### summary.md
+
+- Projenin amacı: MES MVP
 - Teknoloji stack: Node.js/Express + React/Vite + MongoDB
 - Repo yapısı: backend/, frontend/, docs/
+- Tamamlanan domainler: Auth, Users, Machines, Parts, OEE, Dashboard
+
+### project-guidelines.md
+
 - İletişim kuralları: Türkçe, veri tahmini yasak, her soru cevaplanmalı
+- Doküman haritası: Hangi dosya nerede
+- Temel mimari kararlar
+- Politika kuralları
+
+### project-checklist.md
+
+- Nerede kaldık: Tamamlanan taskler (✅)
+- Ne eksik: Bekleyen taskler (📋)
+- İleride: Opsiyonel taskler
+
+### doc-maintenance.md
+
+- Hangi değişiklik hangi dokümanları etkiler
+- Güncelleme türleri: Karar/Tamamlandı/Gelecek
+- Domain tespiti
+- Markdown kuralları (noktalama yok, emoji yok, kod bloklarında dil belirt)
+
+### chat-summary.md
+
+- Önceki context'lerde neler konuşuldu
+- Hangi kararlar alındı
+- Tarihsel gelişim
+
+**SONUÇ:** Bu 5 dosyayla proje %70 anlaşılır. Detaylara girmeden geliştirmeye başlayabilirsin.
 
 ---
 
-### 2️⃣ Zorunlu Standartlar ve Kurallar (5 dakika)
+## AŞAMA 2: TASK BAZLI DETAY OKUMA
 
-```
-/home/kelesmert/Desktop/projects/hermes/docs/standart/backend-decisions.md
-/home/kelesmert/Desktop/projects/hermes/docs/standart/frontend-decisions.md
-/home/kelesmert/Desktop/projects/hermes/docs/standart/technical-decisions.md
-/home/kelesmert/Desktop/projects/hermes/docs/standart/naming-conventions.md
-```
+Kullanıcı spesifik bir task/soru sorduğunda, o konuyla ilgili dosyaları TAM detay ile oku.
 
-**ÖĞRENİLECEKLER:**
+### Backend Task İçin Oku:
 
-- Backend: Domain bazlı klasör yapısı (`src/domains/auth`, `src/domains/machines` vb.)
-- Frontend: Feature bazlı yapı, MUI + TanStack Query + React Hook Form
-- Auth: JWT access token + MongoDB'de hash'li refresh token
-- RBAC: `permissions → roles → users` zinciri
-- İsimlendirme: kebab-case (dosyalar), camelCase (kod), PascalCase (React bileşenleri)
-- Import alias: `@/` → `src/` (hem backend hem frontend)
-
----
-
-### 3️⃣ Karar ve Log Dosyaları (3 dakika)
-
-```
-/home/kelesmert/Desktop/projects/hermes/docs/logs/decision-log.md
-/home/kelesmert/Desktop/projects/hermes/docs/logs/tech-decision-logs.md
+```text
+docs/standart/backend-decisions.md
+docs/standart/naming-conventions.md
+docs/meta/file-overview.md (backend bölümü)
+docs/meta/learning-guide.md (backend akışları)
+docs/logs/decision-log.md (backend kararları)
+backend/README.md
 ```
 
-**ÖĞRENİLECEKLER:**
+**İlgili domain için:**
 
-- Neden bu teknolojiler seçildi
-- RBAC yapısı neden böyle tasarlandı
-- Frontend'te neden localStorage kullanıyoruz (cookie'ye geçiş planı)
-- Kullanıcı girişleri neden username bazlı (e-posta opsiyonel)
-
----
-
-### 4️⃣ Mevcut Durum ve Checklist (2 dakika)
-
-```
-/home/kelesmert/Desktop/projects/hermes/docs/tasks/project-checklist.md
-/home/kelesmert/Desktop/projects/hermes/docs/specs/requirements.md
+```text
+backend/src/domains/[domain]/models/
+backend/src/domains/[domain]/services/
+backend/src/domains/[domain]/controllers/
+backend/src/domains/[domain]/routes/
 ```
 
-**ÖĞRENİLECEKLER:**
+### Frontend Task İçin Oku:
 
-- ✅ Tamamlanan: Auth, RBAC, Users yönetimi, Machines CRUD, Parts domain, OEE/Telemetry, Dashboard
-- 🚧 Eksik: Reports sayfası tam entegrasyonu, Audit log UI, AI analiz modülü, Test/lint altyapısı
-- 📋 Roadmap: Cookie tabanlı auth (opsiyonel), Production planning domain, Real-time WebSocket
-
----
-
-### 5️⃣ Dosya Haritası ve Öğrenme Rehberi (5 dakika)
-
-```
-/home/kelesmert/Desktop/projects/hermes/docs/meta/file-overview.md
-/home/kelesmert/Desktop/projects/hermes/docs/meta/learning-guide.md
+```text
+docs/standart/frontend-decisions.md
+docs/standart/naming-conventions.md
+docs/meta/file-overview.md (frontend bölümü)
+docs/meta/learning-guide.md (frontend akışları)
+docs/logs/decision-log.md (frontend kararları)
+frontend/README.md
 ```
 
-**ÖĞRENİLECEKLER:**
+**İlgili feature için:**
 
-- Her dosyanın ne işe yaradığı
-- Backend akışları: request → route → middleware → controller → service → model
-- Frontend akışları: TanStack Query ile veri çekme, SessionProvider ile auth yönetimi
-- Seed script nasıl çalışır, hangi verileri üretir
-
----
-
-## 📚 DETAYLI BİLGİ KAYNAKLARI
-
-Yukarıdaki dosyaları okuduktan sonra, ihtiyaç duyduğunda **aşağıdaki kaynaklardan** detaylı bilgi alabilirsin:
-
-### Backend Domain Yapısı ve Akışlar
-
-- `docs/meta/file-overview.md` → Her domain'in ne yaptığı, hangi dosyaların nerede olduğu
-- `docs/meta/learning-guide.md` → Request → route → controller → service → model akışları
-- `docs/roadmaps/production-roadmap.md` → Production domain planı ve mimari kararlar
-
-### Frontend Feature Yapısı ve Akışlar
-
-- `docs/meta/file-overview.md` → Her feature'ın ne yaptığı, componentlerin nerede olduğu
-- `docs/meta/learning-guide.md` → TanStack Query, SessionProvider, form validasyon akışları
-- `frontend/README.md` → Frontend kurulum ve dizin yapısı
-
-### Cross-Domain Bağımlılıklar
-
-- `docs/meta/doc-maintenance.md` → Hangi değişiklik hangi dosyaları etkiler
-- `docs/dev-notes/dashboard-next-steps.md` → Telemetry → OEE → Board akışı
-
-### Geliştirme Kılavuzları
-
-**Yeni domain/feature eklemek için:**
-
-- `docs/meta/file-overview.md` okuyarak mevcut yapıyı anla
-- `docs/standart/backend-decisions.md` veya `frontend-decisions.md` kurallarını kontrol et
-- `docs/meta/doc-maintenance.md` ile güncellenecek dokümanları belirle
-
-**Mevcut kodu genişletmek için:**
-
-- İlgili domain/feature klasörünü bul (`file-overview.md`'den)
-- Model/service/component dosyalarını oku
-- `doc-maintenance.md` tablosuna göre doküman güncelle
-
----
-
-## 🔍 DOKÜMANTASYON BAKIMI
-
-Kod değişikliklerinden sonra **mutlaka** şu dosyayı kontrol et:
-
-```
-docs/meta/doc-maintenance.md
+```text
+frontend/src/features/[feature]/
+frontend/src/components/
 ```
 
-Bu dosya, hangi tür değişikliğin hangi dokümanları etkilediğini gösterir:
+### Ortak/Teknik Task İçin Oku:
 
-| Değişiklik Tipi         | Etkilenen Dokümanlar                                                |
-| ----------------------- | ------------------------------------------------------------------- |
-| Model ekleme/değiştirme | `file-overview.md`, `learning-guide.md`                             |
-| Yeni domain/feature     | `file-overview.md`, `backend-decisions.md`, `frontend-decisions.md` |
-| Teknoloji değişikliği   | `decision-log.md`, `tech-decision-logs.md`, standart dosyaları      |
-| Yeni endpoint           | `learning-guide.md`, `requirements.md`                              |
-| RBAC değişikliği        | `backend-decisions.md`, `learning-guide.md`                         |
-
----
-
-## 🚀 GELİŞTİRME ORTAMI HAZIRLAMA
-
-Yeni context window açıldıktan sonra, **geliştirme başlamadan önce** şu adımları uygula:
-
-### 1. Proje Durumunu Kontrol Et
-
-```bash
-# Backend çalışıyor mu?
-curl http://localhost:5000/api/health
-
-# Frontend çalışıyor mu?
-# http://localhost:5173
+```text
+docs/standart/technical-decisions.md
+docs/specs/requirements.md
+docs/specs/project-roadmap.md
+docs/logs/tech-decision-logs.md
 ```
 
-### 2. Son Değişiklikleri Gözden Geçir
+### Cross-Domain Task İçin Oku:
 
-```bash
-# Git durumu
-cd /home/kelesmert/Desktop/projects/hermes
-git status
-git log --oneline -10
-
-# Hangi branch'teyiz?
-git branch --show-current
-```
-
-### 3. Checklist'i Kontrol Et
-
-```
-/home/kelesmert/Desktop/projects/hermes/docs/tasks/project-checklist.md
-```
-
-**Önemli sorular:**
-
-- Hangi özellikler tamamlandı (✅)?
-- Hangi özellikler eksik (📋)?
-- Şu an hangi task üzerinde çalışıyoruz?
-
----
-
-## 📝 YENİ BİR GELİŞTİRME TALEBİ GELDİĞİNDE
-
-Kullanıcı "X özelliğini ekleyelim" dediğinde, **önce** şu soruları sor:
-
-### Analiz Soruları:
-
-1. **Backend etkileniyor mu?**
-
-   - Yeni model/field gerekiyor mu?
-   - Yeni endpoint gerekiyor mu?
-   - Hangi domain'de yapılacak?
-   - Diğer domainlerle bağımlılık var mı?
-
-2. **Frontend etkileniyor mu?**
-
-   - Yeni sayfa/component gerekiyor mu?
-   - Mevcut bir feature güncellenecek mi?
-   - API çağrısı değişiyor mu?
-
-3. **RBAC değişikliği var mı?**
-
-   - Yeni permission gerekiyor mu?
-   - Hangi roller erişebilmeli?
-   - Guard güncellemesi gerekiyor mu?
-
-4. **Dokümantasyon güncellenecek mi?**
-   - Hangi .md dosyaları etkilenir?
-   - Karar kaydı tutulmalı mı?
-
-### İlgili Dosyaları Oku
-
-**Değişiklik yapmadan önce**, etkilenecek dosyaları oku:
-
-```
-# Örnek: Makine QR kod özelliği eklenecek
-
-Backend:
-- domains/machines/models/machine-model.js
-- domains/machines/services/machine-service.js
-- scripts/seed.js
-
-Frontend:
-- features/machines/components/machine-form-dialog.jsx
-- features/machines/components/machine-table.jsx
-
-Dokümantasyon:
-- docs/meta/file-overview.md
-- docs/logs/decision-log.md
-```
-
-### Plan Oluştur
-
-Kullanıcıya **öneri sun**:
-
-```
-Bu özellik için şu adımları izlemeliyiz:
-1. Backend: machine-model.js'e qrCode field ekleyelim
-2. Backend: machine-service.js CRUD'una qrCode mantığı ekleyelim
-3. Frontend: Form ve tabloya qrCode alanı ekleyelim
-4. Seed: Örnek verilere qrCode ekleyelim
-5. Dokümantasyon: file-overview.md ve decision-log.md güncelleyelim
-
-Bu plana uygun mu?
+```text
+docs/roadmaps/production-roadmap.md
+docs/dev-notes/dashboard-next-steps.md
+docs/meta/file-overview.md (TÜM dosya)
 ```
 
 ---
 
-## ⚠️ ÖNEMLI HATIRLATMALAR
+## HIZLI BAŞLANGIÇ SEÇENEKLERİ
 
-### 1. Veri Tahmini Yasak
+Duruma göre farklı başlangıç seviyeleri:
 
-❌ **YANLIŞ:** "Muhtemelen machine-service.js'de createMachine fonksiyonu vardır..."
-✅ **DOĞRU:** Dosyayı oku, sonra cevap ver.
+### Seviye 1: Tam Yükleme (İlk Oturum)
 
-### 2. Her Soru Cevaplanmalı
+```text
+AŞAMA 1 (5 dosya) + docs/standart/ klasörünün tamamı + file-overview.md
+```
+
+Proje %100 anlaşılır, her detay bilinir.
+
+### Seviye 2: Hızlı Yükleme (Günlük Çalışma)
+
+```text
+AŞAMA 1 (5 dosya)
+```
+
+Temel bilgiler yüklenir, task gelince detay okunur.
+
+### Seviye 3: Süper Hızlı (Kısa Kesinti)
+
+```text
+project-checklist.md + chat-summary.md (son entry)
+```
+
+Sadece nerede kaldık + son konuşmalar.
+
+---
+
+## GELIŞTIRME WORKFLOW
+
+### 1. Kullanıcı Task/Soru Sorduğunda
+
+**Önce analiz et:**
+
+- Backend mi? Frontend mi? Ortak mı?
+- Hangi domain/feature etkileniyor?
+- Cross-domain bağımlılık var mı?
+
+**Sonra ilgili dosyaları oku:**
+
+- AŞAMA 2'deki ilgili bölüme git
+- O konuyla ilgili TÜM dosyaları oku
+- Kod dosyalarını da oku (gerekirse)
+
+**Örnek: "Machines domain'ine QR kod ekle" talebi geldi**
+
+1. Backend task olduğunu anla
+2. Oku:
+   - `backend-decisions.md`
+   - `naming-conventions.md`
+   - `backend/src/domains/machines/models/machine-model.js`
+   - `backend/src/domains/machines/services/machine-service.js`
+   - `backend/src/domains/machines/controllers/machine-controller.js`
+   - `scripts/seed.js`
+3. Frontend'i de etkilediğini anla
+4. Oku:
+   - `frontend/src/features/machines/`
+5. Plan oluştur, uygula
+
+### 2. Kod Değişikliği Yaptıktan Sonra
+
+**doc-maintenance.md'ye bak:**
+
+- Hangi dokümanlar güncellenmeli?
+- Format nasıl olmalı?
+
+**İlgili dokümanları güncelle:**
+
+- decision-log.md (karar alındıysa)
+- file-overview.md (yeni dosya eklendiyse)
+- project-checklist.md (task tamamlandıysa)
+
+---
+
+## ÖNEMLI HATIRLATMALAR
+
+### Veri Tahmini Yasak
+
+Dosyayı okumadan asla tahmin yapma. "Muhtemelen X vardır" deme, oku ve kontrol et.
+
+### Her Soru Cevaplanmalı
 
 Kullanıcı 5 soru soruyorsa, 5'ini de cevapla. Hiçbirini atlama.
 
-### 3. Türkçe İletişim
+### Türkçe İletişim
 
-Tüm yanıtlar Türkçe olacak.
+Tüm yanıtlar Türkçe.
 
-### 4. Dokümantasyon Disiplini
+### Dokümantasyon Disiplini
 
-Her değişiklikten sonra ilgili .md dosyalarını güncelle.
+Her değişiklikten sonra ilgili MD dosyalarını güncelle. doc-maintenance.md rehber.
 
-### 5. Test Aracı: Postman
+### Markdown Kuralları
 
-API testleri için varsayılan Postman kullan.
+- Başlıklarda noktalama işareti yok
+- Emoji kullanma
+- Kod bloklarında dil belirt (text/bash/javascript/json vb.)
 
 ---
 
-## 🎓 BAŞLATMA ONAY CHECKLIST
+## BAŞLATMA ONAY CHECKLIST
 
-Context window başlatıldıktan sonra, şu soruları cevapla:
+Context yüklendikten sonra kendine sor:
 
 - [ ] Proje amacını anlıyor musun? (MES MVP)
 - [ ] Backend domain yapısını anlıyor musun? (auth, users, machines, oee, board, parts)
 - [ ] Frontend feature yapısını anlıyor musun? (auth, users, machines, dashboard, monitoring)
 - [ ] RBAC zincirini anlıyor musun? (permissions → roles → users)
-- [ ] Cross-domain bağımlılıkları anlıyor musun? (ör. makine → oee → board)
-- [ ] Dokümantasyon bakım sürecini anlıyor musun? (doc-maintenance.md)
-- [ ] Hangi özelliklerin tamamlandığını biliyor musun? (checklist)
-- [ ] Hangi özelliklerin eksik olduğunu biliyor musun? (checklist)
+- [ ] Hangi özelliklerin tamamlandığını biliyor musun?
+- [ ] Hangi özelliklerin eksik olduğunu biliyor musun?
+- [ ] doc-maintenance sistemini anlıyor musun?
+- [ ] Markdown kurallarını biliyor musun?
 
-Hepsine **EVET** diyebiliyorsan, geliştiriciye şunu söyle:
+Hepsine EVET ise kullanıcıya söyle:
 
-```
-✅ Hermes MES projesi durumu yüklendi!
+```text
+Hermes MES projesi yüklendi.
 
-Tamamlanan özellikler: Auth, RBAC, Users, Machines, Parts, OEE/Telemetry, Dashboard
-Eksik özellikler: Reports tam entegrasyonu, Audit Log UI, AI analiz modülü
+Tamamlanan: Auth, RBAC, Users, Machines, Parts, OEE/Telemetry, Dashboard, Monitoring
+Eksik: Reports tam entegrasyonu, Audit Log UI, AI analiz modülü
+Roadmap: Production domain (JobOrder + ProductionEvent), cookie auth (opsiyonel)
 
-Hangi işi yapmak istiyorsun?
+Hangi konuda çalışmak istiyorsun?
 ```
 
 ---
 
-## 📚 EK KAYNAKLAR
+## REFERANS: TÜM DOKÜMAN LİSTESİ
 
-İhtiyaç duyulduğunda oku:
+### Zorunlu Okuma (İlk Aşama)
 
+```text
+docs/meta/summary.md
+docs/project-guidelines.md
+docs/tasks/project-checklist.md
+docs/meta/doc-maintenance.md
+docs/logs/chat-summary.md
 ```
-# Detaylı backend akışları
+
+### Backend İçin
+
+```text
+docs/standart/backend-decisions.md
+docs/standart/naming-conventions.md
+docs/meta/file-overview.md
 docs/meta/learning-guide.md
+docs/logs/decision-log.md
+backend/README.md
+```
 
-# Production roadmap
-docs/specs/project-roadmap.md
+### Frontend İçin
 
-# Gereksinimler
+```text
+docs/standart/frontend-decisions.md
+docs/standart/naming-conventions.md
+docs/meta/file-overview.md
+docs/meta/learning-guide.md
+docs/logs/decision-log.md
+frontend/README.md
+```
+
+### Ortak/Teknik
+
+```text
+docs/standart/technical-decisions.md
 docs/specs/requirements.md
+docs/specs/project-roadmap.md
+docs/logs/tech-decision-logs.md
+README.md
+```
 
-# Domain Roadmaps
+### Domain Roadmaps
+
+```text
 docs/roadmaps/production-roadmap.md
-
-# Dev notları
 docs/dev-notes/dashboard-next-steps.md
 ```
 
 ---
 
-## 🔄 PROMPT GÜNCELLEME NOTU
-
-Bu prompt güncel tutuluyor. Yeni domainler, özellikler veya önemli değişiklikler eklendiğinde **bu dosya mutlaka güncellenir**.
-
-**Son güncellenme:** 16 Kasım 2025  
-**Versiyon:** 1.0  
-**Proje durumu:** MVP Faz 2 (Dashboard, Monitoring, Parts tamamlandı)
+**Son Güncelleme:** 17 Kasım 2025
+**Versiyon:** 1.1
+**Proje Durumu:** MVP Faz 2 (Auth, Users, Machines, Parts, OEE, Dashboard, Monitoring tamamlandı)
 
 ---
 
-**Bu promptu yeni context window'da kullan ve projeyi tamamen hatırla! 🚀**
+**STRATEJİ ÖZET:** Temel yükle (5 dosya) → Task gelince detay oku → Verimli context kullanımı

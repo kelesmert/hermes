@@ -2,9 +2,11 @@
 
 ## Güncelleme Kuralları
 
-**Ne zaman:** Durum değişikliği, milestone, teknoloji stack
+**Ne zaman güncellenir:** Proje durumu değiştiğinde, büyük milestone tamamlandığında, teknoloji stack'i değiştiğinde.
 
-**Format:** Durum (✅/📋), teknoloji tablosu, kurulum
+**Format:** Durum bölümü (✅/📋), teknoloji tablosu, kurulum adımları.
+
+**Önemli:** Bu dosya projenin "vitrini"dir. Kısa, öz ve yeni geliştiriciler için ilk okuma kaynağı olmalı.
 
 ---
 

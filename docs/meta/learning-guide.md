@@ -4,9 +4,11 @@ Bu rehber, backend ve frontend'i MVP hedefiyle nasıl kurduğumuzu öğretici ş
 
 ## Güncelleme Kuralları
 
-**Ne zaman:** Yeni akış/süreç, setup değişikliği, yeni domain pattern
+**Ne zaman güncellenir:** Yeni akış/süreç eklendiğinde, setup adımları değiştiğinde, yeni domain pattern'i oluştuğunda.
 
-**Format:** Adım adım açıklama, öğretici format
+**Format:** Bölüm başlıklarına ekle (örn: ## Express Akışı, ## React Feature Yapısı), adım adım açıkla, örnek kod ekle.
+
+**Önemli:** Bu dosya "öğretici" format, teknik detay değil. Yeni geliştiricinin projeyi anlamak için okuduğu ilk dosya olmalı.
 
 ---
 
