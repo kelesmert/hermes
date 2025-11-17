@@ -41,12 +41,14 @@ Yeni context window açıldığında şu dosyaları sırasıyla oku:
 ```text
 docs/meta/summary.md
 docs/project-guidelines.md
+docs/specs/requirements.md
 docs/tasks/project-checklist.md
+docs/meta/file-overview.md
 docs/meta/doc-maintenance.md
 docs/logs/chat-summary.md
 ```
 
-**Bu 5 dosyadan öğrenilecekler:**
+**Bu 7 dosyadan öğrenilecekler:**
 
 ### summary.md
 
@@ -62,11 +64,25 @@ docs/logs/chat-summary.md
 - Temel mimari kararlar
 - Politika kuralları
 
+### requirements.md
+
+- Fonksiyonel gereksinimler: Auth, RBAC, Dashboard, Makine İzleme, Parts, Raporlama, AI
+- Kullanıcı rolleri: Master, Supervisor, Operator, Viewer
+- Veri modeli: users, roles, permissions, machines, machine_events, machine_telemetry, parts, job_orders, production_events
+- RBAC zinciri: permissions → roles → users
+- Cross-domain ilişkiler: Machines → Parts → JobOrders
+
 ### project-checklist.md
 
-- Nerede kaldık: Tamamlanan taskler (✅)
-- Ne eksik: Bekleyen taskler (📋)
+- Nerede kaldık: Tamamlanan taskler
+- Ne eksik: Bekleyen taskler
 - İleride: Opsiyonel taskler
+
+### file-overview.md
+
+- Hangi dosya nerede: Backend domain yapısı, Frontend feature yapısı
+- Her dosyanın görevi: Model/service/controller/component açıklamaları
+- Klasör organizasyonu: src/domains/, src/features/, scripts/
 
 ### doc-maintenance.md
 
@@ -81,7 +97,7 @@ docs/logs/chat-summary.md
 - Hangi kararlar alındı
 - Tarihsel gelişim
 
-**SONUÇ:** Bu 5 dosyayla proje %70 anlaşılır. Detaylara girmeden geliştirmeye başlayabilirsin.
+**SONUÇ:** Bu 7 dosyayla proje %80-85 anlaşılır. Gereksinimler, veri modeli, dosya yapısı ve tamamlanan işler bilinir. Detaylara girmeden geliştirmeye başlayabilirsin.
 
 ---
 
@@ -153,7 +169,7 @@ Duruma göre farklı başlangıç seviyeleri:
 ### Seviye 1: Tam Yükleme (İlk Oturum)
 
 ```text
-AŞAMA 1 (5 dosya) + docs/standart/ klasörünün tamamı + file-overview.md
+AŞAMA 1 (7 dosya) + docs/standart/ klasörünün tamamı
 ```
 
 Proje %100 anlaşılır, her detay bilinir.
@@ -161,7 +177,7 @@ Proje %100 anlaşılır, her detay bilinir.
 ### Seviye 2: Hızlı Yükleme (Günlük Çalışma)
 
 ```text
-AŞAMA 1 (5 dosya)
+AŞAMA 1 (7 dosya)
 ```
 
 Temel bilgiler yüklenir, task gelince detay okunur.
@@ -282,7 +298,9 @@ Hangi konuda çalışmak istiyorsun?
 ```text
 docs/meta/summary.md
 docs/project-guidelines.md
+docs/specs/requirements.md
 docs/tasks/project-checklist.md
+docs/meta/file-overview.md
 docs/meta/doc-maintenance.md
 docs/logs/chat-summary.md
 ```

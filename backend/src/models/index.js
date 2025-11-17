@@ -6,3 +6,5 @@ require('../domains/machines/models/machine-model');
 require('../domains/machines/models/machine-event-model');
 require('../domains/machines/models/machine-telemetry-model');
 require('../domains/oee/models/oee-machine-state-model');
+require('../domains/production/models/job-order-model');
+require('../domains/production/models/production-event-model');

@@ -101,6 +101,18 @@ const permissionSeeds = [
     category: "reports",
   },
   {
+    name: permissions.PRODUCTION_READ,
+    label: "İş Emirlerini Görüntüle",
+    description: "Job order ve üretim verilerini okuma",
+    category: "production",
+  },
+  {
+    name: permissions.PRODUCTION_MANAGE,
+    label: "İş Emri Yönetimi",
+    description: "Job order oluşturma/güncelleme ve yönetme",
+    category: "production",
+  },
+  {
     name: permissions.USERS_MANAGE,
     label: "Kullanıcı Yönetimi",
     description: "Kullanıcı oluşturma/güncelleme/silme",
@@ -162,6 +174,8 @@ const roleSeeds = [
       permissions.MACHINES_READ,
       permissions.MACHINES_WRITE,
       permissions.MACHINES_UPDATE_OWN,
+      permissions.PRODUCTION_READ,
+      permissions.PRODUCTION_MANAGE,
       permissions.PARTS_READ,
       permissions.PARTS_MANAGE,
       permissions.REPORTS_READ,
@@ -180,6 +194,7 @@ const roleSeeds = [
       permissions.DASHBOARD_READ,
       permissions.MACHINES_READ,
       permissions.MACHINES_UPDATE_OWN,
+      permissions.PRODUCTION_READ,
       permissions.PARTS_READ,
       permissions.WORK_ORDERS_EXECUTE,
     ],
@@ -465,6 +480,87 @@ const seedSysUser = async (rolesDocs) => {
   return sysUser;
 };
 
+const seedSupervisorUser = async (rolesDocs) => {
+  const supervisorEmail = process.env.SEED_SUPERVISOR_EMAIL;
+  const supervisorPassword = process.env.SEED_SUPERVISOR_PASSWORD;
+  const supervisorUsername = (
+    process.env.SEED_SUPERVISOR_USERNAME || 'supervisor'
+  ).toLowerCase();
+
+  if (!supervisorEmail || !supervisorPassword) {
+    console.log(
+      'SEED_SUPERVISOR_EMAIL veya SEED_SUPERVISOR_PASSWORD tanımlı değil, supervisor kullanıcısı oluşturulmadı.',
+    );
+    return null;
+  }
+
+  const supervisorRole = rolesDocs.find((role) => role.name === roles.SUPERVISOR);
+  if (!supervisorRole) {
+    throw new Error('Supervisor rolü bulunamadı, supervisor kullanıcısı oluşturulamadı.');
+  }
+
+  const existingSupervisor =
+    (await User.findOne({ username: supervisorUsername })
+      .select('+passwordHash')
+      .populate('roles')) ||
+    (await User.findOne({ email: supervisorEmail.toLowerCase() })
+      .select('+passwordHash')
+      .populate('roles'));
+
+  if (existingSupervisor) {
+    let updated = false;
+    if (!existingSupervisor.username) {
+      existingSupervisor.username = supervisorUsername;
+      updated = true;
+    }
+    const hasSupervisorRole = existingSupervisor.roles.some((role) =>
+      role._id.equals(supervisorRole._id),
+    );
+    if (!hasSupervisorRole) {
+      existingSupervisor.roles.push(supervisorRole._id);
+      updated = true;
+    }
+    const passwordMatches =
+      existingSupervisor.passwordHash &&
+      (await comparePassword(supervisorPassword, existingSupervisor.passwordHash));
+    if (!passwordMatches) {
+      existingSupervisor.passwordHash = await hashPassword(supervisorPassword);
+      updated = true;
+    }
+    if (updated) {
+      await existingSupervisor.save();
+      console.log(
+        `Supervisor kullanıcısı güncellendi: ${
+          existingSupervisor.email || existingSupervisor.username
+        }`,
+      );
+    } else {
+      console.log(
+        `Supervisor kullanıcısı zaten mevcut: ${
+          existingSupervisor.email || existingSupervisor.username
+        }`,
+      );
+    }
+    return existingSupervisor;
+  }
+
+  const passwordHash = await hashPassword(supervisorPassword);
+
+  const supervisorUser = await User.create({
+    username: supervisorUsername,
+    firstName: process.env.SEED_SUPERVISOR_FIRST_NAME || 'Line',
+    lastName: process.env.SEED_SUPERVISOR_LAST_NAME || 'Supervisor',
+    email: supervisorEmail.toLowerCase(),
+    passwordHash,
+    roles: [supervisorRole._id],
+  });
+
+  console.log(
+    `Supervisor kullanıcısı oluşturuldu: ${supervisorUser.email || supervisorUser.username}`,
+  );
+  return supervisorUser;
+};
+
 const seedViewerUser = async (rolesDocs) => {
   const viewerEmail = process.env.SEED_VIEWER_EMAIL || "viewer@hermes.local";
   const viewerUsername = (
@@ -660,6 +756,7 @@ const run = async () => {
     const roleDocs = await seedRoles();
     await seedAdminUser(roleDocs);
     await seedSysUser(roleDocs);
+    await seedSupervisorUser(roleDocs);
     await seedViewerUser(roleDocs);
     const machines = await seedMachines();
     await seedParts(machines);

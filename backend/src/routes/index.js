@@ -7,6 +7,7 @@ const permissionsRoutes = require('../domains/access-control/routes/permissions-
 const machinesRoutes = require('../domains/machines/routes/machines-routes');
 const boardRoutes = require('../domains/board/routes/board-routes');
 const partsRoutes = require('../domains/parts/routes/part-routes');
+const productionRoutes = require('../domains/production/routes/job-order-routes');
 
 const router = Router();
 
@@ -18,5 +19,6 @@ router.use('/permissions', permissionsRoutes);
 router.use('/machines', machinesRoutes);
 router.use('/board', boardRoutes);
 router.use('/parts', partsRoutes);
+router.use('/production', productionRoutes);
 
 module.exports = router;

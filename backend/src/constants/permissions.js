@@ -8,6 +8,8 @@ module.exports = {
   USERS_MANAGE: 'users.manage',
   ROLES_MANAGE: 'roles.manage',
   AUDIT_READ: 'audit.read',
+  PRODUCTION_READ: 'production.read',
+  PRODUCTION_MANAGE: 'production.manage',
   WORK_ORDERS_EXECUTE: 'work_orders.execute',
   SHIFTS_MANAGE: 'shifts.manage',
   PARTS_READ: 'parts.read',

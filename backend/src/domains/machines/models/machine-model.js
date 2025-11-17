@@ -31,6 +31,11 @@ const machineSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    currentJobOrder: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'JobOrder',
+      default: null,
+    },
   },
   {
     timestamps: true,
