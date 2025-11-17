@@ -7,6 +7,7 @@ import ReportsPage from '@/features/reports/pages/reports.jsx';
 import UsersPage from '@/features/users/pages/users.jsx';
 import MachinesPage from '@/features/machines/pages/machines.jsx';
 import PartsPage from '@/features/parts/pages/parts.jsx';
+import JobOrdersPage from '@/features/production/pages/job-orders.jsx';
 import NotFoundPage from '@/components/feedback/not-found.jsx';
 import PrivateRoute from '@/app/routes/private-route.jsx';
 import PermissionGuard from '@/app/routes/permission-guard.jsx';
@@ -63,6 +64,14 @@ const App = () => (
           element={
             <PermissionGuard requiredPermissions={["parts.read"]}>
               <PartsPage />
+            </PermissionGuard>
+          }
+        />
+        <Route
+          path="/production"
+          element={
+            <PermissionGuard requiredPermissions={["production.read"]}>
+              <JobOrdersPage />
             </PermissionGuard>
           }
         />
