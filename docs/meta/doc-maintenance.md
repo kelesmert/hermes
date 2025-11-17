@@ -13,6 +13,21 @@ Kullanıcı "doc-maintenance'a göre güncelle" veya benzeri bir ifade kullandı
 
 **ÖNEMLİ:** Her MD dosyasının kendi başında "Güncelleme Kuralları" bölümü var. Format detayları orada. Bu dosya sadece tetikleyici ve yönlendiricidir.
 
+## Genel Markdown Kuralları
+
+Tüm MD dosyalarına uygulanacak zorunlu kurallar:
+
+- **Başlıklarda noktalama işareti yok:** Başlık sonuna nokta, soru işareti, ünlem vb. konulmaz (MD026 uyumluluğu)
+- **Emoji kullanma:** Dokümanlarda emoji kullanılmaz, sadece düz metin
+- **Kod bloklarında dil belirt:** Fenced code block'larda (```) mutlaka dil belirtilmeli (MD040 uyumluluğu)
+  - Dosya yolları için: `text` veya `bash`
+  - Komutlar için: `bash`
+  - Kod için: `javascript`, `python`, `json` vb.
+  - Çıktılar için: `text`
+- **Örnek:**
+  - ✅ DOĞRU: `## Amaç` ve ` ```bash` veya ` ```text`
+  - ❌ YANLIŞ: `## Amaç.` veya `## Neden?` veya `## 🎯 Amaç` veya ` ``` ` (dil yok)
+
 ---
 
 ## Güncelleme Türleri ve Tetikleyiciler

@@ -4,13 +4,57 @@
 
 ## Güncelleme Kuralları
 
-**Ne zaman:** Context window sonunda
+**Ne zaman güncellenir:** Her context window sonunda (token limiti dolduğunda veya oturum bittiğinde).
 
-**Format:** Tarih + context # + Yapılanlar/Kararlar/Sonraki Adımlar bölümleri
+**Format:**
 
-**Önemli:** Eski kayıtlar silinmez
+```markdown
+## 📅 [Tarih] - Context Window #[Numara]
+
+### Yapılanlar
+
+- Madde madde liste
+
+### Alınan Kararlar
+
+- Madde madde liste
+
+### Sonraki Adımlar
+
+- Madde madde liste
+```
+
+**Önemli:** Eski kayıtlar sılınmez, tarihsel log olarak kalır. Context window sayısı sonuçtan başa artan numaralandırma ile tutulur.
 
 ---
+
+## 📅 17 Kasım 2025 - Context Window #5
+
+### Yapılanlar
+
+- Tüm doküman güncelleme kurallarını içerik ile karşılaştırma yapıldı
+- 21 MD dosyası kontrol edildi (içerik + güncelleme kuralları uyumu)
+- decision-log.md tarih alanı kaldırılması doğrulandı
+- project-checklist.md checkbox format örnekleri korundu doğrulandı
+
+### Alınan Kararlar
+
+- **Doküman sistemi tamamlandı:** doc-maintenance.md = trigger/router, her MD = kendi format kuralı
+- **Güncelleme kuralları optimize edildi:** Descriptive ve detailed format korundu, minimizasyon yapılmadı
+- **chat-summary.md güncel tutulacak:** Her context window sonunda oturum kaydı eklenecek
+
+### Dokümantasyon Durumu
+
+- ✅ 20/21 dosya güncelleme kurallarına %100 uyumlu
+- ✅ decision-log.md: Tarih alanı yok (Domain/Karar/Gerekçe/Etki)
+- ✅ project-checklist.md: Checkbox format örnekleri korunmuş
+- ✅ Tüm MD dosyaları "Güncelleme Kuralları" bölümüne sahip
+
+### Sonraki Adımlar
+
+- Production domain implementasyonu (JobOrder + ProductionEvent modelleri)
+- Reports backend entegrasyonu
+- Audit Log UI geliştirmesi
 
 ---
 
