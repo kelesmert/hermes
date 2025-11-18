@@ -62,6 +62,7 @@
 - [ ] AI analiz modülü (kural tabanlı veya model entegrasyonu)
 - [ ] Dashboard/rapor veri kaynaklarını gerçek makine/event akışıyla besleyecek polling/push servisleri _(Board domain ile kısmen tamamlandı; raporlama beklemede)_
 - [ ] Auth akışı için refresh/logout endpoint testleri ve Postman senaryoları
+- [ ] (İleride) Data-gen sinyal/metrik profillerini saha verisine göre ince ayarla (ramp-up/down parametreleri)
 
 ## Frontend
 

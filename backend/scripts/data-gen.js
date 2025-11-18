@@ -8,12 +8,10 @@ const { connectDatabase } = require('../src/config/database');
 require('../src/models');
 const Machine = require('../src/domains/machines/models/machine-model');
 const MachineTelemetry = require('../src/domains/machines/models/machine-telemetry-model');
+const machineStatuses = require('../src/constants/machine-statuses');
 
 const INTERVAL_MS = Number(process.env.DATA_GEN_INTERVAL_MS) || 2000;
 const MACHINE_REFRESH_MS = Number(process.env.DATA_GEN_MACHINE_REFRESH_MS) || 60000;
-const TEMP_DELTA = Number(process.env.DATA_GEN_TEMP_DELTA) || 0.3;
-const TORQUE_DELTA = Number(process.env.DATA_GEN_TORQUE_DELTA) || 3;
-const ENERGY_DELTA = Number(process.env.DATA_GEN_ENERGY_DELTA) || 0.12;
 const RUNNING_SIGNAL_DROP_PROB = Number(process.env.DATA_GEN_RUNNING_SIGNAL_DROP_PROB);
 const RUNNING_SIGNAL_RECOVERY_PROB = Number(process.env.DATA_GEN_RUNNING_SIGNAL_RECOVERY_PROB);
 const IDLE_SIGNAL_DROP_PROB = Number(process.env.DATA_GEN_IDLE_SIGNAL_DROP_PROB);
@@ -21,16 +19,32 @@ const IDLE_SIGNAL_RISE_PROB = Number(process.env.DATA_GEN_IDLE_SIGNAL_RISE_PROB)
 
 const DEFAULT_RUNNING_SIGNAL_DROP_PROB = Number.isFinite(RUNNING_SIGNAL_DROP_PROB)
   ? RUNNING_SIGNAL_DROP_PROB
-  : 0.01;
+  : 0.03;
 const DEFAULT_RUNNING_SIGNAL_RECOVERY_PROB = Number.isFinite(RUNNING_SIGNAL_RECOVERY_PROB)
   ? RUNNING_SIGNAL_RECOVERY_PROB
-  : 0.9;
+  : 0.95;
 const DEFAULT_IDLE_SIGNAL_DROP_PROB = Number.isFinite(IDLE_SIGNAL_DROP_PROB)
   ? IDLE_SIGNAL_DROP_PROB
-  : 0.2;
+  : 0.7;
 const DEFAULT_IDLE_SIGNAL_RISE_PROB = Number.isFinite(IDLE_SIGNAL_RISE_PROB)
   ? IDLE_SIGNAL_RISE_PROB
-  : 0.1;
+  : 0.15;
+
+const METRIC_PROFILES = {
+  active: {
+    temperature: { base: 60, variance: 3, smoothing: 0.25, noise: 0.4, min: 40 },
+    torque: { base: 120, variance: 10, smoothing: 0.3, noise: 1.5, min: 60 },
+    energy: { base: 3.2, variance: 0.4, smoothing: 0.35, noise: 0.08, min: 0.5 },
+  },
+  idle: {
+    temperature: { base: 34, variance: 2, smoothing: 0.25, noise: 0.3, min: 25 },
+    torque: { base: 6, variance: 2, smoothing: 0.3, noise: 0.5, min: 0 },
+    energy: { base: 0.25, variance: 0.05, smoothing: 0.35, noise: 0.02, min: 0.05 },
+  },
+};
+
+const TRANSITION_WINDOW_MS = Number(process.env.DATA_GEN_TRANSITION_MS) || 10000;
+const TRANSITION_TICKS = Math.max(1, Math.round(TRANSITION_WINDOW_MS / INTERVAL_MS));
 
 const machineStates = new Map();
 let machines = [];
@@ -39,12 +53,22 @@ let refreshRef;
 
 const randomDrift = (delta) => (Math.random() * 2 - 1) * delta;
 
-const nudgeValue = (current, delta, min = null) => {
-  let next = current + randomDrift(delta);
-  if (min !== null && next < min) {
-    next = min;
+const initializeMetric = (profile) => {
+  const target = profile.base + randomDrift(profile.variance);
+  return Number(Math.max(profile.min ?? target, target).toFixed(2));
+};
+
+const adjustMetric = (current, profile, transitionProgress = 1) => {
+  if (typeof current !== 'number' || Number.isNaN(current)) {
+    return initializeMetric(profile);
   }
-  return Number(next.toFixed(2));
+  const target = profile.base + randomDrift(profile.variance);
+  const baseSmoothing = profile.smoothing ?? 0.3;
+  const boost = Math.max(0, (TRANSITION_TICKS - transitionProgress) / TRANSITION_TICKS);
+  const effectiveSmoothing = Math.min(0.95, baseSmoothing + boost * 0.6);
+  const next = current + (target - current) * effectiveSmoothing + randomDrift(profile.noise ?? 0.1);
+  const bounded = profile.min !== undefined && next < profile.min ? profile.min : next;
+  return Number(bounded.toFixed(2));
 };
 
 const pickNextSignal = (current, { hasActiveJob }) => {
@@ -64,11 +88,17 @@ const pickNextSignal = (current, { hasActiveJob }) => {
 const ensureMachineState = (machine) => {
   const key = machine.id || machine._id.toString();
   if (!machineStates.has(key)) {
+    const hasActiveJob = Boolean(machine.currentJobOrder);
+    const isRunning = hasActiveJob && machine.status === machineStatuses.RUNNING;
+    const mode = isRunning ? 'active' : 'idle';
+    const profile = METRIC_PROFILES[mode];
     machineStates.set(key, {
-      temperature: 55 + Math.random() * 10,
-      torque: 100 + Math.random() * 30,
-      energy: 2 + Math.random() * 2,
-      signal: 1,
+      temperature: initializeMetric(profile.temperature),
+      torque: initializeMetric(profile.torque),
+      energy: initializeMetric(profile.energy),
+      signal: isRunning ? 1 : 0,
+      mode,
+      transitionTicks: TRANSITION_TICKS,
     });
   }
   return machineStates.get(key);
@@ -83,11 +113,34 @@ const loadMachines = async () => {
 const generateTelemetryPayload = (machine) => {
   const state = ensureMachineState(machine);
   const hasActiveJob = Boolean(machine.currentJobOrder);
-  state.signal = pickNextSignal(state.signal, { hasActiveJob });
+  const isRunning = hasActiveJob && machine.status === machineStatuses.RUNNING;
+  const mode = isRunning ? 'active' : 'idle';
+  const modeChanged = state.mode !== mode;
+  if (modeChanged) {
+    state.mode = mode;
+    state.transitionTicks = 0;
+  } else {
+    state.transitionTicks = Math.min((state.transitionTicks || 0) + 1, TRANSITION_TICKS);
+  }
 
-  state.temperature = nudgeValue(state.temperature, TEMP_DELTA);
-  state.torque = nudgeValue(state.torque, TORQUE_DELTA);
-  state.energy = nudgeValue(state.energy, ENERGY_DELTA, 0.1);
+  state.signal = pickNextSignal(state.signal, { hasActiveJob: isRunning });
+
+  const transitionProgress = state.transitionTicks || TRANSITION_TICKS;
+  state.temperature = adjustMetric(
+    state.temperature,
+    METRIC_PROFILES[mode].temperature,
+    transitionProgress,
+  );
+  state.torque = adjustMetric(
+    state.torque,
+    METRIC_PROFILES[mode].torque,
+    transitionProgress,
+  );
+  state.energy = adjustMetric(
+    state.energy,
+    METRIC_PROFILES[mode].energy,
+    transitionProgress,
+  );
 
   return {
     machine: machine._id,

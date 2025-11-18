@@ -202,3 +202,17 @@ Yeni kararlar alındıkça bu dosyaya tarih/başlık/gerekçe formatıyla ekleme
 - **Gerekçe:** Data-gen kısa aralıklarda sinyal yazdığı halde signal timeout 10s olduğunda OEE worker sürekli “Otomatik tespit edilen duruş” event’i açıyor ve `Machine.status` alanını anlık olarak `downtime` yapıyordu. Bu durum UI’de sürekli duruş etiketi görülmesine yol açıyordu.
 - **Etki:** `backend/src/domains/oee/config/oee-rules.json` güncellendi; signal timeout kaynaklı otomatik event'ler kaldırıldı, makine durumları telemetry’nin gerçek 0 serilerine göre değişiyor.
 - **Onemlinot** sorun hala cozulemedi.
+
+### OEE Downtime Tetiklemesinde İş Emri Bilinci
+
+- **Domain:** Backend - oee/production
+- **Karar:** OEE processor artık yalnızca makine gerçek bir iş emri yürütürken sinyal 0 serilerine göre otomatik duruş açacak; job yoksa veya makine duraklatıldıysa status IDLE’da tutulacak ve açık event’ler kapanacak.
+- **Gerekçe:** Job atanmadığı halde telemetry’deki kısa 0 serileri makineyi sürekli “durdu” olarak işaretliyor, Machines kartları ile Monitoring/OEE verileri birbiriyle çelişiyordu.
+- **Etki:** `backend/src/domains/oee/services/oee-processor.js` makine kaydını ve `currentJobOrder` alanını kontrol ediyor; downtime event’leri sadece RUNNING durumunda açılıyor, job bitince makine IDLE’a döndürülüyor.
+
+### Data-Gen Aktif/Idle Profil Geçiş Penceresi
+
+- **Domain:** Backend - machines/simulation
+- **Karar:** Telemetry generator aktif işlerde yüksek sıcaklık/tork/enerji profiline, idle durumda düşük profile geçiyor; `DATA_GEN_TRANSITION_MS` ile ilk 10 saniyede hızlı ramp-up/down yapılıyor ve değerler daha sonra kademeli oturtuluyor.
+- **Gerekçe:** İş emri başlatıldığında metriklerin dakikalarca düşük kalması ve durdurulduktan sonra uzun süre yüksek görünmesi monitoring ekranında gerçek dışı davranış yaratıyordu.
+- **Etki:** `backend/scripts/data-gen.js`, `.env.example`, `.env` ve `backend/README.md` güncellendi; simülasyon parametreleri env üzerinden yönetiliyor ve Monitoring/Machines ekranları job start/pause aksiyonlarını kısa sürede yansıtıyor.

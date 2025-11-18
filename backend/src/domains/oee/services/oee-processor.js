@@ -51,9 +51,10 @@ const getMachineState = async (machineId) => {
   return state;
 };
 
-const openDowntimeEvent = async (state, startedAt) => {
+const openDowntimeEvent = async (state, startedAt, machine) => {
+  if (!machine) return;
   const event = await MachineEvent.create({
-    machine: state.machine,
+    machine: machine._id,
     state: machineStatuses.DOWNTIME,
     startedAt,
     reasonCode: defaultSignalRule.reasonCode,
@@ -61,58 +62,90 @@ const openDowntimeEvent = async (state, startedAt) => {
     source: 'system',
   });
 
-  await Machine.findByIdAndUpdate(state.machine, {
-    status: machineStatuses.DOWNTIME,
-    lastEventAt: startedAt,
-  });
+  machine.status = machineStatuses.DOWNTIME;
+  machine.lastEventAt = startedAt;
+  await machine.save();
 
   state.currentState = 'downtime';
   state.openEvent = event._id;
 };
 
-const closeDowntimeEvent = async (state, endedAt) => {
+const closeDowntimeEvent = async (state, endedAt, machine, hasAssignedJob) => {
   if (state.openEvent) {
     await MachineEvent.findByIdAndUpdate(state.openEvent, { endedAt });
   }
-  await Machine.findByIdAndUpdate(state.machine, {
-    status: machineStatuses.RUNNING,
-    lastEventAt: endedAt,
-  });
+  if (machine) {
+    machine.status = hasAssignedJob ? machineStatuses.RUNNING : machineStatuses.IDLE;
+    machine.lastEventAt = endedAt;
+    await machine.save();
+  }
   state.currentState = 'running';
   state.openEvent = undefined;
   state.zeroSequenceStart = undefined;
 };
 
-const ensureRunningStatus = async (state, timestamp) => {
-  if (state.currentState !== 'running') {
-    await Machine.findByIdAndUpdate(state.machine, {
-      status: machineStatuses.RUNNING,
-      lastEventAt: timestamp,
-    });
-    state.currentState = 'running';
+const ensureMachineStatusForSignal = async (state, timestamp, machine, { hasAssignedJob }) => {
+  if (!machine) return;
+  let shouldSaveMachine = false;
+
+  if (!hasAssignedJob) {
+    if (machine.status !== machineStatuses.IDLE) {
+      machine.status = machineStatuses.IDLE;
+      shouldSaveMachine = true;
+    }
+    if (!machine.lastEventAt || machine.lastEventAt.getTime() !== timestamp.getTime()) {
+      machine.lastEventAt = timestamp;
+      shouldSaveMachine = true;
+    }
+  } else if (machine.status === machineStatuses.RUNNING) {
+    if (!machine.lastEventAt || machine.lastEventAt.getTime() < timestamp.getTime()) {
+      machine.lastEventAt = timestamp;
+      shouldSaveMachine = true;
+    }
+  }
+
+  if (shouldSaveMachine) {
+    await machine.save();
+  }
+
+  state.currentState = 'running';
+  if (!hasAssignedJob) {
+    state.openEvent = undefined;
+    state.zeroSequenceStart = undefined;
   }
 };
 
 const processTelemetryRecord = async (telemetry) => {
   const state = await getMachineState(telemetry.machine);
+  const machine = await Machine.findById(telemetry.machine);
+  if (!machine) {
+    return;
+  }
   const timestamp = telemetry.timestamp || telemetry.createdAt;
+  const hasAssignedJob = Boolean(machine.currentJobOrder);
+  const shouldDetectDowntime = hasAssignedJob && machine.status === machineStatuses.RUNNING;
 
   if (telemetry.signalValue === 0) {
     if (!state.zeroSequenceStart) {
       state.zeroSequenceStart = timestamp;
     }
     const streakDuration = timestamp.getTime() - state.zeroSequenceStart.getTime();
-    if (streakDuration >= defaultSignalRule.downtimeThresholdMs && state.currentState !== 'downtime') {
-      await openDowntimeEvent(state, state.zeroSequenceStart);
+    if (
+      shouldDetectDowntime &&
+      streakDuration >= defaultSignalRule.downtimeThresholdMs &&
+      state.currentState !== 'downtime'
+    ) {
+      await openDowntimeEvent(state, state.zeroSequenceStart, machine);
     }
   } else if (telemetry.signalValue === (defaultSignalRule.recoverySignal ?? 1)) {
     if (state.currentState === 'downtime') {
-      await closeDowntimeEvent(state, timestamp);
+      await closeDowntimeEvent(state, timestamp, machine, hasAssignedJob);
+    } else {
+      await ensureMachineStatusForSignal(state, timestamp, machine, { hasAssignedJob });
     }
     state.zeroSequenceStart = undefined;
-    await ensureRunningStatus(state, timestamp);
   } else {
-    await ensureRunningStatus(state, timestamp);
+    await ensureMachineStatusForSignal(state, timestamp, machine, { hasAssignedJob });
   }
 
   state.lastSignalValue = telemetry.signalValue;
@@ -156,8 +189,20 @@ const handleSignalTimeouts = async () => {
   for (const state of staleStates) {
     try {
       const startTime = state.lastSignalAt || threshold;
+      const machine = await Machine.findById(state.machine);
+      if (!machine) {
+        continue;
+      }
+      const hasAssignedJob = Boolean(machine.currentJobOrder);
+      const shouldDetectDowntime =
+        hasAssignedJob && machine.status === machineStatuses.RUNNING;
+      if (!shouldDetectDowntime) {
+        await ensureMachineStatusForSignal(state, new Date(), machine, { hasAssignedJob });
+        await state.save();
+        continue;
+      }
       state.zeroSequenceStart = startTime;
-      await openDowntimeEvent(state, startTime);
+      await openDowntimeEvent(state, startTime, machine);
       await state.save();
     } catch (error) {
       console.error('Sinyal zaman aşımı duruşu açılamadı:', state.machine, error.message);

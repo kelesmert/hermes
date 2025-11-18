@@ -39,7 +39,8 @@ Bu doküman, mezuniyet projesi kapsamında geliştirilecek olan hafif bir Manufa
 
 - Node.js + Express uygulaması; katmanlı yapı (routes → middleware → controllers → services → models → utils).
 - Auth/RBAC altyapısı JWT + refresh token kombinasyonu ile kuruluyor; ileride cookie tabanlı yönetime geçilecek.
-- MongoDB/Mongoose veri modeli: `users`, `roles`, `permissions`, `refresh_tokens`, `parts`, `machines`, `machine_events`, `machine_telemetry`, `oee_machine_states`, `job_orders`, `production_events`, `reports`, `audit_logs`, `ai_insights`. Production domain’i JobOrder + ProductionEvent modelleriyle tamamlandı; `backend/scripts/job-simulator.js` aktif job’lar için telemetry’ye bağlı üretim verisi üretiyor, `data-gen.js` sinyal/metrik üretmeye devam ediyor.
+- MongoDB/Mongoose veri modeli: `users`, `roles`, `permissions`, `refresh_tokens`, `parts`, `machines`, `machine_events`, `machine_telemetry`, `oee_machine_states`, `job_orders`, `production_events`, `reports`, `audit_logs`, `ai_insights`. Production domain’i JobOrder + ProductionEvent modelleriyle tamamlandı; `backend/scripts/job-simulator.js` aktif job’lar için telemetry’ye bağlı üretim verisi üretiyor, `data-gen.js` sinyal/metrik üretirken makinenin `machine.status` ve `currentJobOrder` bilgisine göre aktif/idle profiller arasında 10 saniyelik geçiş penceresi uyguluyor.
+- OEE processor job’u sadece aktif iş emri yürüten makinelerde sinyal 0 serileri için downtime açıyor; job yoksa veya makine duraklatıldıysa status IDLE’da tutuluyor ve geçmiş event referansları kapatılıyor. Böylece Machines ekranı, Monitoring grafikleri ve OEE raporları aynı kaynaktan besleniyor.
 
 -### Frontend
 

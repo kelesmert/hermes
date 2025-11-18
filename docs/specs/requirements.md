@@ -47,7 +47,7 @@ Bu proje, Node.js/Express backend, React frontend ve MongoDB veritabanı kullana
    - Makine listesi ve durum renk kodları (Running/Idle/Downtime).
    - Detay ekranında geçmiş olaylar, notlar ve durum değiştirme aksiyonları.
    - MachineTelemetry sistemi: Her makine için 0/1 sinyal değeri, timestamp ve metrikler (sıcaklık, tork, enerji) kaydedilir.
-   - OEE Processor Job: Telemetry verilerini arka planda işler, belirli süre 0 sinyali algılandığında otomatik downtime kaydı oluşturur.
+   - OEE Processor Job: Telemetry verilerini arka planda işler, belirli süre 0 sinyali algılandığında **yalnızca makine aktif iş emri yürütüyorsa** otomatik downtime kaydı oluşturur; job yoksa veya makine duraklatıldıysa status IDLE’da kalır.
    - OeeMachineState: Her makine için son sinyal değeri, aktif duruş event'i ve sıfır serisi başlangıcını tutar.
 5. **Canlı İzleme (Monitoring)**
    - Monitoring sayfası: Seçili makinenin canlı telemetry grafiklerini gösterir (Recharts).
@@ -68,6 +68,7 @@ Bu proje, Node.js/Express backend, React frontend ve MongoDB veritabanı kullana
    - `ProductionEvent` kayıtları her aksiyonu, üretim miktarını ve (varsa) hata tipini loglar; frontend’de olay geçmişi modalı üzerinden görüntülenir.
 9. **Veri Simülasyonu**
    - `npm run data:gen`: Her makine için telemetry sinyali (0/1) ve metrikler üretir. Aktif job varken sinyalin 1’de kalma olasılığı artırılmıştır, idle makinelerde rastgele 0/1 üretilir.
+   - Sinyal/mount profili `DATA_GEN_TRANSITION_MS` ile yönetilir; varsayılan 10 saniye içinde sıcaklık/tork/enerji değerleri yeni moda hızlıca yaklaşır ve monitoring ekranları ramp-up/ramp-down davranışı gösterir.
    - `npm run job:sim`: Aktif JobOrder kayıtlarını okuyup son telemetry sinyaline göre good/defect üretim eventleri oluşturur; sinyal 1 değilse üretim yazılmaz.
    - OEE processor yalnızca `downtimeThresholdMs` boyunca sinyal 0 olduğunda duruş açar; signal timeout devre dışı bırakılmıştır.
 10. **Raporlama & Export**

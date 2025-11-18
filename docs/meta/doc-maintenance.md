@@ -80,7 +80,7 @@ ZORUNLU:
 
 - `docs/tasks/project-checklist.md` → [ ] → [x] işaretle
 - `docs/specs/project-roadmap.md` → Status güncelle
-- `docs/meta/file-overview.md` → Yeni dosyaları listele
+- `docs/meta/file-overview.md` → Yeni dosyaları listele VE mevcut dosyaların açıklamalarını güncelle (davranış/parametre değişikliği varsa)
 - `docs/logs/decision-log.md` → Implementation kararlarını kaydet
 
 DURUMA GÖRE:
@@ -274,6 +274,41 @@ AI, sohbetteki bağlamdan konuyu otomatik tespit etmelidir:
 
 ---
 
+### 11. Mevcut Dosya Davranış/Mantık Değişikliği
+
+**Ne zaman:**
+
+- Mevcut fonksiyon/servis mantığı değişti
+- Yeni parametre/env değişkeni eklendi
+- Dosyanın sorumluluğu genişledi veya değişti
+- Yeni davranış profili eklendi (örn: idle/active mod, debug/production mod)
+- Fonksiyon imzası değişti (yeni parametre, dönen değer formatı)
+- Algoritma/hesaplama mantığı güncellendi
+
+**Güncelleme:**
+
+ZORUNLU:
+
+- `docs/meta/file-overview.md` → İlgili dosyanın açıklamasını güncelle, yeni davranışı/parametreleri ekle
+- `docs/logs/decision-log.md` → Değişiklik gerekçesini kaydet (önemliyse)
+- `backend/README.md` veya `frontend/README.md` → Yeni env değişkenleri/komutlar varsa ekle
+
+DURUMA GÖRE:
+
+- `.env.example` → Yeni env değişkeni eklendiyse
+- `docs/meta/learning-guide.md` → Akış değiştiyse güncelle
+- `docs/standart/` → Yeni pattern/kural oluştuysa
+
+**Örnekler:**
+
+- Script'e yeni env değişkeni eklendi (DATA_GEN_TRANSITION_MS)
+- Servis fonksiyonu artık başka bir koleksiyona da bakıyor
+- Util fonksiyonu yeni parametre alıyor
+- Component yeni prop kabul ediyor
+- API endpoint yeni query parametresi destekliyor
+
+---
+
 ## Context Window Sonunda
 
 Her context window bittiğinde:
@@ -370,6 +405,7 @@ Her context window bittiğinde:
 - Cross-domain etki var mı?
 - Yeni domain mi?
 - Config/env/test/deployment değişikliği mi?
+- Mevcut dosya davranışı değişti mi? (fonksiyon mantığı, yeni parametre, algoritma değişikliği)
 
 ### Adım 5: Doküman Listesi Oluştur
 
@@ -399,6 +435,8 @@ Her güncelleme sonrası AI kendine şu soruları sormalı:
 - [ ] Her dosyanın başındaki "Güncelleme Kuralları"na baktım mı?
 - [ ] decision-log.md'ye tarih ekledim mi?
 - [ ] Yeni dosyaları file-overview.md'ye ekledim mi?
+- [ ] Mevcut dosyaların açıklamalarını güncelledim mi? (davranış değişikliği varsa)
+- [ ] Yeni env değişkenlerini README'ye ve .env.example'a ekledim mi?
 - [ ] Checklist'te [ ] ve [x] doğru kullandım mı?
 - [ ] Roadmap status'leri tutarlı mı?
 - [ ] Tekrar eden bilgi var mı?
@@ -511,10 +549,33 @@ Her bölümde (Backend/Frontend/Test ve Dağıtım) uygun yere ekle:
 
 ### file-overview.md için format:
 
+**Yeni dosya eklendiğinde:**
+
 İlgili bölüme (Backend/Frontend/Docs) ekle:
 
 ```markdown
 - `dosya/yolu/dosya-adi.js`: Ne yapar, hangi sorumluluğu var (1-2 cümle, kısa ve öz)
+```
+
+**Mevcut dosya davranışı değiştiğinde:**
+
+1. İlgili dosyanın mevcut açıklamasını bul
+2. Yeni davranışı/parametreleri ekle (örn: "artık X modu destekliyor", "Y env değişkeniyle kontrol edilir")
+3. Eski açıklama yetersizse tamamen yeniden yaz
+4. Davranış değişikliği önemliyse decision-log'a referans ekle
+
+**Örnek güncelleme:**
+
+Önce:
+
+```markdown
+- `backend/scripts/data-gen.js`: Simülasyon amaçlı telemetry/sinyal üretir.
+```
+
+Sonra:
+
+```markdown
+- `backend/scripts/data-gen.js`: Simülasyon amaçlı telemetry/sinyal üretir; makine durumuna (RUNNING/IDLE) göre ayrı profiller kullanarak sıcaklık/tork/enerji değerlerini ayarlar. `DATA_GEN_TRANSITION_MS` ile job başlama/durma anında 10 sn içinde metrikleri hızla yeni profile geçirir.
 ```
 
 ### project-roadmap.md için format:

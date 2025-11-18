@@ -32,21 +32,24 @@
 
 ### Yapılanlar
 
-- Production backend/domain tamamlandı: JobOrder + ProductionEvent modelleri, CRUD + start/pause/resume/produce/complete endpointleri, Machine `currentJobOrder` alanı ve permission guard’ları eklendi.
-- `job-simulator.js` yazıldı; telemetry sinyaline bağlı good/defect üretim kayıtları oluşturuyor. `data-gen.js` aktif job varken sinyali 1’de tutacak şekilde güncellendi.
-- Frontend’e Production/İş Emirleri sayfası eklendi (liste tablosu, form dialog, aksiyon modalları ve event geçmişi).
-- OEE signal-timeout konfigürasyonu devre dışı bırakıldı; kısa telemetry gecikmeleri artık Machine.status’u `downtime` yapmıyor.
+- Production backend/domain tamamlandı (JobOrder, ProductionEvent, aksiyon endpointleri) ve frontend Production sayfası devreye alındı.
+- `job-simulator.js` ile telemetry sinyaline bağlı üretim/defect kayıtları oluşturuldu; data-gen aktif job varken sinyali 1’de tutacak şekilde güncellendi.
+- Machine monitoring ve OEE alanlarında yeni iyileştirme turu yapıldı: `data-gen.js` aktif/idle profilleri, `oee-processor.js` ise iş emri farkındalıklı downtime yönetimi kazandı.
+- OEE signal-timeout config’i devre dışı bırakıldı; kısa telemetry gecikmeleri makineyi “durdu” yapmıyor.
 - Checklist, roadmap, file-overview, learning-guide, summary ve karar dosyaları güncellendi.
+- Bu context’te ek olarak simülasyon parametreleri env/README/requirements/project-report dosyalarına işlendi ve doc-maintenance gereksinimleri uygulandı.
 
 ### Alınan Kararlar
 
 - Üretim simülasyonu `data-gen` + `job-sim` sıralı akışına bağlandı; telemetry sinyali 1 değilse üretim yapılmıyor.
 - Frontend Production sayfası TanStack Table + aksiyon dialog pattern’i ile zorunlu standart olarak tanımlandı.
+- OEE processor yalnızca aktif iş emri yürütülürken sinyal 0 serilerinde downtime açacak, job yoksa makine status’ü IDLE’da kalacak.
+- Data-gen script’i makinenin `status/currentJobOrder` bilgisine göre aktif/idle metrik profilleri arasında `DATA_GEN_TRANSITION_MS` süresince ramp-up/ramp-down uygulayacak; telemetry değerleri monitoring grafiğinde hızlı tepki verecek.
 
 ### Sonraki Adımlar
 
 - Reports backend/frontend genişletmesi ve export/audit ekranları.
-- Production telemetri/makine durum senkronunun gözlemlenmesi; gerekirse OEE/config iyileştirmeleri.
+- Production telemetri/makine durum senkronunun gözlemlenmesi; gerekirse OEE/config/data-gen iyileştirmeleri (saha verisi ile ince ayar).
 - Test/lint altyapısı ve cookie tabanlı auth hazırlıkları.
 
 ---
