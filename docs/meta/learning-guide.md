@@ -159,3 +159,10 @@ Bu rehber, backend ve frontend'i MVP hedefiyle nasıl kurduğumuzu öğretici ş
 - `backend/src/domains/parts/models/part-model.js` parça tanımlarını ve hangi makinelerde üretilebileceğini tutar; production/job order akışı başlamadan önce bu domain’in geçerliliği kontrol edilmelidir.
 - `backend/src/domains/oee/services/oee-processor.js` telemetry verilerini JSON konfigine göre işler; sinyal zaman aşımı kuralı sayesinde belirli süre veri gelmeyen makineler otomatik duruşa alınır. `backend/src/jobs/oee-processor-job.js` belirli aralıklarla bu servisi tetikler ve duruş eventlerini otomatik oluşturur/kapatır.
 - `backend/src/domains/board/services/board-service.js` OEE sonuçları + telemetry ortalamalarını birleştirerek `/api/board/metrics` endpoint’ine veri sağlar (Dashboard izinli kullanıcılar varsayılan 2 sn polling ile tüketir; değer çevresel olarak ayarlanabilir).
+
+## 17) Production Domain Akışı
+
+- Backend: `backend/src/domains/production/` klasöründe `job-order-model.js`, `production-event-model.js`, servis ve controller dosyaları bulunur. CRUD + aksiyon endpoint’leri (`start`, `pause`, `resume`, `produce`, `complete`, `cancel`) `production.manage` ve `work_orders.execute` izinleriyle guard’lanır.
+- Makine modeli `currentJobOrder` alanı tutar; job start/resume edildiğinde set edilir, complete/cancel’de temizlenir. ProductionEvent kayıtları her aksiyon sırasında oluşturulur ve frontend event dialog’unda gösterilir.
+- Simülasyon: `npm run data:gen` telemetry sinyalini üretir, `npm run job:sim` ise `job_orders` koleksiyonunda `status = in_progress` kayıtları bulup son telemetry sinyaline göre good/defect üretim kayıtları oluşturur. Sinyal 1 değilse üretim yazılmaz; fractional cycle mantığı ideal çevrim süresini korur.
+- Frontend: `frontend/src/features/production/` altında liste tablosu, form dialog ve aksiyon dialogları bulunur. TanStack Query ile hem liste hem de aksiyon mutasyonları yönetilir; event geçmişi ayrı bir modalda gösterilir.

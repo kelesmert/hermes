@@ -28,6 +28,29 @@
 
 ---
 
+## 📅 18 Kasım 2025 - Context Window #6
+
+### Yapılanlar
+
+- Production backend/domain tamamlandı: JobOrder + ProductionEvent modelleri, CRUD + start/pause/resume/produce/complete endpointleri, Machine `currentJobOrder` alanı ve permission guard’ları eklendi.
+- `job-simulator.js` yazıldı; telemetry sinyaline bağlı good/defect üretim kayıtları oluşturuyor. `data-gen.js` aktif job varken sinyali 1’de tutacak şekilde güncellendi.
+- Frontend’e Production/İş Emirleri sayfası eklendi (liste tablosu, form dialog, aksiyon modalları ve event geçmişi).
+- OEE signal-timeout konfigürasyonu devre dışı bırakıldı; kısa telemetry gecikmeleri artık Machine.status’u `downtime` yapmıyor.
+- Checklist, roadmap, file-overview, learning-guide, summary ve karar dosyaları güncellendi.
+
+### Alınan Kararlar
+
+- Üretim simülasyonu `data-gen` + `job-sim` sıralı akışına bağlandı; telemetry sinyali 1 değilse üretim yapılmıyor.
+- Frontend Production sayfası TanStack Table + aksiyon dialog pattern’i ile zorunlu standart olarak tanımlandı.
+
+### Sonraki Adımlar
+
+- Reports backend/frontend genişletmesi ve export/audit ekranları.
+- Production telemetri/makine durum senkronunun gözlemlenmesi; gerekirse OEE/config iyileştirmeleri.
+- Test/lint altyapısı ve cookie tabanlı auth hazırlıkları.
+
+---
+
 ## 📅 17 Kasım 2025 - Context Window #5
 
 ### Yapılanlar
@@ -187,6 +210,6 @@ Daha önceki context window kayıtları için:
 
 ---
 
-**Son güncelleme:** 16 Kasım 2025 23:45  
-**Context window sayısı:** 4  
-**Proje durumu:** MVP Faz 2 (Dashboard, Monitoring, Parts tamamlandı)
+**Son güncelleme:** 18 Kasım 2025  
+**Context window sayısı:** 6  
+**Proje durumu:** Production domain tamamlandı; Reports/Audit çalışmaları sırada

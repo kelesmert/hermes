@@ -14,6 +14,23 @@ const MACHINE_REFRESH_MS = Number(process.env.DATA_GEN_MACHINE_REFRESH_MS) || 60
 const TEMP_DELTA = Number(process.env.DATA_GEN_TEMP_DELTA) || 0.3;
 const TORQUE_DELTA = Number(process.env.DATA_GEN_TORQUE_DELTA) || 3;
 const ENERGY_DELTA = Number(process.env.DATA_GEN_ENERGY_DELTA) || 0.12;
+const RUNNING_SIGNAL_DROP_PROB = Number(process.env.DATA_GEN_RUNNING_SIGNAL_DROP_PROB);
+const RUNNING_SIGNAL_RECOVERY_PROB = Number(process.env.DATA_GEN_RUNNING_SIGNAL_RECOVERY_PROB);
+const IDLE_SIGNAL_DROP_PROB = Number(process.env.DATA_GEN_IDLE_SIGNAL_DROP_PROB);
+const IDLE_SIGNAL_RISE_PROB = Number(process.env.DATA_GEN_IDLE_SIGNAL_RISE_PROB);
+
+const DEFAULT_RUNNING_SIGNAL_DROP_PROB = Number.isFinite(RUNNING_SIGNAL_DROP_PROB)
+  ? RUNNING_SIGNAL_DROP_PROB
+  : 0.01;
+const DEFAULT_RUNNING_SIGNAL_RECOVERY_PROB = Number.isFinite(RUNNING_SIGNAL_RECOVERY_PROB)
+  ? RUNNING_SIGNAL_RECOVERY_PROB
+  : 0.9;
+const DEFAULT_IDLE_SIGNAL_DROP_PROB = Number.isFinite(IDLE_SIGNAL_DROP_PROB)
+  ? IDLE_SIGNAL_DROP_PROB
+  : 0.2;
+const DEFAULT_IDLE_SIGNAL_RISE_PROB = Number.isFinite(IDLE_SIGNAL_RISE_PROB)
+  ? IDLE_SIGNAL_RISE_PROB
+  : 0.1;
 
 const machineStates = new Map();
 let machines = [];
@@ -30,12 +47,18 @@ const nudgeValue = (current, delta, min = null) => {
   return Number(next.toFixed(2));
 };
 
-const pickNextSignal = (current) => {
-  const changeProbability = current === 1 ? 0.08 : 0.3;
-  if (Math.random() < changeProbability) {
-    return current === 1 ? 0 : 1;
+const pickNextSignal = (current, { hasActiveJob }) => {
+  if (hasActiveJob) {
+    if (current === 1) {
+      return Math.random() < DEFAULT_RUNNING_SIGNAL_DROP_PROB ? 0 : 1;
+    }
+    return Math.random() < DEFAULT_RUNNING_SIGNAL_RECOVERY_PROB ? 1 : 0;
   }
-  return current;
+
+  if (current === 1) {
+    return Math.random() < DEFAULT_IDLE_SIGNAL_DROP_PROB ? 0 : 1;
+  }
+  return Math.random() < DEFAULT_IDLE_SIGNAL_RISE_PROB ? 1 : 0;
 };
 
 const ensureMachineState = (machine) => {
@@ -59,7 +82,8 @@ const loadMachines = async () => {
 
 const generateTelemetryPayload = (machine) => {
   const state = ensureMachineState(machine);
-  state.signal = pickNextSignal(state.signal);
+  const hasActiveJob = Boolean(machine.currentJobOrder);
+  state.signal = pickNextSignal(state.signal, { hasActiveJob });
 
   state.temperature = nudgeValue(state.temperature, TEMP_DELTA);
   state.torque = nudgeValue(state.torque, TORQUE_DELTA);

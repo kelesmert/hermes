@@ -54,6 +54,7 @@
 - [x] OeeMachineState modeli: Makine başına son sinyal, aktif event, sıfır serisi başlangıç zamanı
 - [x] Board domain: Dashboard metrik endpoint'leri (`/api/board/metrics`, `/api/board/machines/:id/metrics`, `/api/board/machines/:id/telemetry`)
 - [x] Parts domaini: model + CRUD endpointleri + RBAC izinleri ve seed verileri
+- [x] Production domaini: JobOrder + ProductionEvent modelleri, CRUD + start/pause/resume/produce endpointleri ve telemetry bağlı job-simulator scripti
 - [ ] Event zamanlarının lokal timezone desteği (UTC+3 gibi) için helper/formatlama katmanı
 - [ ] Raporlama endpointleri (verimlilik, duruş süreleri vb.)
 - [ ] CSV/Excel export servisi
@@ -77,6 +78,7 @@
 - [x] Makine kartları (durum renkleri, polling/React Query refetchInterval)
 - [x] Monitoring sayfası: Seçili makine için canlı telemetry grafikler (2sn polling, 10dk kayan pencere, Recharts)
 - [x] Parça yönetimi sayfası (liste + ekle/düzenle/sil formları, kategori/birim/makine uyumluluğu)
+- [x] Production/İş Emirleri sayfası (liste, form dialog ve start/pause/resume/produce/complete aksiyon butonları)
 - [ ] Raporlama sayfası + filtreler
 - [x] Roller/izinler için yönetim ekranı; permission set düzenleme ve kullanıcıya rol atama modalları
 - [x] Dashboard/rapor placeholder’larını gerçek makine/event verileriyle besleyip React Query polling/WebSocket desteği ekle _(dashboard kısmı tamamlandı, rapor ekranı beklemede)_

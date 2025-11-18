@@ -39,7 +39,7 @@ Bu doküman, mezuniyet projesi kapsamında geliştirilecek olan hafif bir Manufa
 
 - Node.js + Express uygulaması; katmanlı yapı (routes → middleware → controllers → services → models → utils).
 - Auth/RBAC altyapısı JWT + refresh token kombinasyonu ile kuruluyor; ileride cookie tabanlı yönetime geçilecek.
-- MongoDB/Mongoose veri modeli: `users`, `roles`, `permissions`, `refresh_tokens`, `parts` (kategori/birim/varsayılan makine ayarı sözlüğüne bağlı), `machines`, `machine_events`, `reports`, `audit_logs`, `ai_insights`. Production domain (job orders + üretim eventleri) bir sonraki fazda bu parçalar ve makinelerle birleşecek.
+- MongoDB/Mongoose veri modeli: `users`, `roles`, `permissions`, `refresh_tokens`, `parts`, `machines`, `machine_events`, `machine_telemetry`, `oee_machine_states`, `job_orders`, `production_events`, `reports`, `audit_logs`, `ai_insights`. Production domain’i JobOrder + ProductionEvent modelleriyle tamamlandı; `backend/scripts/job-simulator.js` aktif job’lar için telemetry’ye bağlı üretim verisi üretiyor, `data-gen.js` sinyal/metrik üretmeye devam ediyor.
 
 -### Frontend
 

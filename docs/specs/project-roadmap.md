@@ -46,10 +46,9 @@ Amaç, Node.js/Express backend, React frontend ve MongoDB veritabanı kullanarak
 4. **Gün 7-9 - Frontend İskeleti:** Vite + React (JS), MUI layout, React Router v6, TanStack Query + axios, login sayfası, dashboard, makine kartları, polling altyapısı → **Tamamlandı**
 5. **OEE & Telemetry (Ek):** Telemetry modeli, OEE processor job, Board domain (dashboard metrikleri), Monitoring sayfası (2s polling + Recharts grafikler) → **Tamamlandı**
 6. **Parts Domain (Ek):** Parça tanımları, kategori sözlüğü (fasteners/electronics/mechanical_plastics), Parts CRUD API ve UI → **Tamamlandı**
+7. **Production Domain:** JobOrder + ProductionEvent modelleri, start/pause/resume/produce/complete endpointleri, telemetry tabanlı üretim simülatörü ve frontend iş emri ekranı → **Tamamlandı**
 
 ### 🔄 Devam Eden Fazlar:
-
-7. **Production Domain:** İş emirleri (JobOrder), üretim olayları, Parts entegrasyonu → **Devam ediyor** (Detay: `docs/roadmaps/production-roadmap.md`)
 
 ### ⏳ Planlanan Fazlar:
 
@@ -66,7 +65,7 @@ Amaç, Node.js/Express backend, React frontend ve MongoDB veritabanı kullanarak
 
 ## 5. Güncel Durum
 
-- **Tamamlanan Domainler:** Auth, Users, Access-Control, Machines, Parts, OEE, Board
-- **Frontend Sayfaları:** Login, Dashboard, Monitoring, Users, Machines, Parts (CRUD ekranları hazır)
-- **Telemetry/OEE Altyapısı:** Data-gen script çalışıyor, OEE job otomatik downtime algılıyor, Board API metrikleri sunuyor
-- **Sıradaki:** Production domain implementasyonu, Reports sayfası genişletmesi
+- **Tamamlanan Domainler:** Auth, Users, Access-Control, Machines, Parts, OEE, Board, Production
+- **Frontend Sayfaları:** Login, Dashboard, Monitoring, Users, Machines, Parts, Production/Job Orders (CRUD + aksiyon ekranı)
+- **Telemetry/OEE Altyapısı:** Data-gen script çalışıyor, job-simulator aktif job'lar için üretim verisi üretiyor, OEE job'u gecikmeli signal timeout olmadan duruşları yönetiyor
+- **Sıradaki:** Reports sayfası genişletmesi, export + audit log geliştirmeleri

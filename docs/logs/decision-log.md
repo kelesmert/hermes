@@ -187,3 +187,18 @@ Yeni kararlar alındıkça bu dosyaya tarih/başlık/gerekçe formatıyla ekleme
 - **Karar:** Laptop fabrikası senaryosuna uygun olarak üç sabit parça kategorisi belirlendi (`fasteners`, `electronics`, `mechanical_plastics`). Her kategori izin verilen birim listesini ve kategoriye özgü varsayılan makine ayarı alanlarını (feed rate, reflow temp, mold temp vb.) tanımlıyor. Backend Parts servisi bu sözlüğe göre validasyon yapıyor; frontend formu da aynı sabitlerden türetilen select/input setleri gösteriyor.
 - **Gerekçe:** Parça formunun kategoriden bağımsız serbest metin olması üretim planlamasında yanlış birimlerin kullanılmasına yol açıyordu. Ayrıca farklı kategoriler farklı makine parametreleri talep ediyor (vida = spindle/torque, elektronik = reflow temp vb.), dolayısıyla kategori seçimi somut bir etkiye sahip olmalı.
 - **Etkisi:** Parçalar artık yalnızca sözlükteki kategorilerden biri ile oluşturulabiliyor, ilgili birim listesi ve varsayılan makine ayarı alanları otomatik değişiyor. Seed verileri ve frontend sayfası yeni yapıdan besleniyor; ileride kategori eklemek sadece constants dosyalarına kayıt eklemekle mümkün olacak.
+
+### Telemetry Tabanlı Üretim Simülasyonu
+
+- **Domain:** Backend - production/oee
+- **Karar:** Production domain için ayrı bir `job-simulator` script'i eklendi; aktif iş emirlerini okuyup son telemetry sinyaline göre good/defect üretim kayıtları yazıyor. Script, `machine_telemetry` koleksiyonundan aggregate ile son sinyali alıyor, sinyal 1 değilse üretim yapmıyor ve fractional cycle hesaplarıyla ideal çevrim süresini simüle ediyor. Data-gen sinyali, makineye aktif job atanıp atanmadığına göre farklı olasılıklarla 1/0 üretecek şekilde güncellendi.
+- **Gerekçe:** Üretim sayacı ile fiziksel sinyalin birbirinden kopmaması gerekiyordu; makine çalışmıyorsa scriptin üretim yazmaması, çalışıyorsa ideal tempoya göre veri üretmesi gerçek sahaya daha yakın bir davranış sağlıyor. Aynı zamanda idle durumunda sinyalin daha sık 0'a düşmesi, job varken 1'de kalması OEE/Production verilerini tutarlı kılıyor.
+- **Etki:** `backend/scripts/job-simulator.js`, `backend/scripts/data-gen.js`, `.env.example` ve README güncellendi; `npm run data:gen` + `npm run job:sim` sırasıyla telemetry + üretim verisi üretiyor. Frontend Production sayfası gerçek JobOrder API'leriyle dolduruluyor.
+
+### OEE Signal Timeout Konfigürasyonu
+
+- **Domain:** Backend - oee/machines
+- **Karar:** `oee-rules.json` içindeki `signalTimeoutMs` değeri devre dışı bırakıldı; OEE processor yalnızca `downtimeThresholdMs` süresince sinyal 0 kalırsa duruş açacak. Kısa süreli telemetry gecikmelerinde veya 1 değerinde dahi signal timeout tetiklenip makineyi `downtime` göstermeyeceği için Machines ekranı ile Monitoring ekranı senkron kalacak.
+- **Gerekçe:** Data-gen kısa aralıklarda sinyal yazdığı halde signal timeout 10s olduğunda OEE worker sürekli “Otomatik tespit edilen duruş” event’i açıyor ve `Machine.status` alanını anlık olarak `downtime` yapıyordu. Bu durum UI’de sürekli duruş etiketi görülmesine yol açıyordu.
+- **Etki:** `backend/src/domains/oee/config/oee-rules.json` güncellendi; signal timeout kaynaklı otomatik event'ler kaldırıldı, makine durumları telemetry’nin gerçek 0 serilerine göre değişiyor.
+- **Onemlinot** sorun hala cozulemedi.

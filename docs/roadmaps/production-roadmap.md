@@ -295,24 +295,23 @@ GET    /api/production/job-orders/:id/events     → İş emrine ait tüm olayla
 
 ---
 
-### **Faz 2: Production Domain** ⏳ BEKLEMEDE
+### **Faz 2: Production Domain** ✅ TAMAMLANDI
 
 **Backend:**
 
-- [ ] JobOrder modeli oluştur
-- [ ] ProductionEvent modeli oluştur
-- [ ] JobOrder service (CRUD + start/produce/pause/resume/complete)
-- [ ] JobOrder controller
-- [ ] Production routes (`/api/production/job-orders`)
-- [ ] Machine modeline `currentJobOrder` alanı ekle
-- [ ] API test (Postman/Thunder Client)
+- [x] JobOrder modeli oluştur
+- [x] ProductionEvent modeli oluştur
+- [x] JobOrder service (CRUD + start/produce/pause/resume/complete)
+- [x] JobOrder controller
+- [x] Production routes (`/api/production/job-orders`)
+- [x] Machine modeline `currentJobOrder` alanı ekle
+- [x] API test (Postman/Thunder Client)
 
 **Frontend:**
 
-- [ ] Production sayfası (iş emri listesi + oluşturma formu)
-- [ ] İş emri detay sayfası
-- [ ] İş emri başlatma/durdurma/tamamlama işlemleri
-- [ ] Parça seçiminde uyumlu makineleri göster
+- [x] Production sayfası (iş emri listesi + oluşturma formu)
+- [x] İş emri olayları ve aksiyon butonları (start/pause/resume/produce/complete/cancel)
+- [x] Parça seçiminde uyumlu makineleri göster
 
 ---
 

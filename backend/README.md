@@ -43,6 +43,8 @@ Seed sonrası örnek hesaplar:
   ```
   Bu script veri tabanına düzenli aralıklarla sinyal/telemetri yazar, OEE job’unu ve dashboard’u canlı tutar.
   - Interval değerleri ve sensör oynaklığı `.env` dosyasındaki `DATA_GEN_INTERVAL_MS`, `DATA_GEN_MACHINE_REFRESH_MS`, `DATA_GEN_TEMP_DELTA`, `DATA_GEN_TORQUE_DELTA`, `DATA_GEN_ENERGY_DELTA` değişkenleriyle ayarlanabilir; varsayılan `DATA_GEN_INTERVAL_MS=2000` olup frontend monitoring + OEE job polling’iyle hizalı tutulur.
+  - Sinyal davranışı için `DATA_GEN_RUNNING_SIGNAL_DROP_PROB`, `DATA_GEN_RUNNING_SIGNAL_RECOVERY_PROB`, `DATA_GEN_IDLE_SIGNAL_DROP_PROB`, `DATA_GEN_IDLE_SIGNAL_RISE_PROB` değişkenleri kullanılabilir; aktif işlerde sinyalin 1’de kalmasını, idle durumda ise daha sık 0 üretmesini sağlar.
+  - Üretim simülatörü (`npm run job:sim`) telemetry verisine bağımlıdır; önce data-gen’i başlat, ardından job-sim’i çalıştır. Telemetry yoksa job-sim üretim yapmaz ve logda uyarı verir.
 
 ## Dizin Yapısı
 
@@ -75,6 +77,8 @@ backend/
 | -------------- | ------------------------------------------------------------------------------------------ |
 | `npm run dev`  | Nodemon ile geliştirme sunucusu                                                            |
 | `npm run seed` | Permission/role + master/sys kullanıcıları ve örnek makine kayıtlarını oluşturur/günceller |
+| `npm run data:gen` | Makine telemetry verisi simüle eder; OEE ve monitoring için sinyal üretir                |
+| `npm run job:sim`  | Aktif job order’lar için üretim (good/defect) verisi üretir; telemetry sinyaline bakar  |
 | `npm test`     | (Planlı)                                                                                   |
 
 Yeni bağımlılık veya mimari karar eklemeden önce `docs/standart/backend-decisions.md` dosyasını güncelleyip onay alın.

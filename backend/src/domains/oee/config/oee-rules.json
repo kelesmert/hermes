@@ -1,10 +1,10 @@
 {
   "signals": {
     "default": {
-      "downtimeThresholdMs": 30000,
+      "downtimeThresholdMs": 10000,
       "recoverySignal": 1,
       "reasonCode": "unplanned_stop",
-      "signalTimeoutMs": 10000,
+      "signalTimeoutMs": null,
       "reasonCategory": "unplanned"
     },
     "plannedBreak": {

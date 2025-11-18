@@ -62,20 +62,25 @@ Bu proje, Node.js/Express backend, React frontend ve MongoDB veritabanı kullana
    - Laptop fabrikası senaryosuna uygun sabit kategoriler (fasteners, electronics, mechanical_plastics) üzerinden parçalar tanımlanır.
    - Her kategori izin verilen birim listesini ve varsayılan makine ayarı alanlarını (ör. spindle hızı, reflow sıcaklığı, kalıp sıcaklığı) belirler; kullanıcı formda kategori seçince ilgili birim/ayar seçenekleri gösterilir.
    - Bir parça birden fazla makineyle eşleştirilebilir; backend bu uyumluluğu doğrular ve job order planlamasında kullanılacak kategori snapshot’ını saklar.
-8. **Veri Simülasyonu**
-   - Script belirli aralıklarla rastgele durum değişiklikleri üretir.
-   - Üretilen olaylar MongoDB’ye kaydedilir; gerekirse API üzerinden sisteme iletilir.
-9. **Raporlama & Export**
+8. **Üretim (JobOrder) Yönetimi**
+   - Supervisor rolü bir parça seçip uyumlu makineler arasından hedef makineyi belirleyerek iş emri oluşturur.
+   - Start/pause/resume/produce/complete/cancel aksiyonları API tarafında ayrı endpoint’lerle sağlanır; izin kontrolleri `production.manage` ve `work_orders.execute` üzerinden yapılır.
+   - `ProductionEvent` kayıtları her aksiyonu, üretim miktarını ve (varsa) hata tipini loglar; frontend’de olay geçmişi modalı üzerinden görüntülenir.
+9. **Veri Simülasyonu**
+   - `npm run data:gen`: Her makine için telemetry sinyali (0/1) ve metrikler üretir. Aktif job varken sinyalin 1’de kalma olasılığı artırılmıştır, idle makinelerde rastgele 0/1 üretilir.
+   - `npm run job:sim`: Aktif JobOrder kayıtlarını okuyup son telemetry sinyaline göre good/defect üretim eventleri oluşturur; sinyal 1 değilse üretim yazılmaz.
+   - OEE processor yalnızca `downtimeThresholdMs` boyunca sinyal 0 olduğunda duruş açar; signal timeout devre dışı bırakılmıştır.
+10. **Raporlama & Export**
    - Verimlilik, OEE benzeri metrikler veya makine bazlı uptime/downtime süreleri.
    - Zaman aralığı/rol/etiket filtreleri.
    - CSV veya Excel çıktısı indirme.
-10. **AI Destekli Analiz**
+11. **AI Destekli Analiz**
     - Toplanan verilerden “en stabil makine”, “duruş sebebi tahmini” gibi özetler.
     - İlk etapta kural tabanlı veya hazır servis kullanımı; ileride model genişletilebilir.
-11. **Audit Log**
+12. **Audit Log**
     - Login, kritik CRUD işlemleri, rol değişimleri gibi aksiyonlar kaydedilecek.
     - Basit arama/filtre arayüzü ile görüntülenebilecek.
-12. **Bildirimler (Opsiyonel)**
+13. **Bildirimler (Opsiyonel)**
 
 - Kritik duruşlarda e-posta veya sistem içi uyarılar (MVP’de sadece dashboard bildirimleri).
 
@@ -108,6 +113,7 @@ Bu proje, Node.js/Express backend, React frontend ve MongoDB veritabanı kullana
 - **Users:** `GET/POST/PATCH/DELETE /users`, `PATCH /users/:id/role`.
 - **Machines:** `GET /machines`, `POST /machines`, `PATCH /machines/:id`, `POST /machines/:id/state`, `GET /machines/:id/events`.
 - **Parts:** `GET /parts`, `POST /parts`, `PATCH /parts/:id`, `DELETE /parts/:id`, `GET /parts/:id/compatible-machines`.
+- **Production:** `GET/POST /production/job-orders`, `PATCH /production/job-orders/:id`, `POST /production/job-orders/:id/start|pause|resume|produce|complete|cancel`, `GET /production/job-orders/:id/events`.
 - **Board (Dashboard):** `GET /board/metrics` (global metrikler), `GET /board/machines/:id/metrics` (tekil makine), `GET /board/machines/:id/telemetry` (telemetry serisi).
 - **Reports:** `GET /reports/summary`, `GET /reports/export`.
 - **AI Insights:** `GET /insights/latest`, `POST /insights/recompute` (admin).

@@ -33,7 +33,7 @@ Bu doküman, yeni bir geliştiricinin projeyi en kısa sürede kavraması için 
 
 | Katman   | Teknolojiler                                                                                                           | Kapsam                                                                                      |
 | -------- | ---------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| Backend  | Node.js (Express 5), MongoDB + Mongoose, JWT + refresh tokens, bcrypt                                                  | Auth, RBAC, kullanıcı/rol/permission API’leri, seed script, ileride makine/rapor servisleri |
+| Backend  | Node.js (Express 5), MongoDB + Mongoose, JWT + refresh tokens, bcrypt                                                  | Auth, RBAC, Machines/Parts/OEE/Board/Production domainleri, seed + simülasyon scriptleri |
 | Frontend | Vite + React (JS), MUI, React Router v6, TanStack Query/Table, axios, React Hook Form + Zod, Recharts, react-hot-toast | Login akışı, kullanıcı & rol yönetimi ekranları, dashboard/rapor placeholder’ları           |
 | Ortak    | dotenv, nodemon, `@/` alias (frontend), planlı ESLint/Prettier                                                         | Config, geliştirme deneyimi                                                                 |
 
@@ -54,15 +54,15 @@ Bu doküman, yeni bir geliştiricinin projeyi en kısa sürede kavraması için 
 
 1. **RBAC**: `permissions → roles → users` zinciri; kullanıcılar en az bir role sahip.
 2. **Auth Akışı**: Username + şifre, JWT access token, Mongo’da saklanan hash’li refresh token, rotation destekli.
-3. **API’ler**: `/api/auth/*`, `/api/users`, `/api/roles`, `/api/permissions`, `/api/parts`, **/api/machines + /api/machines/:id/events** ve telemetry/OEE altyapısı (data-gen’in beslediği `machine_telemetry`, otomatik duruş tespiti yapan OEE job’u). Dashboard metrikleri `/api/board/metrics` üzerinden tüketiliyor; rapor endpointleri roadmap’te.
+3. **API’ler**: `/api/auth/*`, `/api/users`, `/api/roles`, `/api/permissions`, `/api/parts`, `/api/machines + /api/machines/:id/events`, `/api/production/job-orders` ve telemetry/OEE altyapısı (data-gen + job-sim, `machine_telemetry`, otomatik duruş tespiti yapan OEE job’u). Dashboard metrikleri `/api/board/metrics`, Production ekranı iş emri aksiyon endpoint’lerini kullanıyor.
 4. **Seed Script**: Default roller (master/supervisor/operator/viewer) ve admin/sys/viewer kullanıcılarını üretir; kategori sözlüğüne göre örnek parçalar + makineler + telemetry verisi ekler.
 5. **Frontend UI**: Sidebar + header layout, guarded routing (PrivateRoute + PermissionGuard), TanStack Table tabanlı kullanıcı listesi, rol & izin yönetim modalları, makineler ve parçalar için CRUD ekranları.
-6. **Makine & Parça Domainleri**: `machines` koleksiyonu (code, name, status, lastEventAt, tags, isActive) ve event modelleri hazır; `parts` domain’i kategori/birim/varsayılan makine ayarı sözlüğü ile uyumlu CRUD servisine sahip. Endpointler makine/parça yönetimini destekliyor, frontend’de `/machines` ve `/parts` sayfaları üzerinden yönetilebiliyor.
+6. **Makine, Parça ve Üretim Domainleri**: `machines` koleksiyonu ve event modelleri, `parts` domain’i ve kategori sözlüğü ile birlikte Production domaini (JobOrder + ProductionEvent) tamamlandı. Backend’de `/api/production/job-orders` endpointleri, frontend’de `/production` sayfası üzerinden iş emirleri oluşturulup start/pause/resume/produce/complete akışı yönetiliyor.
 
 ## 5. Roadmap ve Eksikler
 
-- **Tamamlanan:** Auth, Users, Machines, Parts, OEE, Board domainleri; Dashboard ve Monitoring sayfaları; telemetry/sinyal işleme altyapısı.
-- **Devam eden:** Parts ve Production domainleri entegrasyonu (`docs/roadmaps/production-roadmap.md`).
+- **Tamamlanan:** Auth, Users, Machines, Parts, OEE, Board, Production domainleri; Dashboard, Monitoring ve Production sayfaları; data-gen + job-sim altyapısı.
+- **Devam eden:** Reports ekranı genişletmesi (`docs/specs/project-roadmap.md`), export + audit log geliştirmeleri.
 - **Eksik:** Reports ekranı genişletmesi, Audit log UI, AI içgörü modülü, cookie tabanlı token yönetimi, test/lint altyapısı.
 - Ayrıntılar: `docs/specs/project-roadmap.md`, `docs/specs/requirements.md`, `docs/roadmaps/` klasörü.
 
