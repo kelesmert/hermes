@@ -37,7 +37,8 @@ const defaultSignalRule = rules.signals?.default || {
   reasonCode: 'unplanned_stop',
 };
 const aggregationRules = rules.aggregation || { pollIntervalMs: 2000, batchSize: 200 };
-const signalTimeoutMs = defaultSignalRule.signalTimeoutMs || 10000;
+const signalTimeoutMs =
+  defaultSignalRule.signalTimeoutMs === undefined ? 10000 : defaultSignalRule.signalTimeoutMs;
 
 const pollIntervalMs = aggregationRules.pollIntervalMs || 2000;
 const batchSize = aggregationRules.batchSize || 200;
