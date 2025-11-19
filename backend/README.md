@@ -42,7 +42,7 @@ Seed sonrası örnek hesaplar:
   npm run data:gen
   ```
   Bu script veri tabanına düzenli aralıklarla sinyal/telemetri yazar, OEE job’unu ve dashboard’u canlı tutar.
-  - Interval değerleri ve sensör oynaklığı `.env` dosyasındaki `DATA_GEN_INTERVAL_MS`, `DATA_GEN_MACHINE_REFRESH_MS`, `DATA_GEN_TEMP_DELTA`, `DATA_GEN_TORQUE_DELTA`, `DATA_GEN_ENERGY_DELTA` değişkenleriyle ayarlanabilir; varsayılan `DATA_GEN_INTERVAL_MS=2000` olup frontend monitoring + OEE job polling’iyle hizalı tutulur.
+  - Interval değerleri ve sensör oynaklığı `.env` dosyasındaki `DATA_GEN_INTERVAL_MS`, `DATA_GEN_MACHINE_REFRESH_MS`, `DATA_GEN_TEMP_DELTA`, `DATA_GEN_TORQUE_DELTA`, `DATA_GEN_ENERGY_DELTA` değişkenleriyle ayarlanabilir; varsayılan `DATA_GEN_INTERVAL_MS=2000`, `DATA_GEN_MACHINE_REFRESH_MS=5000` olup job başlat/bitir olaylarının telemetry’ye birkaç saniye içinde yansımasını sağlar.
   - Sinyal davranışı için `DATA_GEN_RUNNING_SIGNAL_DROP_PROB`, `DATA_GEN_RUNNING_SIGNAL_RECOVERY_PROB`, `DATA_GEN_IDLE_SIGNAL_DROP_PROB`, `DATA_GEN_IDLE_SIGNAL_RISE_PROB` değişkenleri kullanılabilir; aktif işlerde sinyalin 1’de kalmasını, idle durumda ise daha sık 0 üretmesini sağlar.
   - Isınma/soğuma anındaki metrik geçişi `DATA_GEN_TRANSITION_MS` değişkeniyle kontrol edilir; varsayılan 10 sn boyunca sıcaklık/tork/enerji değerleri hızlıca yeni profile yaklaşır ve monitoring grafikleri gerçekçi ramp-up/ramp-down davranışı sergiler.
   - Üretim simülatörü (`npm run job:sim`) telemetry verisine bağımlıdır; önce data-gen’i başlat, ardından job-sim’i çalıştır. Telemetry yoksa job-sim üretim yapmaz ve logda uyarı verir.

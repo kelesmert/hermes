@@ -60,7 +60,7 @@ Yeni geliştirici projeyi anlamak için bu dosyaya bakmalıdır.
 - `backend/src/constants/permissions.js`: Sistem genelinde kullanılacak izin anahtarlarını listeler (örn. `machines.read`).
 - `backend/src/constants/machine-statuses.js`: Makine durum enum değerlerini (`running`, `idle`, `downtime`, `maintenance`, `unknown`) merkezi olarak paylaşır.
 - `backend/scripts/seed.js`: Varsayılan rol kayıtlarını ve `.env` üzerinden verilen admin hesabını oluşturan script (`npm run seed`).
-- `backend/scripts/data-gen.js`: Simülasyon amaçlı telemetry/sinyal üretir; `npm run data:gen` ile çalıştırıldığında periyodik olarak `machine_telemetry` koleksiyonuna veri yazar ve makinenin `currentJobOrder` + `status` bilgisine göre aktif (yüksek sıcaklık/tork/enerji) ile idle (düşük) profilleri arasında `DATA_GEN_TRANSITION_MS` süresince ramp-up/ramp-down uygular.
+- `backend/scripts/data-gen.js`: Simülasyon amaçlı telemetry/sinyal üretir; `npm run data:gen` ile çalıştırıldığında periyodik olarak `machine_telemetry` koleksiyonuna veri yazar, makinenin `currentJobOrder` + `status` bilgisine göre aktif (yüksek sıcaklık/tork/enerji) ile idle (düşük) profilleri arasında `DATA_GEN_TRANSITION_MS` süresince ramp-up/ramp-down uygular ve aktif makine listesini en geç `DATA_GEN_MACHINE_REFRESH_MS` süresinde yeniden sorgular.
 - `backend/scripts/job-simulator.js`: Aktif JobOrder kayıtları için ideal çevrim süresine göre good/defect üretim verisi üretir; telemetry sinyalini okuyup yalnızca makine fiziksel olarak çalışıyorsa üretim kaydı oluşturur.
 
 ## Docs

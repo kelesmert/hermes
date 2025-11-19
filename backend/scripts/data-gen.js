@@ -11,7 +11,10 @@ const MachineTelemetry = require('../src/domains/machines/models/machine-telemet
 const machineStatuses = require('../src/constants/machine-statuses');
 
 const INTERVAL_MS = Number(process.env.DATA_GEN_INTERVAL_MS) || 2000;
-const MACHINE_REFRESH_MS = Number(process.env.DATA_GEN_MACHINE_REFRESH_MS) || 60000;
+const MACHINE_REFRESH_MS = Math.max(
+  INTERVAL_MS,
+  Number(process.env.DATA_GEN_MACHINE_REFRESH_MS) || INTERVAL_MS,
+);
 const RUNNING_SIGNAL_DROP_PROB = Number(process.env.DATA_GEN_RUNNING_SIGNAL_DROP_PROB);
 const RUNNING_SIGNAL_RECOVERY_PROB = Number(process.env.DATA_GEN_RUNNING_SIGNAL_RECOVERY_PROB);
 const IDLE_SIGNAL_DROP_PROB = Number(process.env.DATA_GEN_IDLE_SIGNAL_DROP_PROB);
@@ -49,7 +52,7 @@ const TRANSITION_TICKS = Math.max(1, Math.round(TRANSITION_WINDOW_MS / INTERVAL_
 const machineStates = new Map();
 let machines = [];
 let intervalRef;
-let refreshRef;
+let lastMachineRefresh = 0;
 
 const randomDrift = (delta) => (Math.random() * 2 - 1) * delta;
 
@@ -107,7 +110,15 @@ const ensureMachineState = (machine) => {
 const loadMachines = async () => {
   machines = await Machine.find({ isActive: true });
   machines.forEach((machine) => ensureMachineState(machine));
+  lastMachineRefresh = Date.now();
   console.log(`Data-gen: ${machines.length} makine yüklendi.`);
+};
+
+const ensureMachinesUpToDate = async () => {
+  const now = Date.now();
+  if (!machines.length || now - lastMachineRefresh >= MACHINE_REFRESH_MS) {
+    await loadMachines();
+  }
 };
 
 const generateTelemetryPayload = (machine) => {
@@ -162,6 +173,10 @@ const tick = async () => {
   }
 
   try {
+    await ensureMachinesUpToDate();
+    if (!machines.length) {
+      return;
+    }
     const docs = machines.map((machine) => generateTelemetryPayload(machine));
     if (docs.length > 0) {
       await MachineTelemetry.insertMany(docs);
@@ -174,13 +189,11 @@ const tick = async () => {
 
 const startIntervals = () => {
   intervalRef = setInterval(tick, INTERVAL_MS);
-  refreshRef = setInterval(loadMachines, MACHINE_REFRESH_MS);
   tick();
 };
 
 const stopIntervals = () => {
   if (intervalRef) clearInterval(intervalRef);
-  if (refreshRef) clearInterval(refreshRef);
 };
 
 const start = async () => {

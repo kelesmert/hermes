@@ -80,33 +80,41 @@ backend/
 - Varsayılan rol piramidi `master > supervisor > operator > viewer` olarak tanımlıdır; master tüm izinlere sahiptir, supervisor üretim/operatör yönetimi yapar, operator yalnızca atanmış istasyonda iş yürütür.
 - RBAC yönetimi için `domains/access-control` altında rol ve permission CRUD endpointleri bulunur (`/api/roles`, `/api/permissions`); kullanıcı yönetimi `/api/users` üzerinden yapılır.
 - Makine domaini `domains/machines` altında konumlandırılacak; model katmanı `machines`, `machine_events` ve `machine_telemetry` koleksiyonlarını içerir, durum enumları `src/constants/machine-statuses.js` dosyasından okunur. Event oluşturulduğunda makine kaydındaki `status` + `lastEventAt` alanları güncellenir.
-- **MachineTelemetry sistemi:** Her makine için 0/1 sinyal değeri, timestamp ve metrikler (sıcaklık, tork, enerji) `machine_telemetry` koleksiyonunda saklanır. `scripts/data-gen.js` bu verileri 2 saniye aralıklarla simüle eder ve makine `machine.status === running` değilse düşük profilli sıcaklık/tork/enerji üretmek zorundadır. Aktif/idle modları arasındaki geçiş süresi `DATA_GEN_TRANSITION_MS` ile yönetilir; değer varsayılan 10 saniyedir ve telemetry grafikleri gerçekçi ramp-up/ramp-down davranışı göstermelidir.
+- **MachineTelemetry sistemi:** Her makine için 0/1 sinyal değeri, timestamp ve metrikler (sıcaklık, tork, enerji) `machine_telemetry` koleksiyonunda saklanır. `scripts/data-gen.js` bu verileri 2 saniye aralıklarla simüle eder ve makine `machine.status === running` değilse düşük profilli sıcaklık/tork/enerji üretmek zorundadır. Aktif/idle modları arasındaki geçiş süresi `DATA_GEN_TRANSITION_MS` ile yönetilir; değer varsayılan 10 saniyedir ve telemetry grafikleri gerçekçi ramp-up/ramp-down davranışı göstermelidir. Data-gen script’i aktif makine listesini en geç `DATA_GEN_MACHINE_REFRESH_MS` (varsayılan 5 sn) süresinde yeniden sorgulamak zorundadır; böylece job start/stop aksiyonları birkaç saniye içinde telemetry’ye yansır.
 - **Production simülasyonu (zorunlu):** Üretim verisi yalnızca telemetry sinyali 1 iken yazılmalıdır. `backend/scripts/job-simulator.js` aktif JobOrder kayıtlarını okuyup ideal çevrim süresine göre good/defect eventleri oluşturur; script, `machine_telemetry` koleksiyonundan aggregate ile son sinyali alır. `npm run data:gen` → `npm run job:sim` sırasıyla çalıştırılmak zorunda, aksi halde üretim yapılmaz.
 - **OEE Domain:** `domains/oee` altında `OeeMachineState` modeli ve processor job bulunur. OEE Processor Job (`src/jobs/oee-processor-job.js`) telemetry verilerini batch olarak işler ve belirli süre (threshold) 0 sinyali algılandığında, makine aktif bir iş emri yürütüyor ve `machine.status === running` durumunda ise otomatik downtime kaydı (`machine_events`) oluşturur; aksi halde status `idle` olarak korunur. `OeeMachineState` modeli her makine için son sinyal değeri, aktif duruş event'i ve sıfır serisi başlangıç zamanını tutar.
 - **OEE signal-timeout politikası (zorunlu):** `oee-rules.json` içinde `signalTimeoutMs` devre dışıdır (null). Kısa telemetry gecikmelerinde makine otomatik `downtime` yapılmaz; yalnızca `downtimeThresholdMs` süresince signal=0 kalırsa duruş açılır.
 - **Board Domain:** `domains/board` altında dashboard için özet metrik endpoint'leri bulunur (`/api/board/metrics`, `/api/board/machines/:id/metrics`, `/api/board/machines/:id/telemetry`). Bu endpoint'ler frontend'in polling ile güncel veri çekmesini sağlar.
 - **Parts Domain:** `domains/parts` altında parça yönetimi bulunur. Parçalar sabit kategoriler (fasteners, electronics, mechanical_plastics) üzerinden tanımlanır. Her kategori, izin verilen birim listesi ve varsayılan makine ayarı alanlarını (spindle hızı, reflow sıcaklığı, kalıp sıcaklığı) `src/parts/constants/part-categories.js` dosyasından okur. Bir parça birden fazla makineyle eşleştirilebilir; backend bu uyumluluğu doğrular.
 
-## 4. Seed ve Konfigürasyon
+## 4. Makine ve Simülasyon Kuralları
+
+- **MachineTelemetry sistemi:** Her makine için 0/1 sinyal değeri, timestamp ve metrikler (sıcaklık, tork, enerji) `machine_telemetry` koleksiyonunda saklanır. `scripts/data-gen.js` bu verileri 2 saniye aralıklarla simüle eder ve makine `machine.status === running` değilse düşük profilli sıcaklık/tork/enerji üretmek zorundadır. Aktif/idle modları arasındaki geçiş süresi `DATA_GEN_TRANSITION_MS` ile yönetilir; değer varsayılan 10 saniyedir ve telemetry grafikleri gerçekçi ramp-up/ramp-down davranışı göstermelidir. Data-gen script’i aktif makine listesini en geç `DATA_GEN_MACHINE_REFRESH_MS` (varsayılan 5 sn) süresinde yeniden sorgulamak zorundadır; böylece job start/stop aksiyonları birkaç saniye içinde telemetry’ye yansır.
+- **Production simülasyonu (zorunlu):** Üretim verisi yalnızca telemetry sinyali 1 iken yazılmalıdır. `backend/scripts/job-simulator.js` aktif JobOrder kayıtlarını okuyup ideal çevrim süresine göre good/defect eventleri oluşturur; script, `machine_telemetry` koleksiyonundan aggregate ile son sinyali alır. `npm run data:gen` → `npm run job:sim` sırasıyla çalıştırılmak zorunda, aksi halde üretim yapılmaz.
+- **OEE Domain:** `domains/oee` altında `OeeMachineState` modeli ve processor job bulunur. OEE Processor Job (`src/jobs/oee-processor-job.js`) telemetry verilerini batch olarak işler ve belirli süre (threshold) 0 sinyali algılandığında, makine aktif bir iş emri yürütüyor ve `machine.status === running` durumunda ise otomatik downtime kaydı (`machine_events`) oluşturur; aksi halde status `idle` olarak korunur. `OeeMachineState` modeli her makine için son sinyal değeri, aktif duruş event'i ve sıfır serisi başlangıç zamanını tutar.
+- **OEE signal-timeout politikası (zorunlu):** `oee-rules.json` içinde `signalTimeoutMs` devre dışıdır (null). Kısa telemetry gecikmelerinde makine otomatik `downtime` yapılmaz; yalnızca `downtimeThresholdMs` süresince signal=0 kalırsa duruş açılır.
+- **Board Domain:** `domains/board` altında dashboard için özet metrik endpoint'leri bulunur (`/api/board/metrics`, `/api/board/machines/:id/metrics`, `/api/board/machines/:id/telemetry`). Bu endpoint'ler frontend'in polling ile güncel veri çekmesini sağlar.
+
+## 5. Seed ve Konfigürasyon
 
 - `npm run seed` komutu varsayılan permission/role ve sistem kullanıcılarını (master/admin ve sys/test) oluşturmak zorundadır.
 - `.env.example` içindeki anahtarlar: `PORT`, `MONGO_URI`, `MONGO_DB_NAME`, `JWT_SECRET`, `REFRESH_TOKEN_SECRET`, `TOKEN_EXPIRES_IN`, `REFRESH_TOKEN_EXPIRES_IN`, seed kullanıcı bilgileri (`SEED_*_USERNAME`, `SEED_*_EMAIL`, `SEED_*_PASSWORD` vb.).
 - Seed script’i eksik permission/role gördüğünde hata fırlatmak yerine upsert eder; username alanı boş olan kullanıcıları otomatik doldurur ve silinemez roller (master/viewer) için koruma uygular.
 
-## 5. Hata Yönetimi
+## 6. Hata Yönetimi
 
 - `src/utils/app-error.js` sınıfı kullanılmadan genel `Error` fırlatılmayacak; HTTP kodu içeren `AppError` tercih edilir.
 - `src/utils/async-handler.js` ile tüm async route/controller fonksiyonları sarılır.
 - `app.js` içinde tanımlanan global error middleware kaldırılmayacak; loglama ileride geliştirilebilir ama middleware kalır.
 - Tüm yeni Mongoose modelleri ortak `applyDefaultToJSON` helper’ını kullanarak `_id` → `id` dönüşümü yapmalı; `_id` alanına ihtiyaç duyulan özel modellerde helper dışarıda bırakılabilir.
 
-## 6. Kod Standartları
+## 7. Kod Standartları
 
 - Tüm dosyalar kebab-case, yalnızca mongoose modelleri PascalCase sınıf isimlerine sahiptir.
 - Importlarda `@/` alias’ı `backend/src/` dizinine işaret eder (`@/services/token-service` vb.).
 - Tekrarlayan iş mantığı servis katmanında tutulur; controller’lar sadece doğrulama ve response’la ilgilenir.
 
-## 7. API Sözleşmesi
+## 8. API Sözleşmesi
 
 - Versiyonlama: Şimdilik `/api` prefix’i, değişirse konfigden okunacak (`config.apiPrefix`).
 - Health check route’u `/api/health` olarak kalır.
