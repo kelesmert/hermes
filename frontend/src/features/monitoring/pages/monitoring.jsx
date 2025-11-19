@@ -26,6 +26,7 @@ import { fetchMachines } from "@/features/machines/services/machines-api.js";
 import {
   fetchMachineBoardMetrics,
   fetchMachineTelemetrySeries,
+  fetchMachineTelemetryTrend,
 } from "@/features/dashboard/services/board-api.js";
 import { format } from "date-fns";
 import { tr } from "date-fns/locale";
@@ -38,7 +39,15 @@ const LINES = [
 const METRICS_POLL_INTERVAL_MS = 2000;
 const TELEMETRY_POLL_INTERVAL_MS = 2000;
 const TELEMETRY_POLL_INTERVAL_SECONDS = TELEMETRY_POLL_INTERVAL_MS / 1000;
-const DEFAULT_TELEMETRY_WINDOW_MS = 10 * 60 * 1000;
+const TELEMETRY_WINDOWS = [
+  { id: "1h", label: "1 Saat", value: 60 * 60 * 1000 },
+  { id: "6h", label: "6 Saat", value: 6 * 60 * 60 * 1000 },
+  { id: "12h", label: "12 Saat", value: 12 * 60 * 60 * 1000 },
+  { id: "24h", label: "24 Saat", value: 24 * 60 * 60 * 1000 },
+];
+const DEFAULT_TELEMETRY_WINDOW_MS = TELEMETRY_WINDOWS[0].value;
+const TREND_RANGE_HOURS = 24 * 7;
+const TREND_BIN_MINUTES = 60;
 
 const normalizeTrendPoint = (point) => {
   const timestampMs = point?.timestamp
@@ -58,6 +67,9 @@ const formatNumber = (value) => {
 const MonitoringPage = () => {
   const [selectedMachineId, setSelectedMachineId] = useState("");
   const [selectedLineId, setSelectedLineId] = useState(LINES[0]?.id || "");
+  const [selectedWindowMs, setSelectedWindowMs] = useState(
+    DEFAULT_TELEMETRY_WINDOW_MS
+  );
 
   const machinesQuery = useQuery({
     queryKey: ["machines", "monitoring"],
@@ -80,12 +92,9 @@ const MonitoringPage = () => {
     refetchInterval: METRICS_POLL_INTERVAL_MS,
   });
 
-  const [trendData, setTrendData] = useState([]);
-  const [trendLoading, setTrendLoading] = useState(false);
-  const [trendError, setTrendError] = useState(null);
-  const [trendWindowStartMs, setTrendWindowStartMs] = useState(
-    Date.now() - DEFAULT_TELEMETRY_WINDOW_MS
-  );
+  const [telemetryData, setTelemetryData] = useState([]);
+  const [telemetryLoading, setTelemetryLoading] = useState(false);
+  const [telemetryError, setTelemetryError] = useState(null);
   const [nowMs, setNowMs] = useState(Date.now());
   const lastTimestampRef = useRef(null);
   const intervalRef = useRef(null);
@@ -95,29 +104,50 @@ const MonitoringPage = () => {
     return () => clearInterval(timer);
   }, []);
 
+  const machineTrendQuery = useQuery({
+    queryKey: [
+      "machineTrend",
+      selectedMachineId,
+      TREND_RANGE_HOURS,
+      TREND_BIN_MINUTES,
+    ],
+    queryFn: () =>
+      fetchMachineTelemetryTrend({
+        machineId: selectedMachineId,
+        rangeHours: TREND_RANGE_HOURS,
+        binMinutes: TREND_BIN_MINUTES,
+      }),
+    enabled: Boolean(selectedMachineId),
+    refetchInterval: 60_000,
+  });
+
   useEffect(() => {
     if (!selectedMachineId) return () => {};
     let isMounted = true;
-    setTrendData([]);
-    setTrendError(null);
-    setTrendLoading(true);
-    setTrendWindowStartMs(Date.now() - DEFAULT_TELEMETRY_WINDOW_MS);
+    setTelemetryData([]);
+    setTelemetryError(null);
+    setTelemetryLoading(true);
+
+    const baseLimit = Math.min(
+      Math.ceil(selectedWindowMs / TELEMETRY_POLL_INTERVAL_MS) + 60,
+      2000
+    );
 
     const loadInitial = async () => {
       try {
         const payload = await fetchMachineTelemetrySeries({
           machineId: selectedMachineId,
-          limit: 120,
+          limit: baseLimit,
+          windowMs: selectedWindowMs,
         });
         if (!isMounted) return;
         const windowStartMs = payload.windowStart
           ? new Date(payload.windowStart).getTime()
-          : Date.now() - DEFAULT_TELEMETRY_WINDOW_MS;
+          : Date.now() - selectedWindowMs;
         const normalizedSeries = (payload.series || []).map(
           normalizeTrendPoint
         );
-        setTrendWindowStartMs(windowStartMs);
-        setTrendData(normalizedSeries);
+        setTelemetryData(normalizedSeries);
         if (normalizedSeries.length) {
           lastTimestampRef.current =
             normalizedSeries[normalizedSeries.length - 1].timestamp ||
@@ -126,9 +156,9 @@ const MonitoringPage = () => {
           lastTimestampRef.current = null;
         }
       } catch (error) {
-        if (isMounted) setTrendError(error);
+        if (isMounted) setTelemetryError(error);
       } finally {
-        if (isMounted) setTrendLoading(false);
+        if (isMounted) setTelemetryLoading(false);
       }
     };
 
@@ -138,20 +168,21 @@ const MonitoringPage = () => {
         const payload = await fetchMachineTelemetrySeries({
           machineId: selectedMachineId,
           since: lastTimestampRef.current,
+          windowMs: selectedWindowMs,
         });
         if (!payload.series?.length) return;
         const windowStartMs = payload.windowStart
           ? new Date(payload.windowStart).getTime()
-          : Date.now() - DEFAULT_TELEMETRY_WINDOW_MS;
+          : Date.now() - selectedWindowMs;
         const normalizedSeries = payload.series.map(normalizeTrendPoint);
-        setTrendWindowStartMs(windowStartMs);
-        setTrendData((prev) => {
+        setTelemetryData((prev) => {
           const merged = [...prev, ...normalizedSeries];
           const filtered = merged.filter(
             (point) => point.timestampMs >= windowStartMs
           );
-          if (filtered.length > 240) {
-            filtered.splice(0, filtered.length - 240);
+          const maxPoints = Math.min(baseLimit, 2000);
+          if (filtered.length > maxPoints) {
+            filtered.splice(0, filtered.length - maxPoints);
           }
           return filtered;
         });
@@ -159,7 +190,7 @@ const MonitoringPage = () => {
           normalizedSeries[normalizedSeries.length - 1].timestamp ||
           lastTimestampRef.current;
       } catch (error) {
-        setTrendError(error);
+        setTelemetryError(error);
       }
     };
 
@@ -177,15 +208,41 @@ const MonitoringPage = () => {
       }
       lastTimestampRef.current = null;
     };
-  }, [selectedMachineId]);
+  }, [selectedMachineId, selectedWindowMs]);
 
   const chartDomain = useMemo(() => {
-    const windowStart = Math.max(0, nowMs - DEFAULT_TELEMETRY_WINDOW_MS);
-    if (!trendData.length) {
+    const windowStart = Math.max(0, nowMs - selectedWindowMs);
+    if (!telemetryData.length) {
       return [windowStart, nowMs];
     }
     return [windowStart, "auto"];
-  }, [nowMs, trendData.length]);
+  }, [nowMs, telemetryData.length, selectedWindowMs]);
+
+  const trendChartData = useMemo(() => {
+    return (machineTrendQuery.data?.buckets || []).map((bucket) => {
+      const timestamp = bucket.bucketStart
+        ? new Date(bucket.bucketStart).getTime()
+        : Date.now();
+      return {
+        ...bucket,
+        bucketStartMs: timestamp,
+        uptimePercent:
+          bucket.uptimeRatio === null || bucket.uptimeRatio === undefined
+            ? null
+            : Number(bucket.uptimeRatio) * 100,
+      };
+    });
+  }, [machineTrendQuery.data]);
+
+  const trendUptimePercent = useMemo(() => {
+    if (!trendChartData.length) return null;
+    const ratios = trendChartData
+      .map((item) => item.uptimePercent)
+      .filter((value) => value !== null && value !== undefined);
+    if (!ratios.length) return null;
+    const avg = ratios.reduce((sum, value) => sum + value, 0) / ratios.length;
+    return avg;
+  }, [trendChartData]);
 
   return (
     <Stack spacing={3}>
@@ -232,6 +289,23 @@ const MonitoringPage = () => {
                       value={machine.id || machine._id}
                     >
                       {machine.code} — {machine.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              <FormControl size="small" fullWidth>
+                <InputLabel id="window-select-label">Zaman Aralığı</InputLabel>
+                <Select
+                  labelId="window-select-label"
+                  label="Zaman Aralığı"
+                  value={selectedWindowMs}
+                  onChange={(event) =>
+                    setSelectedWindowMs(Number(event.target.value))
+                  }
+                >
+                  {TELEMETRY_WINDOWS.map((option) => (
+                    <MenuItem key={option.id} value={option.value}>
+                      {option.label}
                     </MenuItem>
                   ))}
                 </Select>
@@ -320,26 +394,26 @@ const MonitoringPage = () => {
                   <Typography variant="subtitle2" gutterBottom>
                     Sinyal (0/1)
                   </Typography>
-                  {trendLoading ? (
+                  {telemetryLoading ? (
                     <Box
                       sx={{ display: "flex", justifyContent: "center", py: 3 }}
                     >
                       <CircularProgress size={24} />
                     </Box>
-                  ) : trendError ? (
+                  ) : telemetryError ? (
                     <Alert severity="error">
                       Trend verisi alınamadı:{" "}
-                      {trendError?.response?.data?.message ||
-                        trendError?.message}
+                      {telemetryError?.response?.data?.message ||
+                        telemetryError?.message}
                     </Alert>
-                  ) : trendData.length === 0 ? (
+                  ) : telemetryData.length === 0 ? (
                     <Typography color="text.secondary">
                       Trend verisi bulunamadı.
                     </Typography>
                   ) : (
                     <Box sx={{ height: 140 }}>
                       <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={trendData}>
+                        <LineChart data={telemetryData}>
                           <XAxis
                             dataKey="timestampMs"
                             type="number"
@@ -386,26 +460,26 @@ const MonitoringPage = () => {
                   <Typography variant="subtitle2" gutterBottom>
                     Telemetry (°C / Nm / kWh)
                   </Typography>
-                  {trendLoading ? (
+                  {telemetryLoading ? (
                     <Box
                       sx={{ display: "flex", justifyContent: "center", py: 3 }}
                     >
                       <CircularProgress size={24} />
                     </Box>
-                  ) : trendError ? (
+                  ) : telemetryError ? (
                     <Alert severity="error">
                       Trend verisi alınamadı:{" "}
-                      {trendError?.response?.data?.message ||
-                        trendError?.message}
+                      {telemetryError?.response?.data?.message ||
+                        telemetryError?.message}
                     </Alert>
-                  ) : trendData.length === 0 ? (
+                  ) : telemetryData.length === 0 ? (
                     <Typography color="text.secondary">
                       Trend verisi bulunamadı.
                     </Typography>
                   ) : (
                     <Box sx={{ height: 220 }}>
                       <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={trendData}>
+                        <LineChart data={telemetryData}>
                           <XAxis
                             dataKey="timestampMs"
                             type="number"
@@ -466,6 +540,144 @@ const MonitoringPage = () => {
           </Card>
         </Grid>
       </Grid>
+
+      <Card>
+        <CardContent>
+          <Stack spacing={2}>
+            <Stack
+              direction={{ xs: "column", md: "row" }}
+              justifyContent="space-between"
+              spacing={1}
+            >
+              <Typography variant="h6">Trend (Son 7 Gün)</Typography>
+              <Typography variant="body2" color="text.secondary">
+                Saatlik ortalama telemetry & uptime
+              </Typography>
+            </Stack>
+            <Typography variant="body2" color="text.secondary">
+              Ortalama uptime: {" "}
+              {trendUptimePercent === null
+                ? "-"
+                : `${trendUptimePercent.toFixed(1)} %`}
+            </Typography>
+            {machineTrendQuery.isLoading ? (
+              <Box sx={{ display: "flex", justifyContent: "center", py: 3 }}>
+                <CircularProgress size={24} />
+              </Box>
+            ) : machineTrendQuery.isError ? (
+              <Alert severity="error">
+                Trend verisi alınamadı: {" "}
+                {machineTrendQuery.error?.response?.data?.message ||
+                  machineTrendQuery.error?.message}
+              </Alert>
+            ) : trendChartData.length === 0 ? (
+              <Typography color="text.secondary">
+                Trend verisi bulunamadı.
+              </Typography>
+            ) : (
+              <Stack spacing={3}>
+                <Box sx={{ height: 240 }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={trendChartData}>
+                      <XAxis
+                        dataKey="bucketStartMs"
+                        type="number"
+                        scale="time"
+                        stroke="#888"
+                        fontSize={12}
+                        tickFormatter={(value) =>
+                          typeof value === "number"
+                            ? format(new Date(value), "dd.MM HH:mm", {
+                                locale: tr,
+                              })
+                            : value
+                        }
+                      />
+                      <YAxis stroke="#666" fontSize={12} />
+                      <RechartsTooltip
+                        labelFormatter={(value) =>
+                          typeof value === "number"
+                            ? format(new Date(value), "dd.MM.yyyy HH:mm", {
+                                locale: tr,
+                              })
+                            : value
+                        }
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="avgTemperatureC"
+                        stroke="#ff7043"
+                        name="Sıcaklık (°C)"
+                        dot={false}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="avgTorqueNm"
+                        stroke="#42a5f5"
+                        name="Tork (Nm)"
+                        dot={false}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="avgEnergyKwh"
+                        stroke="#66bb6a"
+                        name="Enerji (kWh)"
+                        dot={false}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </Box>
+                <Box sx={{ height: 160 }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={trendChartData}>
+                      <XAxis
+                        dataKey="bucketStartMs"
+                        type="number"
+                        scale="time"
+                        stroke="#888"
+                        fontSize={12}
+                        tickFormatter={(value) =>
+                          typeof value === "number"
+                            ? format(new Date(value), "dd.MM HH:mm", {
+                                locale: tr,
+                              })
+                            : value
+                        }
+                      />
+                      <YAxis
+                        domain={[0, 100]}
+                        tickFormatter={(value) => `${value}%`}
+                        stroke="#888"
+                      />
+                      <RechartsTooltip
+                        labelFormatter={(value) =>
+                          typeof value === "number"
+                            ? format(new Date(value), "dd.MM.yyyy HH:mm", {
+                                locale: tr,
+                              })
+                            : value
+                        }
+                        formatter={(value) =>
+                          value === null || value === undefined
+                            ? "-"
+                            : `${value.toFixed(1)}%`
+                        }
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="uptimePercent"
+                        stroke="#ab47bc"
+                        name="Uptime (%)"
+                        dot={false}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </Box>
+              </Stack>
+            )}
+          </Stack>
+        </CardContent>
+      </Card>
     </Stack>
   );
 };

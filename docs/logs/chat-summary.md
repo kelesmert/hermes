@@ -38,6 +38,7 @@
 - OEE signal-timeout config’i devre dışı bırakıldı; kısa telemetry gecikmeleri makineyi “durdu” yapmıyor.
 - Checklist, roadmap, file-overview, learning-guide, summary ve karar dosyaları güncellendi.
 - Bu context’te ek olarak simülasyon parametreleri env/README/requirements/project-report dosyalarına işlendi ve doc-maintenance gereksinimleri uygulandı.
+- Monitoring ekranı için dinamik 1/6/12/24 saatlik telemetry pencereleri ve son 7 güne ait saatlik ortalama + uptime trend kartı eklendi; backend `/board/machines/:id/telemetry` ve yeni `/board/machines/:id/trend` endpointleri bu akışı destekliyor.
 
 ### Alınan Kararlar
 
@@ -45,12 +46,14 @@
 - Frontend Production sayfası TanStack Table + aksiyon dialog pattern’i ile zorunlu standart olarak tanımlandı.
 - OEE processor yalnızca aktif iş emri yürütülürken sinyal 0 serilerinde downtime açacak, job yoksa makine status’ü IDLE’da kalacak.
 - Data-gen script’i makinenin `status/currentJobOrder` bilgisine göre aktif/idle metrik profilleri arasında `DATA_GEN_TRANSITION_MS` süresince ramp-up/ramp-down uygulayacak; telemetry değerleri monitoring grafiğinde hızlı tepki verecek.
+- Monitoring ekranı kullanıcıya zaman aralığı seçtirme (1/6/12/24 saat) ve Trend kartında gerçek telemetry ortalamalarını + uptime yüzdesini gösterme kararıyla genişletildi.
 
 ### Sonraki Adımlar
 
 - Reports backend/frontend genişletmesi ve export/audit ekranları.
 - Production telemetri/makine durum senkronunun gözlemlenmesi; gerekirse OEE/config/data-gen iyileştirmeleri (saha verisi ile ince ayar).
 - Test/lint altyapısı ve cookie tabanlı auth hazırlıkları.
+- Monitoring trend ekranı için saha verisine göre metrik setini genişletme, Reports modülü için entegrasyon.
 
 ---
 

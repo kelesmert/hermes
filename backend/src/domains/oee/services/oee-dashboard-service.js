@@ -22,6 +22,8 @@ const loadAggregationRules = () => {
 
 const aggregationRules = loadAggregationRules();
 const telemetryWindowMs = aggregationRules.telemetryWindowMs || 10 * 60 * 1000; // 10 dk varsayılan
+const MAX_RAW_WINDOW_MS = 24 * 60 * 60 * 1000;
+const MAX_TREND_RANGE_HOURS = 24 * 14;
 
 const getMachineCounts = async () => {
   const [totalMachines, runningMachines, downtimeMachines] = await Promise.all([
@@ -205,14 +207,23 @@ const getMachineTelemetrySummary = async (machineId) => {
   };
 };
 
-const getMachineTelemetrySeries = async (machineId, { limit = 20, since } = {}) => {
+const resolveWindowMs = (windowMs) => {
+  const parsed = Number(windowMs);
+  if (Number.isFinite(parsed) && parsed > 0) {
+    return Math.min(parsed, MAX_RAW_WINDOW_MS);
+  }
+  return Math.min(telemetryWindowMs, MAX_RAW_WINDOW_MS);
+};
+
+const getMachineTelemetrySeries = async (machineId, { limit = 20, since, windowMs } = {}) => {
   const machine = await Machine.findById(machineId);
   if (!machine) {
     throw new AppError('Makine bulunamadı.', 404);
   }
 
-  const cappedLimit = Math.min(Math.max(Number(limit) || 20, 5), 200);
-  const windowStart = new Date(Date.now() - telemetryWindowMs);
+  const cappedLimit = Math.min(Math.max(Number(limit) || 20, 5), 2000);
+  const resolvedWindowMs = resolveWindowMs(windowMs);
+  const windowStart = new Date(Date.now() - resolvedWindowMs);
   let effectiveStart = windowStart.getTime();
   let sinceDate;
   if (since) {
@@ -254,6 +265,89 @@ const getMachineTelemetrySeries = async (machineId, { limit = 20, since } = {}) 
     series,
     windowStart,
     windowEnd: new Date(),
+    windowMs: resolvedWindowMs,
+  };
+};
+
+const getMachineTelemetryTrend = async (
+  machineId,
+  { rangeHours = 168, binMinutes = 60 } = {},
+) => {
+  const machine = await Machine.findById(machineId);
+  if (!machine) {
+    throw new AppError('Makine bulunamadı.', 404);
+  }
+
+  const resolvedRangeHours = (() => {
+    const parsed = Number(rangeHours);
+    if (Number.isFinite(parsed) && parsed > 0) {
+      return Math.min(parsed, MAX_TREND_RANGE_HOURS);
+    }
+    return 168;
+  })();
+
+  const resolvedBinMinutes = (() => {
+    const parsed = Number(binMinutes);
+    if (Number.isFinite(parsed) && parsed >= 1) {
+      return Math.min(parsed, resolvedRangeHours * 60);
+    }
+    return 60;
+  })();
+
+  const rangeMs = resolvedRangeHours * 60 * 60 * 1000;
+  const bucketMs = resolvedBinMinutes * 60 * 1000;
+  const windowStart = new Date(Date.now() - rangeMs);
+
+  const pipeline = [
+    {
+      $match: {
+        machine: machine._id,
+        timestamp: { $gte: windowStart },
+      },
+    },
+    {
+      $addFields: {
+        bucketStartMs: {
+          $subtract: [{ $toLong: '$timestamp' }, { $mod: [{ $toLong: '$timestamp' }, bucketMs] }],
+        },
+      },
+    },
+    {
+      $group: {
+        _id: '$bucketStartMs',
+        avgTemperatureC: { $avg: '$metrics.temperatureC' },
+        avgTorqueNm: { $avg: '$metrics.torqueNm' },
+        avgEnergyKwh: { $avg: '$metrics.energyKwh' },
+        uptimeRatio: { $avg: '$signalValue' },
+        samples: { $sum: 1 },
+      },
+    },
+    { $sort: { _id: 1 } },
+  ];
+
+  const buckets = await MachineTelemetry.aggregate(pipeline);
+  const normalizedBuckets = buckets.map((bucket) => ({
+    bucketStart: new Date(bucket._id),
+    avgTemperatureC: bucket.avgTemperatureC ?? null,
+    avgTorqueNm: bucket.avgTorqueNm ?? null,
+    avgEnergyKwh: bucket.avgEnergyKwh ?? null,
+    uptimeRatio: bucket.uptimeRatio ?? null,
+    samples: bucket.samples,
+  }));
+
+  return {
+    machine: {
+      id: machine.id,
+      code: machine.code,
+      name: machine.name,
+    },
+    range: {
+      hours: resolvedRangeHours,
+      binMinutes: resolvedBinMinutes,
+      windowStart,
+      windowEnd: new Date(),
+    },
+    buckets: normalizedBuckets,
   };
 };
 
@@ -261,5 +355,6 @@ module.exports = {
   getGlobalMetrics,
   getMachineTelemetrySummary,
   getMachineTelemetrySeries,
+  getMachineTelemetryTrend,
   telemetryWindowMs,
 };

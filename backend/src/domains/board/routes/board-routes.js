@@ -26,4 +26,10 @@ router.get(
   boardController.getMachineTelemetrySeries,
 );
 
+router.get(
+  '/machines/:id/trend',
+  requirePermissions(permissions.DASHBOARD_READ),
+  boardController.getMachineTelemetryTrend,
+);
+
 module.exports = router;

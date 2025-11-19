@@ -58,6 +58,7 @@ Bu doküman, yeni bir geliştiricinin projeyi en kısa sürede kavraması için 
 4. **Seed Script**: Default roller (master/supervisor/operator/viewer) ve admin/sys/viewer kullanıcılarını üretir; kategori sözlüğüne göre örnek parçalar + makineler + telemetry verisi ekler.
 5. **Frontend UI**: Sidebar + header layout, guarded routing (PrivateRoute + PermissionGuard), TanStack Table tabanlı kullanıcı listesi, rol & izin yönetim modalları, makineler ve parçalar için CRUD ekranları.
 6. **Makine, Parça ve Üretim Domainleri**: `machines` koleksiyonu ve event modelleri, `parts` domain’i ve kategori sözlüğü ile birlikte Production domaini (JobOrder + ProductionEvent) tamamlandı. Backend’de `/api/production/job-orders` endpointleri, frontend’de `/production` sayfası üzerinden iş emirleri oluşturulup start/pause/resume/produce/complete akışı yönetiliyor.
+7. **Monitoring & Trend**: Monitoring ekranı makine/hat seçimiyle 1/6/12/24 saatlik telemetry pencereleri arasında geçiş yapabiliyor; backend `/board/machines/:id/telemetry` endpoint’i `windowMs` parametresi ile çalışıyor. Ayrıca `/board/machines/:id/trend` endpoint’i ve UI’deki Trend kartı son 7 güne ait saatlik ortalama sıcaklık/tork/enerji + uptime yüzdesini gösteriyor.
 
 ## 5. Roadmap ve Eksikler
 

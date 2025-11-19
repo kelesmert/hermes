@@ -52,7 +52,8 @@ Bu proje, Node.js/Express backend, React frontend ve MongoDB veritabanı kullana
 5. **Canlı İzleme (Monitoring)**
    - Monitoring sayfası: Seçili makinenin canlı telemetry grafiklerini gösterir (Recharts).
    - 2 saniye polling interval ile backend'den telemetry serisi çekilir.
-   - 10 dakikalık kayan pencere (telemetryWindowMs) içindeki veriler görüntülenir.
+   - Kullanıcılar 1/6/12/24 saatlik zaman pencereleri arasında seçim yapabilir; backend `/api/board/machines/:id/telemetry` endpoint’i `windowMs` parametresiyle esnek pencere döndürür.
+   - Ayrıca Trend sekmesi son 7 güne ait saatlik ortalama sıcaklık/tork/enerji + uptime yüzdesini gerçek telemetry verisinden üretir (`/api/board/machines/:id/trend`).
    - Metrikler: Sinyal durumu, sıcaklık, tork, enerji tüketimi.
 6. **Dashboard**
    - Aktif makine sayısı, duruş süreleri, ortalama telemetry metrikleri gibi özet bilgiler.

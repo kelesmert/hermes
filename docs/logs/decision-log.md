@@ -223,3 +223,10 @@ Yeni kararlar alındıkça bu dosyaya tarih/başlık/gerekçe formatıyla ekleme
 - **Karar:** Data-gen script’i aktif makineleri en geç 5 saniyede bir yeniden sorgulayarak `status` ve `currentJobOrder` alanlarını taze tutacak; `DATA_GEN_MACHINE_REFRESH_MS` varsayılanı 5000 ms olarak güncellendi.
 - **Gerekçe:** Makine listesi yalnızca 60 saniyede bir yenilendiği için job start/completion olayları telemetry’de gecikmeli görünüyor, monitoring ekranı ile üretim sayacı arasında senkron problemi oluşuyordu.
 - **Etki:** `backend/scripts/data-gen.js` makine listesini `ensureMachinesUpToDate` fonksiyonu ile periyodik olarak yeniliyor; `.env`, `.env.example` ve `backend/README.md` yeni varsayılan değeri açıklıyor. Job başlatma/durdurma aksiyonları telemetry grafiğine birkaç saniye içinde yansıyor.
+
+### Monitoring Dinamik Zaman Aralığı ve Trend Sekmesi
+
+- **Domain:** Backend/Frontend - monitoring/board
+- **Karar:** Monitoring sayfası artık 1/6/12/24 saatlik windows arasında seçim yapabiliyor; backend `/api/board/machines/:id/telemetry` endpoint’i `windowMs` parametresi ile esnek pencere döndürüyor. Ayrıca `/api/board/machines/:id/trend` endpoint’i eklendi ve UI’ye son 7 güne ait saatlik ortalama telemetry + uptime grafikleri içeren Trend kartı eklendi.
+- **Gerekçe:** Sabit 10 dakikalık pencere uzun üretimlerde yetersiz kalıyor, kullanıcılar daha uzun süreleri izleyemiyordu; ayrıca geçmiş performansı görmek için özel trend ekranı ihtiyacı vardı.
+- **Etki:** `backend/src/domains/oee/services/oee-dashboard-service.js`, board controller/service/routes güncellendi; frontend `monitoring.jsx` dosyası pencere seçicisi ve yeni Trend kartı ile genişletildi. Monitoring ekranı gerçek telemetry verisini 24 saate kadar gösteriyor ve haftalık uptime/telemetry ortalamalarını ayrı grafikte sunuyor.

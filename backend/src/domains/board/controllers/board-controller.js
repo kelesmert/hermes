@@ -14,8 +14,22 @@ const getMachineMetrics = asyncHandler(async (req, res) => {
 
 const getMachineTelemetrySeries = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const { limit, since } = req.query;
-  const payload = await boardService.getMachineTelemetrySeries(id, { limit, since });
+  const { limit, since, windowMs } = req.query;
+  const payload = await boardService.getMachineTelemetrySeries(id, {
+    limit,
+    since,
+    windowMs,
+  });
+  res.json(payload);
+});
+
+const getMachineTelemetryTrend = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { rangeHours, binMinutes } = req.query;
+  const payload = await boardService.getMachineTelemetryTrend(id, {
+    rangeHours,
+    binMinutes,
+  });
   res.json(payload);
 });
 
@@ -23,4 +37,5 @@ module.exports = {
   getBoardMetrics,
   getMachineMetrics,
   getMachineTelemetrySeries,
+  getMachineTelemetryTrend,
 };

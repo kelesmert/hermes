@@ -121,7 +121,7 @@ Yeni geliştirici projeyi anlamak için bu dosyaya bakmalıdır.
 - `frontend/src/features/machines/`: Makine yönetimi modülü; liste, CRUD dialogları ve duruş kayıtlarını içeren bileşenler.
 - `frontend/src/features/parts/`: Parça tanımları için liste + CRUD modülü; backend Parts domain’i ile çalışır, makine uyumluluğu ve varsayılan ayarların girildiği form bileşenlerini içerir.
 - `frontend/src/features/production/`: İş emirleri (JobOrder) ekranı; liste tablosu, oluştur/düzenle dialogu ve start/pause/resume/produce/complete/cancel aksiyon dialoglarını içerir, backend Production API’sine entegredir.
-- `frontend/src/features/monitoring/pages/monitoring.jsx`: Makine/hat seçimi yaparak anlık telemetry ve sinyal trendini gösteren canlı izleme sayfası.
+- `frontend/src/features/monitoring/pages/monitoring.jsx`: Makine/hat seçimi yaparak 1/6/12/24 saatlik telemetry pencereleri arasında geçiş yapan canlı izleme sayfası; gerçek zamanlı sinyal + telemetry grafikleri ve son 7 güne ait saatlik ortalama + uptime trend kartını içerir.
 - `frontend/src/features/users/components/`: Kullanıcı tablosu, kullanıcı formu, rol/permission yönetimi gibi modüler bileşenler.
 - `frontend/src/lib/api/client.js`: Tüm frontend HTTP çağrılarını yapan axios instance; `baseURL` her zaman `VITE_API_URL`'dir.
 - `frontend/src/lib/query-client.js`: TanStack Query client konfigürasyonu.
