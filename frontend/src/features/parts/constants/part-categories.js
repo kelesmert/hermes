@@ -5,9 +5,9 @@ export const PART_CATEGORIES = [
     units: ['piece'],
     defaultUnit: 'piece',
     machineSettings: [
-      { key: 'feedRate', label: 'İlerleme (mm/rev)', type: 'number', step: 0.01 },
-      { key: 'spindleSpeed', label: 'Spindle Hızı (rpm)', type: 'number', step: 50 },
-      { key: 'torque', label: 'Tork (Nm)', type: 'number', step: 0.1 },
+      { key: 'feedRate', label: 'İlerleme (mm/rev)', type: 'number', step: 0.01, defaultValue: 0.2 },
+      { key: 'spindleSpeed', label: 'Spindle Hızı (rpm)', type: 'number', step: 50, defaultValue: 1200 },
+      { key: 'torque', label: 'Tork (Nm)', type: 'number', step: 0.1, defaultValue: 6 },
     ],
   },
   {
@@ -16,9 +16,9 @@ export const PART_CATEGORIES = [
     units: ['piece', 'set'],
     defaultUnit: 'set',
     machineSettings: [
-      { key: 'placementSpeed', label: 'Placement Hızı (mm/s)', type: 'number', step: 1 },
-      { key: 'reflowTemp', label: 'Reflow Sıcaklığı (°C)', type: 'number', step: 1 },
-      { key: 'solderType', label: 'Lehim Tipi', type: 'text' },
+      { key: 'placementSpeed', label: 'Placement Hızı (mm/s)', type: 'number', step: 1, defaultValue: 150 },
+      { key: 'reflowTemp', label: 'Reflow Sıcaklığı (°C)', type: 'number', step: 1, defaultValue: 245 },
+      { key: 'solderType', label: 'Lehim Tipi', type: 'text', defaultValue: 'Sn63Pb37' },
     ],
   },
   {
@@ -27,9 +27,9 @@ export const PART_CATEGORIES = [
     units: ['piece', 'assembly'],
     defaultUnit: 'piece',
     machineSettings: [
-      { key: 'moldTemp', label: 'Kalıp Sıcaklığı (°C)', type: 'number', step: 1 },
-      { key: 'coolingTime', label: 'Soğuma Süresi (sn)', type: 'number', step: 0.5 },
-      { key: 'pressure', label: 'Basınç (bar)', type: 'number', step: 0.1 },
+      { key: 'moldTemp', label: 'Kalıp Sıcaklığı (°C)', type: 'number', step: 1, defaultValue: 220 },
+      { key: 'coolingTime', label: 'Soğuma Süresi (sn)', type: 'number', step: 0.5, defaultValue: 30 },
+      { key: 'pressure', label: 'Basınç (bar)', type: 'number', step: 0.1, defaultValue: 55 },
     ],
   },
 ];

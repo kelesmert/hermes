@@ -119,7 +119,7 @@ Yeni geliştirici projeyi anlamak için bu dosyaya bakmalıdır.
 - `frontend/src/components/layout`: Sidebar, header, breadcrumbs ve kabuk bileşenleri.
 - `frontend/src/features/*`: Domain odaklı modüller (auth, dashboard, raporlar, kullanıcılar vb.).
 - `frontend/src/features/machines/`: Makine yönetimi modülü; liste, CRUD dialogları ve duruş kayıtlarını içeren bileşenler.
-- `frontend/src/features/parts/`: Parça tanımları için liste + CRUD modülü; backend Parts domain’i ile çalışır, makine uyumluluğu ve varsayılan ayarların girildiği form bileşenlerini içerir.
+- `frontend/src/features/parts/`: Parça tanımları için liste + CRUD modülü; backend Parts domain’i ile çalışır, makine uyumluluğu ve varsayılan ayarların girildiği form bileşenlerini içerir. `components/part-form-dialog.jsx` kategori sözlüğündeki `defaultValue` alanlarını form alanlarına placeholder olarak işler ve kullanıcı boş bırakırsa aynı değerler otomatik olarak kayda yazılır.
 - `frontend/src/features/production/`: İş emirleri (JobOrder) ekranı; liste tablosu, oluştur/düzenle dialogu ve start/pause/resume/produce/complete/cancel aksiyon dialoglarını içerir, backend Production API’sine entegredir.
 - `frontend/src/features/monitoring/pages/monitoring.jsx`: Makine/hat seçimi yaparak anlık telemetry ve sinyal trendini gösteren canlı izleme sayfası.
 - `frontend/src/features/users/components/`: Kullanıcı tablosu, kullanıcı formu, rol/permission yönetimi gibi modüler bileşenler.

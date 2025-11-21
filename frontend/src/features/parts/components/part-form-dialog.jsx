@@ -71,6 +71,21 @@ const PartFormDialog = ({ open, onClose, onSubmit, initialData, isSubmitting, ma
     }
   }, [categoryConfig, getValues, setValue]);
 
+  useEffect(() => {
+    if (!categoryConfig) return;
+    if (initialData) return;
+    (categoryConfig.machineSettings || []).forEach((field) => {
+      const currentValue = getValues(`settings.${field.key}`);
+      if (
+        (currentValue === undefined || currentValue === null || currentValue === '') &&
+        field.defaultValue !== undefined &&
+        field.defaultValue !== null
+      ) {
+        setValue(`settings.${field.key}`, field.defaultValue, { shouldDirty: true });
+      }
+    });
+  }, [categoryConfig, getValues, setValue, initialData]);
+
   const handleClose = () => {
     if (!isSubmitting) onClose();
   };
@@ -85,8 +100,13 @@ const PartFormDialog = ({ open, onClose, onSubmit, initialData, isSubmitting, ma
     const settings = values.settings || {};
     (categoryConfig?.machineSettings || []).forEach((field) => {
       const raw = settings?.[field.key];
-      if (raw === undefined || raw === null || raw === '') return;
-      defaultMachineSettings[field.key] = field.type === 'number' ? Number(raw) : raw;
+      const effectiveValue =
+        raw === undefined || raw === null || raw === ''
+          ? field.defaultValue
+          : raw;
+      if (effectiveValue === undefined || effectiveValue === null || effectiveValue === '') return;
+      defaultMachineSettings[field.key] =
+        field.type === 'number' ? Number(effectiveValue) : effectiveValue;
     });
 
     const payload = {
@@ -207,6 +227,11 @@ const PartFormDialog = ({ open, onClose, onSubmit, initialData, isSubmitting, ma
                     label={field.label}
                     type={field.type === 'number' ? 'number' : 'text'}
                     inputProps={field.type === 'number' ? { step: field.step || 1 } : undefined}
+                    placeholder={
+                      field.defaultValue !== undefined && field.defaultValue !== null
+                        ? String(field.defaultValue)
+                        : ''
+                    }
                     {...register(`settings.${field.key}`)}
                     sx={{ flex: '1 1 260px' }}
                   />

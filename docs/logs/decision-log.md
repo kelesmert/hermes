@@ -223,3 +223,10 @@ Yeni kararlar alındıkça bu dosyaya tarih/başlık/gerekçe formatıyla ekleme
 - **Karar:** Data-gen script’i aktif makineleri en geç 5 saniyede bir yeniden sorgulayarak `status` ve `currentJobOrder` alanlarını taze tutacak; `DATA_GEN_MACHINE_REFRESH_MS` varsayılanı 5000 ms olarak güncellendi.
 - **Gerekçe:** Makine listesi yalnızca 60 saniyede bir yenilendiği için job start/completion olayları telemetry’de gecikmeli görünüyor, monitoring ekranı ile üretim sayacı arasında senkron problemi oluşuyordu.
 - **Etki:** `backend/scripts/data-gen.js` makine listesini `ensureMachinesUpToDate` fonksiyonu ile periyodik olarak yeniliyor; `.env`, `.env.example` ve `backend/README.md` yeni varsayılan değeri açıklıyor. Job başlatma/durdurma aksiyonları telemetry grafiğine birkaç saniye içinde yansıyor.
+
+### Parça Formu Varsayılan Makine Ayarları
+
+- **Domain:** Frontend - parts
+- **Karar:** Parça formu kategori sözlüğündeki `defaultValue` alanlarını varsayılan makine ayarı alanlarında placeholder olarak gösteriyor ve kullanıcı boş bıraktığında aynı değerleri kayda yazıyor.
+- **Gerekçe:** Her yeni parçada feed rate/spindle gibi değerleri elle girmek zaman alıyordu; yanlış veya eksik girişler oluyordu.
+- **Etki:** `frontend/src/features/parts/constants/part-categories.js` defaultValue alanlarıyla güncellendi, `part-form-dialog.jsx` ise bu değerleri hem placeholder olarak gösteriyor hem de boş alanları otomatik dolduruyor.
