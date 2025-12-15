@@ -23,7 +23,16 @@ npm run dev
 
 Varsayılan adres: `http://localhost:5173/`
 
-- Login ekranında kullanıcı adı + şifre kullanılır (örn. `admin / ChangeMe123!`). `/users` rotasında kullanıcı tablosu ve `roles.manage` izni olanlar için rol/permission sekmesi bulunur. `/parts` sayfası `parts.read` izni ile açılır; parçaları listeleyip `parts.manage` izni olan kullanıcıların parça ekleme/düzenleme/silme yapmasına izin verir.
+- Login ekranında kullanıcı adı + şifre kullanılır (örn. `admin / ChangeMe123!`).
+- Route erişimleri permission guard ile kontrol edilir; sidebar menüsü de permission'a göre filtrelenir.
+- Mevcut sayfalar:
+  - `/dashboard` (dashboard.read): global metrikler + seçili makine telemetry özeti
+  - `/monitoring` (dashboard.read): canlı telemetry grafikler (2sn polling, kayan pencere)
+  - `/production` (production.read): job order listesi + aksiyonlar (start/pause/resume/produce/complete/cancel)
+  - `/machines` (machines.read): makine CRUD + event diyaloğu
+  - `/parts` (parts.read): parça CRUD (kategori/birim/makine uyumluluğu)
+  - `/users` (users.manage): kullanıcı yönetimi; roller/izinler sekmesi `roles.manage` izni ile açılır
+  - `/reports` (reports.read): placeholder (raporlama genişletmesi planlı)
 
 ## Yapı
 

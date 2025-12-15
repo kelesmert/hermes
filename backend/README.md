@@ -16,6 +16,9 @@ Node.js + Express tabanlı Hermes API'si bu klasörde yer alır. Mevcut sürüm:
 - RBAC yönetim uçları (`/api/users`, `/api/roles`, `/api/permissions`),
 - Parts domain'i (`/api/parts`) ile kategori/birim/varsayılan makine ayarı sözlüğüne bağlı parça tanımları,
 - Makine domaini için `machines` ve `machine_events` modelleri ile CRUD/event endpointleri,
+- OEE/Telemetry altyapısı (telemetry yazımı + OEE processor job ile downtime event üretimi),
+- Board domain'i (dashboard metrik endpoint'leri, telemetry serisi),
+- Production domain'i (JobOrder + ProductionEvent, aksiyon endpointleri),
 - Seed script ile master/supervisor/operator/viewer rollerini, test hesaplarını, örnek makineleri ve örnek parçaları üretir (env'deki şifreler değişirse kayıtlar güncellenir).
 
 ## Kurulum
@@ -61,8 +64,12 @@ backend/
 │  │   ├─ auth/           # login/register/refresh/logout
 │  │   ├─ users/          # kullanıcı listesi + CRUD
 │  │   ├─ access-control/ # roles & permissions API’leri
-│  │   └─ machines/       # makine ve durum kayıtları domaini
-└─ scripts/seed.js
+│  │   ├─ machines/       # makine CRUD + event API’leri + telemetry modeli
+│  │   ├─ oee/            # telemetry processor + OeeMachineState
+│  │   ├─ board/          # dashboard metrikleri (board API)
+│  │   ├─ parts/          # parts CRUD + kategori sözlüğü
+│  │   └─ production/     # job orders + production events + aksiyonlar
+└─ scripts/ (seed.js, data-gen.js, job-simulator.js)
 ```
 
 ## Kullanıcı Akışı
@@ -71,6 +78,8 @@ backend/
 - `auth-guard` access token’ı doğrular; `permission-guard` `users.manage`, `roles.manage` gibi izinleri kontrol eder.
 - `/api/users` uçları listeleme, oluşturma, güncelleme ve silme işlemlerini sağlar; viewer rolü fallback olarak korunur.
 - `/api/roles` ve `/api/permissions` uçları rol şablonlarını ve izin sözlüğünü yönetir; master/viewer rolleri seed tarafından silinemez.
+- `/api/board/*` endpoint'leri dashboard/monitoring için metrik ve telemetry serisi sağlar.
+- `/api/production/job-orders/*` endpoint'leri job order CRUD + start/pause/resume/produce/complete/cancel aksiyonlarını sağlar; üretim event'leri `production_events` koleksiyonuna yazılır.
 
 ## Yararlı Komutlar
 

@@ -25,30 +25,26 @@ Hermes, mezuniyet projesi kapsamında geliştirilen hafif bir Manufacturing Exec
 | -------- | -------------------------------------------------------------------------------------------------------------------------------------- |
 | Backend  | Node.js (LTS), Express 5, MongoDB + Mongoose, JWT, bcryptjs                                                                            |
 | Frontend | Vite + React (JS), MUI, React Router v6, TanStack Query, axios, React Hook Form + Zod, TanStack Table + MUI, Recharts, react-hot-toast |
-| Ortak    | dotenv, nodemon, `@/` import alias, ESLint + Prettier (planlı)                                                                         |
+| Ortak    | dotenv, nodemon, `@/` import alias, ESLint (frontend), Prettier (planlı)                                                               |
 
 ## Depo Yapısı
 
 ```
 hermes/
 ├── backend/        # Node.js + Express API
-├── frontend/       # React uygulaması (Vite + React iskeleti hazır)
+├── frontend/       # React uygulaması (Vite + React)
 └── docs/           # Tüm proje dokümantasyonu
 ```
 
 ### Dokümantasyon Klasörleri
 
-- `project-guidelines.md` – Ana rehber; iletişim kuralları, mimari özetler, doküman haritası.
-- `standart/`
-  - `backend-decisions.md`, `frontend-decisions.md`, `technical-decisions.md`, `naming-conventions.md` – Zorunlu kurallar.
-- `logs/`
-  - `decision-log.md`, `tech-decision-logs.md`, `chat-summary.md` – Neden/nasıl kayıtları, sohbet özetleri.
-- `specs/`
-  - `requirements.md`, `project-report.md`, `project-roadmap.md` – Gereksinimler, tez raporu, faz planı.
-- `tasks/`
-  - `project-checklist.md` – Yapılacaklar listesi (tamamlananlar işaretli kalır).
-- `meta/`
-  - `file-overview.md`, `learning-guide.md` – Dosya açıklamaları ve öğretici rehber.
+- `docs/project-guidelines.md` – Ana rehber; iletişim kuralları, mimari özetler, doküman haritası.
+- `docs/meta/context-initialization-prompt.md` – Yeni oturumda context yükleme rehberi (hangi dosyalar okunmalı).
+- `docs/standart/` – Zorunlu standartlar (backend/frontend/teknik/isimlendirme).
+- `docs/logs/` – Karar ve teknik günlükler, context window kayıtları.
+- `docs/specs/` – Gereksinimler, tez raporu, faz planı.
+- `docs/tasks/` – Checklist (tamamlananlar işaretli kalır).
+- `docs/meta/` – File overview + learning guide + bakım rehberi.
 
 Her çalışmaya başlamadan önce `docs/project-guidelines.md` içindeki yönlendirmeler izlenmeli; değişiklik gerektiren kurallar ilgili `docs/standart/` dosyalarında güncellenmelidir.
 
@@ -76,6 +72,11 @@ Her çalışmaya başlamadan önce `docs/project-guidelines.md` içindeki yönle
    ```
    - Sağlık kontrolü: `GET http://localhost:5000/api/health`
    - Auth testleri: `POST http://localhost:5000/api/auth/login`
+5. (Opsiyonel) Simülasyon:
+   ```bash
+   npm run data:gen
+   npm run job:sim
+   ```
 
 ## Frontend’i Çalıştırma
 
@@ -94,9 +95,9 @@ Her çalışmaya başlamadan önce `docs/project-guidelines.md` içindeki yönle
    npm run dev
    ```
    - Varsayılan adres: `http://localhost:5173/`
-   - Login ekranında kullanıcı adı + şifre ile giriş yapılır (örn. `admin / ChangeMe123!`). `/users` sayfası kullanıcı/rol yönetimi ve izin sekmesini içerir.
+   - Login ekranında kullanıcı adı + şifre ile giriş yapılır (örn. `admin / ChangeMe123!`); Dashboard/Monitoring/Production ekranları gerçek API’lerden beslenir.
 
-> Not: Alias ve provider iskeleti hazır; UI bileşenlerini genişletmeden önce `docs/standart/frontend-decisions.md` kurallarını gözden geçirin. Yeni bağımlılıklar için `npm install <paket>` komutlarını manuel çalıştırmanız gerekebilir.
+> Not: UI tarafında kararlar ve zorunlu kurallar için `docs/standart/frontend-decisions.md` dosyasını kontrol edin. Yeni bağımlılık eklemeden önce ilgili dokümantasyonu güncelleyin.
 
 ## Katkı ve İş Akışı
 
