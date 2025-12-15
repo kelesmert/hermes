@@ -55,7 +55,7 @@ docs/logs/chat-summary.md
 - Projenin amacı: MES MVP
 - Teknoloji stack: Node.js/Express + React/Vite + MongoDB
 - Repo yapısı: backend/, frontend/, docs/
-- Tamamlanan domainler: Auth, Users, Machines, Parts, OEE, Dashboard
+- Tamamlanan domainler: Auth, Access Control, Users, Machines, Parts, OEE, Board, Production, Dashboard
 
 ### project-guidelines.md
 
@@ -269,8 +269,8 @@ Her değişiklikten sonra ilgili MD dosyalarını güncelle. doc-maintenance.md 
 Context yüklendikten sonra kendine sor:
 
 - [ ] Proje amacını anlıyor musun? (MES MVP)
-- [ ] Backend domain yapısını anlıyor musun? (auth, users, machines, oee, board, parts)
-- [ ] Frontend feature yapısını anlıyor musun? (auth, users, machines, dashboard, monitoring)
+- [ ] Backend domain yapısını anlıyor musun? (auth, access-control, users, machines, oee, board, parts, production)
+- [ ] Frontend feature yapısını anlıyor musun? (auth, users, machines, parts, production, dashboard, monitoring, reports)
 - [ ] RBAC zincirini anlıyor musun? (permissions → roles → users)
 - [ ] Hangi özelliklerin tamamlandığını biliyor musun?
 - [ ] Hangi özelliklerin eksik olduğunu biliyor musun?
@@ -282,9 +282,9 @@ Hepsine EVET ise kullanıcıya söyle:
 ```text
 Hermes MES projesi yüklendi.
 
-Tamamlanan: Auth, RBAC, Users, Machines, Parts, OEE/Telemetry, Dashboard, Monitoring
+Tamamlanan: Auth, RBAC, Users, Machines, Parts, OEE/Telemetry, Board, Production, Dashboard, Monitoring
 Eksik: Reports tam entegrasyonu, Audit Log UI, AI analiz modülü
-Roadmap: Production domain (JobOrder + ProductionEvent), cookie auth (opsiyonel)
+Roadmap: cookie auth (opsiyonel)
 
 Hangi konuda çalışmak istiyorsun?
 ```
@@ -348,7 +348,7 @@ docs/dev-notes/dashboard-next-steps.md
 
 **Son Güncelleme:** 17 Kasım 2025
 **Versiyon:** 1.1
-**Proje Durumu:** MVP Faz 2 (Auth, Users, Machines, Parts, OEE, Dashboard, Monitoring tamamlandı)
+**Proje Durumu:** MVP Faz 2 (Auth, Users, Machines, Parts, OEE, Board, Production, Dashboard, Monitoring tamamlandı)
 
 ---
 

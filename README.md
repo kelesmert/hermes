@@ -14,9 +14,9 @@ Hermes, mezuniyet projesi kapsamında geliştirilen hafif bir Manufacturing Exec
 
 ## Durum
 
-- ✅ Backend temel iskeleti, JWT + refresh token tabanlı auth ve kullanıcı adıyla giriş yapan RBAC yönetimi (roles/permissions/users endpointleri + seed script) hazır.
-- ✅ Frontend `/users` sayfası TanStack Table ve rol/izin yönetimi sekmesiyle gerçek API’lere bağlı; kullanıcı ekleme/düzenleme/silme ve viewer fallback akışları çalışıyor.
-- 📋 Makine servisleri, raporlama, audit, AI ve diğer domainler roadmap’te planlı.
+- ✅ Backend: Auth + RBAC, Users, Access Control, Machines, Parts, OEE/Telemetry, Board (dashboard metrics API) ve Production (JobOrder + ProductionEvent) domainleri hazır; `data-gen` ve `job-sim` script'leri simülasyon verisi üretiyor.
+- ✅ Frontend: Login, Users/Roles/Permissions, Machines, Parts, Dashboard, Monitoring ve Production/İş Emirleri ekranları gerçek API'lere bağlı.
+- 📋 Reports + export, Audit log UI, AI içgörü modülü, cookie tabanlı token yönetimi ve test/lint altyapısı roadmap’te planlı.
 - 📝 Tüm zorunlu kurallar `docs/standart/` altında; karar günlükleri ve gereksinimler güncel tutuluyor.
 
 ## Teknoloji Yığını

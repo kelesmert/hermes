@@ -17,11 +17,12 @@
 - **Parts Domain**: Model, CRUD endpoint'leri, kategori sistemi (fasteners/electronics/mechanical_plastics), makine uyumluluğu tamamlandı.
 - **OEE Domain (Kısmi)**: MachineTelemetry modeli, OEE Processor Job (otomatik downtime detection), OeeMachineState modeli ile **Availability** hesaplaması tamamlandı. Performance ve Quality hesaplamaları için JobOrder domain'i gerekli.
 - **Board Domain**: Dashboard metrik endpoint'leri (`/api/board/metrics`, `/api/board/machines/:id/metrics`, `/api/board/machines/:id/telemetry`) tamamlandı.
+- **Production Domain**: JobOrder + ProductionEvent modelleri, CRUD + start/pause/resume/produce/complete/cancel aksiyon endpoint'leri ve telemetry tabanlı üretim simülatörü tamamlandı.
 - **Monitoring Frontend**: Canlı telemetry grafikler (2sn polling, 10dk kayan pencere, Recharts) tamamlandı.
 
 ### Bekleyen Domainler
 
-- **Production Domain**: JobOrder ve ProductionEvent modelleri henüz oluşturulmadı. Bu domain, OEE'nin Performance ve Quality bileşenleri için gerekli.
+- Bu roadmap kapsamında bekleyen zorunlu domain kalmadı.
 
 ---
 
@@ -67,9 +68,9 @@ Bu dokümantasyon, MES (Manufacturing Execution System) projesi kapsamında olu�
 
 4. **Üretim Süreci:**
 
-   - Data-gen scripti, üretim simülasyonu yapar.
-   - Üretilen parçalar ve hatalı parçalar kaydedilir.
-   - Telemetry verileri üretilir.
+   - Data-gen scripti telemetry/sinyal verisi üretir.
+   - Üretim simülatörü (`job-simulator`) aktif iş emirleri için son telemetry sinyaline bakarak good/defect üretim eventleri oluşturur.
+   - Böylece üretilen parçalar ve hatalı parçalar ayrı event kayıtları olarak saklanır.
 
 5. **Üretim Tamamlama:**
 
