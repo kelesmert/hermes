@@ -85,6 +85,7 @@ Yeni geliştirici projeyi anlamak için bu dosyaya bakmalıdır.
 - `docs/specs/requirements.md`: Proje gereksinimleri, roller, veri modeli.
 - `docs/specs/project-report.md`: Tez raporu taslağı ve mimari anlatım.
 - `docs/specs/project-roadmap.md`: Geliştirme fazları ve kilometre taşları.
+- `docs/specs/oee-downtime-design.md`: OEE ve downtime tasarımı; planlı/plansız/kısa duruş yaklaşımı, reasonCode standardı, akışlar, faz planı ve açık sorular.
 
 ### docs/roadmaps
 
