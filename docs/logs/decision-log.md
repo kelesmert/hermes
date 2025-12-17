@@ -279,3 +279,17 @@ Yeni kararlar alındıkça bu dosyaya tarih/başlık/gerekçe formatıyla ekleme
 - **Karar:** Planlı downtime event açıkken data-gen sinyali ve metrikleri 0’a kilitler (planned stopped mode); planlı event bittiğinde normal mod’a döner.
 - **Gerekçe:** Planlı duruş sırasında monitoring ekranında metriklerin “çalışıyor” gibi görünmesi operatör güvenini kırar ve duruşun gerçekliğini sorgulatır.
 - **Etki:** `DATA_GEN_PLANNED_STOPPED_MODE` env ile kontrol edilen simülasyon davranışı; smoke test senaryolarında planlı duruş görsel olarak doğrulanabilir.
+
+### Simülasyonları UI Üzerinden Yönetme
+
+- **Domain:** Ortak - simulation/dev-tools
+- **Karar:** `data-gen` ve `job-sim` script’leri terminal yerine UI’dan yönetilir: backend `/api/simulations` üzerinden process başlat/durdur yapılır ve stdout/stderr logları in-memory buffer’da tutulup UI’da gösterilir.
+- **Gerekçe:** Gerçek makine entegrasyonu olmadığı için sistemin doğrulanması simülasyona bağlı; terminal bağımlılığını kaldırıp tek ekrandan “başlat/durdur + log” akışını standartlaştırmak gerekir.
+- **Etki:** Backend’e `GET/POST /api/simulations/*` endpoint’leri eklendi, frontend’e `/simulations` sayfası ve sidebar menüsü eklendi. Endpoint’ler `production.manage` ile korunur; prod ortamında `ENABLE_SIMULATION_CONTROL=true` değilse kontrol kapalıdır. Loglar in-memory olduğu için backend restart’ında sıfırlanır.
+
+### JobOrder orderNo Üretimi Silme Sonrası Güvenli
+
+- **Domain:** Backend - production
+- **Karar:** JobOrder `orderNo` otomatik üretimi `countDocuments` tabanlı sıra yerine “günün max sequence’i + 1” yaklaşımıyla yapılır; `E11000 duplicate key (orderNo)` durumunda otomatik numaralı oluşturma 5 denemeye kadar retry eder.
+- **Gerekçe:** Completed job order silme sonrası prefix bazlı count düşerek aynı `orderNo` tekrar üretilebiliyor; ayrıca eşzamanlı oluşturmalarda çakışma riski var. Max+retry, ayrı counter koleksiyonu olmadan stabil ve pratik çözüm sağlar.
+- **Etki:** `createJobOrder` artık duplicate orderNo’yu kullanıcıya ham `E11000` olarak yansıtmaz. Kullanıcı `orderNo` verirse çakışmada 409 döner, sistem otomatik üretiyorsa retry ile yeni sıra üretir.

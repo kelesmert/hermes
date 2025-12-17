@@ -131,7 +131,7 @@ Bu proje, Node.js/Express backend, React frontend ve MongoDB veritabanı kullana
 - **Reports:** `GET /reports/summary`, `GET /reports/export`.
 - **AI Insights:** `GET /insights/latest`, `POST /insights/recompute` (admin).
 - **Audit:** `GET /audit?user=&action=&date=`.
-- **Simulation:** `POST /simulator/trigger` (opsiyonel manuel tetikleme).
+- **Simulations:** `GET /simulations`, `POST /simulations/:name/start|stop`, `GET /simulations/:name/logs`, `POST /simulations/:name/logs/clear` (dev tool, `production.manage`).
 
 ## 8. Frontend Modülleri
 
@@ -142,6 +142,7 @@ Bu proje, Node.js/Express backend, React frontend ve MongoDB veritabanı kullana
 - Makine listesi + detay modal/ekranı.
 - Parts listesi + CRUD modal/ekranı (kategori/birim/makine uyumluluğu).
 - Duruşlar sayfası: Açık duruşlar, planlı duruş kural yönetimi ve run geçmişi, geçmiş duruş filtreleri, reason sınıflandırma (5 dk edit + split).
+- Simülasyonlar sayfası: `data-gen` ve `job-sim` script’lerini başlat/durdur, log konsolu.
 - Raporlama ekranı (filtreler + tablo/grafik + export butonu).
 - AI içgörü paneli.
 - Kullanıcı yönetimi ekranları.
@@ -153,6 +154,7 @@ Bu proje, Node.js/Express backend, React frontend ve MongoDB veritabanı kullana
 - Script tek seferde birden fazla makineyi güncelleyebilmeli.
 - Oluşturulan olaylar, kaynağın “simulator” olduğu bilgisiyle etiketlenecek.
 - Script ayrı bir Node süreci veya cron job olarak çalıştırılabilecek; CLI parametreleri desteklenecek.
+- Opsiyonel: UI üzerinden simülasyonları yönetmek için `/simulations` sayfası ve ilgili backend API’leri kullanılabilir; prod ortamında bu kontrol env flag ile kapatılabilmelidir.
 
 ## 10. Test & Doğrulama
 

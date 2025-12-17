@@ -39,6 +39,10 @@ cd backend
 npm run job:sim
 ```
 
+Alternatif
+
+- UI’daki `/simulations` sayfasından `data-gen` ve `job-sim` script’lerini başlatıp logları ekrandan takip edebilirsin (izin: `production.manage`).
+
 Login (seed)
 
 - Supervisor: `supervisor / Supervisor123!`

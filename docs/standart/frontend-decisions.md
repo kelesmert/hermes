@@ -69,6 +69,7 @@ frontend/
 - Breadcrumbs her korumalı sayfada görünür; React Router konfigürasyonu breadcrumb bilgisini route meta’sından alacak şekilde tasarlanır.
 - Mobil tam destek zorunlu değil ancak tablet (≥768px) görünümü bozulmamalı.
 - Downtime sayfası `/downtimes` rotasında yer alır ve sidebar’da ayrı bir menü maddesi olarak görünür; erişim kuralı any-of `work_orders.execute` veya `production.manage` olmalıdır.
+- Simülasyonlar sayfası `/simulations` rotasında yer alır ve sidebar’da ayrı bir menü maddesi olarak görünür; erişim kuralı `production.manage` olmalıdır.
 
 ## 4. Auth & State Yönetimi
 

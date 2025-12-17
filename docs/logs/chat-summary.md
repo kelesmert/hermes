@@ -28,6 +28,25 @@
 
 ---
 
+## 17 Aralık 2025 - Context Window #8
+
+### Yapılanlar
+
+- UI üzerinden simülasyon yönetimi eklendi: `/simulations` sayfası ile `data-gen` ve `job-sim` başlat/durdur + log konsolu.
+- Backend’e simülasyon kontrol API’si eklendi: `/api/simulations` (status, start/stop, logs, clear) ve prod ortamında env flag ile kapatma.
+- Production job order numaralandırması düzeltildi: silme sonrası `orderNo` tekrar üretilip `E11000` hatası vermeyecek şekilde max+retry yaklaşımına geçirildi.
+- Checklist, roadmap, requirements, summary, file-overview ve learning-guide güncellendi.
+
+### Alınan Kararlar
+
+- Simülasyonları terminal yerine UI’dan yönetme standardı: loglar UI’da görünür, backend restart olursa loglar sıfırlanır.
+- JobOrder `orderNo` üretimi `countDocuments` yerine “max sequence + retry” ile yapılır; user-provided `orderNo` duplicate olursa 409 döner.
+
+### Sonraki Adımlar
+
+- JobOrder `orderNo` için duplicate index warning’ini temizle (tek index tanımı).
+- Reports, export, audit log ve test altyapısı işleri.
+
 ## 17 Aralık 2025 - Context Window #7
 
 ### Yapılanlar
@@ -239,5 +258,5 @@ Daha önceki context window kayıtları için
 ---
 
 **Son güncelleme:** 17 Aralık 2025
-**Context window sayısı:** 7
-**Proje durumu:** Downtime domain tamamlandı; Reports/Audit çalışmaları sırada
+**Context window sayısı:** 8
+**Proje durumu:** Downtime ve simülasyon yönetimi tamamlandı; Reports/Audit çalışmaları sırada

@@ -12,14 +12,47 @@ const AppError = require('../../../utils/app-error');
 
 const JOB_STATUS = jobOrderStatuses;
 
+const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+const getTodayPrefix = (date = new Date()) => {
+  const yyyy = date.getFullYear();
+  const mm = `${date.getMonth() + 1}`.padStart(2, '0');
+  const dd = `${date.getDate()}`.padStart(2, '0');
+  return `${yyyy}${mm}${dd}`;
+};
+
+const isOrderNoDuplicateError = (error) => {
+  if (!error || typeof error !== 'object') return false;
+  if (error.code !== 11000) return false;
+  if (error.keyPattern?.orderNo || error.keyValue?.orderNo) return true;
+  const message = String(error.message || '');
+  return message.includes('orderNo_1') || message.includes('orderNo');
+};
+
+const getMaxDailySequence = async (datePrefix) => {
+  const prefix = `JO-${datePrefix}-`;
+  const regex = `^${escapeRegExp(prefix)}(\\d+)$`;
+
+  const results = await JobOrder.aggregate([
+    { $match: { orderNo: { $regex: regex, $options: 'i' } } },
+    {
+      $project: {
+        seq: {
+          $toInt: { $arrayElemAt: [{ $split: ['$orderNo', '-'] }, 2] },
+        },
+      },
+    },
+    { $group: { _id: null, maxSeq: { $max: '$seq' } } },
+  ]);
+
+  const maxSeq = results?.[0]?.maxSeq;
+  return typeof maxSeq === 'number' && Number.isFinite(maxSeq) ? maxSeq : 0;
+};
+
 const generateOrderNo = async () => {
-  const now = new Date();
-  const yyyy = now.getFullYear();
-  const mm = `${now.getMonth() + 1}`.padStart(2, '0');
-  const dd = `${now.getDate()}`.padStart(2, '0');
-  const datePrefix = `${yyyy}${mm}${dd}`;
-  const existingCount = await JobOrder.countDocuments({ orderNo: new RegExp(`^JO-${datePrefix}-`, 'i') });
-  const sequence = `${existingCount + 1}`.padStart(3, '0');
+  const datePrefix = getTodayPrefix();
+  const maxSeq = await getMaxDailySequence(datePrefix);
+  const sequence = `${maxSeq + 1}`.padStart(3, '0');
   return `JO-${datePrefix}-${sequence}`;
 };
 
@@ -126,12 +159,10 @@ const getJobOrderById = async (id) => {
 const createJobOrder = async (payload) => {
   const part = await ensurePart(payload.part);
   const machine = await ensureMachine(payload.machine);
-  const orderNo = payload.orderNo?.trim() || (await generateOrderNo());
-
+  const userProvidedOrderNo = payload.orderNo?.trim() || null;
   const targetQuantity = parseTargetQuantity(payload.targetQuantity);
 
-  const jobOrder = await JobOrder.create({
-    orderNo,
+  const baseDoc = {
     part: part._id,
     machine: machine._id,
     targetQuantity,
@@ -140,18 +171,50 @@ const createJobOrder = async (payload) => {
     notes: payload.notes?.trim(),
     estimatedDurationMinutes: computeEstimatedDurationMinutes(part, targetQuantity),
     status: JOB_STATUS.PENDING,
-  });
+  };
 
-  await logProductionEvent(jobOrder, {
-    eventType: productionEventTypes.CREATED,
-    operator: payload.createdBy,
-    source: payload.source || 'operator',
-    metadata: {
-      targetQuantity: jobOrder.targetQuantity,
-    },
-  });
+  const maxAttempts = userProvidedOrderNo ? 1 : 5;
+  let attempt = 0;
+  let lastDuplicate;
 
-  return jobOrder;
+  while (attempt < maxAttempts) {
+    attempt += 1;
+    const orderNo = userProvidedOrderNo || (await generateOrderNo());
+
+    try {
+      const jobOrder = await JobOrder.create({
+        ...baseDoc,
+        orderNo,
+      });
+
+      await logProductionEvent(jobOrder, {
+        eventType: productionEventTypes.CREATED,
+        operator: payload.createdBy,
+        source: payload.source || 'operator',
+        metadata: {
+          targetQuantity: jobOrder.targetQuantity,
+        },
+      });
+
+      return jobOrder;
+    } catch (error) {
+      if (isOrderNoDuplicateError(error)) {
+        lastDuplicate = error;
+        if (userProvidedOrderNo) {
+          throw new AppError('Bu iş emri numarası zaten kullanılıyor.', 409);
+        }
+        if (attempt < maxAttempts) {
+          continue;
+        }
+      }
+      throw error;
+    }
+  }
+
+  throw new AppError(
+    `İş emri numarası üretilemedi (duplicate: ${lastDuplicate?.keyValue?.orderNo || 'orderNo'}). Lütfen tekrar deneyin.`,
+    409,
+  );
 };
 
 const updateJobOrder = async (id, payload) => {

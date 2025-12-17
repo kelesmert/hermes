@@ -29,7 +29,7 @@ Bu doküman, yeni bir geliştiricinin projeyi en kısa sürede kavraması için 
 | Katman   | Teknolojiler                                                                                                           | Kapsam                                                                                      |
 | -------- | ---------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
 | Backend  | Node.js (Express 5), MongoDB + Mongoose, JWT + refresh tokens, bcrypt                                                  | Auth, RBAC, Machines/Parts/Production/OEE/Board/Downtime domainleri, seed + simülasyon scriptleri |
-| Frontend | Vite + React (JS), MUI, React Router v7, TanStack Query/Table, axios, React Hook Form + Zod, Recharts, react-hot-toast | Auth akışı, yönetim ekranları, dashboard, monitoring, production ve downtimes sayfaları     |
+| Frontend | Vite + React (JS), MUI, React Router v7, TanStack Query/Table, axios, React Hook Form + Zod, Recharts, react-hot-toast | Auth akışı, yönetim ekranları, dashboard, monitoring, production, downtimes ve simulations sayfaları |
 | Ortak    | dotenv, nodemon, `@/` alias (frontend), planlı ESLint/Prettier                                                         | Config, geliştirme deneyimi                                                                 |
 
 ## 3. Kaynak Dosyalar
@@ -47,10 +47,11 @@ Bu doküman, yeni bir geliştiricinin projeyi en kısa sürede kavraması için 
 3. **Production**: JobOrder akışı (start/pause/resume/produce/complete) + telemetry tabanlı job simülatörü
 4. **Downtime v2**: Planlı duruş scheduler (rule/run) + plansız duruş telemetry eşiği + `/downtimes` UI (sınıflandırma, 5 dk edit, split)
 5. **Yönetim UI**: Sidebar layout + izin bazlı guard’lar, kullanıcı/rol/izin yönetimi ve domain CRUD ekranları
+6. **Simülasyon Yönetimi**: `/simulations` sayfası ile `data-gen` ve `job-sim` başlat/durdur + log konsolu
 
 ## 5. Roadmap ve Eksikler
 
-- **Tamamlanan:** Auth, Users, Machines, Parts, Production, OEE, Board, Downtime; Dashboard, Monitoring, Production ve Downtimes sayfaları
+- **Tamamlanan:** Auth, Users, Machines, Parts, Production, OEE, Board, Downtime; Dashboard, Monitoring, Production, Downtimes ve Simulations sayfaları
 - **Sıradaki:** Reports ekranı, export + audit log + AI işleri (detay: `docs/specs/project-roadmap.md`, `docs/specs/requirements.md`)
 
 ## 6. Nasıl Başlanır

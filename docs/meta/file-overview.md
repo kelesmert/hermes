@@ -27,12 +27,12 @@ Yeni geliştirici projeyi anlamak için bu dosyaya bakmalıdır.
 ## Backend
 
 - `backend/package.json`: Backend projesinin bağımlılıkları ve script’leri (`npm run dev`, `npm run seed` vb.).
-- `backend/.env.example`: Backend için gerekli ortam değişkenlerinin şablonu (Mongo URI, JWT secret, seed admin bilgileri).
+- `backend/.env.example`: Backend için gerekli ortam değişkenlerinin şablonu (Mongo URI, JWT secret, simülasyon parametreleri ve seed admin bilgileri).
 - `backend/src/app.js`: Express uygulamasının ana tanımı; middleware’ler, `/` route’u ve hata yakalama burada.
 - `backend/src/server.js`: HTTP sunucusunu oluşturur, MongoDB bağlantısını başlatır ve app’i dinlemeye açar.
 - `backend/src/config/index.js`: Ortam değişkenlerini okuyup yapılandırma nesnesi sunar (port, client URL, JWT süreleri vb.).
 - `backend/src/config/database.js`: Mongoose ile MongoDB bağlantısını kuran yardımcı fonksiyon.
-- `backend/src/routes/index.js`: Tüm API rotalarını birleştirir (`/health`, `/auth`, `/users`, `/roles`, `/permissions`, `/machines`, `/parts`, `/production`, `/board`, `/oee`, `/downtimes`, `/planned-downtime-rules`, `/planned-downtime-runs`).
+- `backend/src/routes/index.js`: Tüm API rotalarını birleştirir (`/health`, `/auth`, `/users`, `/roles`, `/permissions`, `/machines`, `/parts`, `/production`, `/board`, `/oee`, `/downtimes`, `/planned-downtime-rules`, `/planned-downtime-runs`, `/simulations`).
 - `backend/src/routes/health-routes.js`: `/api/health` uç noktasını içerir; servis durumu için basit yanıt verir.
 - `backend/src/domains/auth/`: Auth & RBAC domain’i; `controllers`, `services` (auth-service, token-service), `routes` (`auth-routes`), `models` (user, role, permission, refresh-token) klasörlerini içerir.
 - `backend/src/domains/access-control/`: Rol ve permission yönetimi için controller/service/route dosyaları (`roles-routes`, `permissions-routes`).
@@ -42,6 +42,9 @@ Yeni geliştirici projeyi anlamak için bu dosyaya bakmalıdır.
 - `backend/src/domains/parts/`: Parça tanımları için domain; `models/part-model.js` parça, ideal süre ve üretilebildiği makineleri tutar, `constants/part-categories.js` kategori/birim/varsayılan makine ayarı sözlüğünü barındırır.
 - `backend/src/domains/production/`: JobOrder ve ProductionEvent modelleri, servisler ve rotalar; iş emirleri için CRUD + start/pause/resume/produce/complete aksiyonları içerir ve makine/part/operatör ilişkilerini doğrular.
 - `backend/src/domains/downtime/`: Duruş domain’i; planlı duruş rule/run modelleri, scheduler ve downtime listesi ile reason düzeltme/split API’lerini içerir.
+- `backend/src/domains/simulations/`: Simülasyon kontrol domain’i; `data-gen` ve `job-sim` script’lerini UI’dan başlat/durdurmak için process yönetimi ve log buffer API’lerini içerir.
+- `backend/src/domains/simulations/routes/simulations-routes.js`: Simülasyon kontrol endpoint’leri (`/api/simulations/*`); `production.manage` ile korunur ve prod ortamında env flag ile kapatılabilir.
+- `backend/src/domains/simulations/services/simulations-service.js`: Child process spawn/stop (SIGTERM/SIGKILL), in-memory ring buffer log toplama ve status raporlama.
 - `backend/src/domains/oee/config/oee-rules.json`: OEE/sinyal işleme domaini için downtime eşikleri, reason kod haritaları ve aggregation ayarlarının tutulduğu JSON konfigurasyonu.
 - `backend/src/domains/oee/models/oee-machine-state-model.js`: Her makine için son sinyal değerini, aktif duruş event’ini ve sıfır (0) serisinin başlangıcını tutar; OEE job’u bu tabloyu kullanır.
 - `backend/src/domains/oee/services/oee-processor.js`: Telemetry kayıtlarını batch halinde okuyup kuralları uygulayan servis; plansız duruş timing’ini üretir ve event yazımını downtime domain üzerinden orkestre eder.
@@ -127,6 +130,9 @@ Yeni geliştirici projeyi anlamak için bu dosyaya bakmalıdır.
 - `frontend/src/features/parts/`: Parça tanımları için liste + CRUD modülü; backend Parts domain’i ile çalışır, makine uyumluluğu ve varsayılan ayarların girildiği form bileşenlerini içerir. `components/part-form-dialog.jsx` kategori sözlüğündeki `defaultValue` alanlarını form alanlarına placeholder olarak işler ve kullanıcı boş bırakırsa aynı değerler otomatik olarak kayda yazılır.
 - `frontend/src/features/production/`: İş emirleri (JobOrder) ekranı; liste tablosu, oluştur/düzenle dialogu ve start/resume/produce/complete/cancel aksiyon dialoglarını içerir. “Pause” aksiyonu downtime event yazmaz ve kullanıcıyı `/downtimes` sayfasına yönlendirir.
 - `frontend/src/features/downtime/`: Duruşlar sayfası; açık duruş listesi, planlı duruş kural yönetimi ve run geçmişi, geçmiş duruş filtreleri ve reason sınıflandırma akışlarını içerir. Operatör manuel plansız duruş başlatabilir (aktif job şartlı) ve 5 dk’dan uzun telemetry plansız duruşlar “Onay Bekliyor” olarak işaretlenip onaylanabilir.
+- `frontend/src/features/simulations/`: Simülasyonlar sayfası; `data-gen` ve `job-sim` script’lerini UI’dan başlat/durdurur, durum kartları ve log konsolu sunar.
+- `frontend/src/features/simulations/pages/simulations.jsx`: Simülasyonlar sayfasının UI’ı (kartlar + log konsolu, start/stop/clear aksiyonları).
+- `frontend/src/features/simulations/services/simulations-api.js`: `/api/simulations` endpoint’leri için axios client wrapper’ları.
 - `frontend/src/features/monitoring/pages/monitoring.jsx`: Makine/hat seçimi yaparak anlık telemetry ve sinyal trendini gösteren canlı izleme sayfası.
 - `frontend/src/features/users/components/`: Kullanıcı tablosu, kullanıcı formu, rol/permission yönetimi gibi modüler bileşenler.
 - `frontend/src/lib/api/client.js`: Tüm frontend HTTP çağrılarını yapan axios instance; `baseURL` her zaman `VITE_API_URL`'dir.

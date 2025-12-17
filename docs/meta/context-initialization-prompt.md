@@ -55,7 +55,7 @@ docs/logs/chat-summary.md
 - Projenin amacı: MES MVP
 - Teknoloji stack: Node.js/Express + React/Vite + MongoDB
 - Repo yapısı: backend/, frontend/, docs/
-- Tamamlanan domainler: Auth, Access Control, Users, Machines, Parts, Production, OEE, Board, Downtime, Dashboard
+- Tamamlanan domainler: Auth, Access Control, Users, Machines, Parts, Production, OEE, Board, Downtime, Simulations, Dashboard
 
 ### project-guidelines.md
 

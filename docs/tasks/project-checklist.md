@@ -62,6 +62,9 @@
 - [x] Uzun plansız duruş “onay bekliyor” işareti + onay endpoint'i (`POST /api/downtimes/:id/confirm`)
 - [x] Reason katalog API'si (`GET /api/oee/reasons`) ve reasonCatalog genişletmesi (planned|unplanned + fallback kodlar)
 - [x] Data-gen planned stopped mode (planlı duruş açıkken signal/metrik = 0)
+- [x] JobOrder orderNo üretimi: silme sonrası duplicate engelle (max sequence + retry)
+- [x] Simülasyon kontrol API'si: `/api/simulations` (başlat/durdur/log) + permission guard + env flag
+- [ ] (İleride) JobOrder orderNo duplicate index warning'ini temizle (tek index tanımı)
 - [ ] Event zamanlarının lokal timezone desteği (UTC+3 gibi) için helper/formatlama katmanı
 - [ ] Raporlama endpointleri (verimlilik, duruş süreleri vb.)
 - [ ] CSV/Excel export servisi
@@ -91,6 +94,7 @@
 - [x] Downtime UI: Operatör manuel plansız duruş başlatma dialogu + uzun plansız duruş “Onay Bekliyor”/Onayla akışı
 - [x] Sidebar'a `Duruşlar` menüsü ve any-of permission guard (`work_orders.execute` veya `production.manage`)
 - [x] Production pause UX'i downtime yazmaz, Duruşlar sayfasına yönlendirir
+- [x] Simülasyonlar sayfası (`/simulations`): data-gen/job-sim başlat-durdur + log konsolu
 - [ ] Raporlama sayfası + filtreler
 - [x] Roller/izinler için yönetim ekranı; permission set düzenleme ve kullanıcıya rol atama modalları
 - [x] Dashboard/rapor placeholder’larını gerçek makine/event verileriyle besleyip React Query polling/WebSocket desteği ekle _(dashboard kısmı tamamlandı, rapor ekranı beklemede)_

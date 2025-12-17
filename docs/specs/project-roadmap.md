@@ -48,14 +48,15 @@ Amaç, Node.js/Express backend, React frontend ve MongoDB veritabanı kullanarak
 6. **Parts Domain (Ek):** Parça tanımları, kategori sözlüğü (fasteners/electronics/mechanical_plastics), Parts CRUD API ve UI → **Tamamlandı**
 7. **Production Domain:** JobOrder + ProductionEvent modelleri, start/pause/resume/produce/complete endpointleri, telemetry tabanlı üretim simülatörü ve frontend iş emri ekranı → **Tamamlandı**
 8. **Downtime Domain (v2):** Planlı duruş scheduler (rule/run modeli), plansız duruş telemetry eşiği + operatör manuel başlatma, reason düzeltme/split API'leri, uzun plansız duruş “onay bekliyor” akışı ve frontend Duruşlar sayfası → **Tamamlandı**
+9. **Simülasyon Yönetimi (Ek):** UI üzerinden `data-gen` ve `job-sim` script’lerini başlat/durdur + log görüntüleme (backend `/api/simulations`) → **Tamamlandı**
 
 ### Devam Eden Fazlar
 
 ### Planlanan Fazlar
 
-9. **Gün 10-11 - Raporlama & Export:** Backend agregasyon endpointleri, CSV/Excel export servisleri, frontend rapor ekranı genişletmesi ve filtreler, header'daki global arama.
-10. **Gün 12-13 - Audit & AI:** Audit middleware ve log UI'sı, AI analiz prototipi (kural tabanlı veya hazır model entegrasyonu).
-11. **Gün 14 - Kapanış:** End-to-end testler, dokümantasyon, lokal çalışma rehberi, opsiyonel docker-compose.
+10. **Gün 10-11 - Raporlama & Export:** Backend agregasyon endpointleri, CSV/Excel export servisleri, frontend rapor ekranı genişletmesi ve filtreler, header'daki global arama.
+11. **Gün 12-13 - Audit & AI:** Audit middleware ve log UI'sı, AI analiz prototipi (kural tabanlı veya hazır model entegrasyonu).
+12. **Gün 14 - Kapanış:** End-to-end testler, dokümantasyon, lokal çalışma rehberi, opsiyonel docker-compose.
 
 ## 4. Riskler ve Notlar
 
@@ -66,8 +67,7 @@ Amaç, Node.js/Express backend, React frontend ve MongoDB veritabanı kullanarak
 
 ## 5. Güncel Durum
 
-- **Tamamlanan Domainler:** Auth, Users, Access-Control, Machines, Parts, OEE, Board, Production
-- **Tamamlanan Domainler:** Auth, Users, Access-Control, Machines, Parts, OEE, Board, Production, Downtime
-- **Frontend Sayfaları:** Login, Dashboard, Monitoring, Users, Machines, Parts, Production/Job Orders (CRUD + aksiyon ekranı), Downtimes
+- **Tamamlanan Domainler:** Auth, Users, Access-Control, Machines, Parts, OEE, Board, Production, Downtime, Simulations
+- **Frontend Sayfaları:** Login, Dashboard, Monitoring, Users, Machines, Parts, Production/Job Orders (CRUD + aksiyon ekranı), Downtimes, Simulations
 - **Telemetry/OEE Altyapısı:** Data-gen script çalışıyor, job-simulator aktif job'lar için üretim verisi üretiyor, OEE job'u 0 serisi eşiği ile plansız duruşları yönetiyor; planlı duruşlar scheduler ile rule/run modelinden yürütülüyor
 - **Sıradaki:** Reports sayfası genişletmesi, export + audit log geliştirmeleri

@@ -31,7 +31,7 @@ Bu rehber, backend ve frontend'i MVP hedefiyle nasıl kurduğumuzu öğretici ş
 - Şablon: `backend/.env.example` → gerçek değerler: `backend/.env`.
 - Konfig okuma: `backend/src/config/index.js` (port, JWT süreleri vb.).
 - Mongo bağlantısı: `backend/src/config/database.js` (`MONGO_URI`, `MONGO_DB_NAME`).
-- Önemli anahtarlar: `PORT`, `MONGO_URI`, `MONGO_DB_NAME`, `JWT_SECRET`, `REFRESH_TOKEN_SECRET`, `TOKEN_EXPIRES_IN`, `REFRESH_TOKEN_EXPIRES_IN`.
+- Önemli anahtarlar: `PORT`, `MONGO_URI`, `MONGO_DB_NAME`, `JWT_SECRET`, `REFRESH_TOKEN_SECRET`, `TOKEN_EXPIRES_IN`, `REFRESH_TOKEN_EXPIRES_IN`, simülasyon anahtarları (`DATA_GEN_*`, `JOB_SIM_*`, `ENABLE_SIMULATION_CONTROL`).
 
 ## 4) MongoDB + Mongoose (ODM)
 
@@ -164,8 +164,9 @@ Bu rehber, backend ve frontend'i MVP hedefiyle nasıl kurduğumuzu öğretici ş
 ## 17) Production Domain Akışı
 
 - Backend: `backend/src/domains/production/` klasöründe `job-order-model.js`, `production-event-model.js`, servis ve controller dosyaları bulunur. CRUD + aksiyon endpoint’leri (`start`, `pause`, `resume`, `produce`, `complete`, `cancel`) `production.manage` ve `work_orders.execute` izinleriyle guard’lanır.
+- JobOrder `orderNo` alanı unique’tir ve varsayılan olarak `JO-YYYYMMDD-###` formatında otomatik üretilir. Günlük sıra hesabı “max sequence + retry” yaklaşımıyla yapılır; completed job silinse bile aynı numara tekrar üretilmez, çakışma olursa otomatik retry edilir.
 - Makine modeli `currentJobOrder` alanı tutar; job start/resume edildiğinde set edilir, complete/cancel’de temizlenir. ProductionEvent kayıtları her aksiyon sırasında oluşturulur ve frontend event dialog’unda gösterilir.
-- Simülasyon: `npm run data:gen` telemetry sinyalini üretir, `npm run job:sim` ise `job_orders` koleksiyonunda `status = in_progress` kayıtları bulup son telemetry sinyaline göre good/defect üretim kayıtları oluşturur. Sinyal 1 değilse üretim yazılmaz; fractional cycle mantığı ideal çevrim süresini korur.
+- Simülasyon: `npm run data:gen` telemetry sinyalini üretir, `npm run job:sim` ise `job_orders` koleksiyonunda `status = in_progress` kayıtları bulup son telemetry sinyaline göre good/defect üretim kayıtları oluşturur. Sinyal 1 değilse üretim yazılmaz; fractional cycle mantığı ideal çevrim süresini korur. Alternatif olarak bu iki script UI’dan `/simulations` sayfasında da yönetilebilir.
 - Frontend: `frontend/src/features/production/` altında liste tablosu, form dialog ve aksiyon dialogları bulunur. TanStack Query ile hem liste hem de aksiyon mutasyonları yönetilir; event geçmişi ayrı bir modalda gösterilir.
 
 ## 18) Downtime Domain Akışı
@@ -199,3 +200,10 @@ Frontend
   - Açık duruşlar, planlı kurallar ve run geçmişi, geçmiş duruş filtreleri
   - Reason düzeltme: 5 dk penceresi içindeyse edit, değilse split
 - Production sayfasında pause aksiyonu duruş yazmaz, Duruşlar sayfasına yönlendirir
+
+## 19) Simülasyonları UI’dan Yönetme
+
+- Sayfa: `frontend/src/features/simulations/pages/simulations.jsx` → `/simulations` (izin: `production.manage`)
+- Backend API: `GET /api/simulations` ve `POST /api/simulations/:name/start|stop` ile process yönetilir; loglar `GET /api/simulations/:name/logs` ile çekilir.
+- Prod güvenliği: `NODE_ENV=production` iken `ENABLE_SIMULATION_CONTROL=true` değilse simülasyon kontrolü kapalıdır.
+- Log davranışı: Loglar backend process’inde in-memory buffer olarak tutulur; sunucu restart olursa loglar sıfırlanır.
