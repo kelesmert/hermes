@@ -75,7 +75,6 @@ const jobOrderSchema = new mongoose.Schema(
 
 jobOrderSchema.index({ machine: 1, status: 1 });
 jobOrderSchema.index({ part: 1, status: 1 });
-jobOrderSchema.index({ orderNo: 1 });
 
 applyDefaultToJSON(jobOrderSchema);
 

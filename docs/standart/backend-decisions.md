@@ -109,6 +109,7 @@ backend/
 ## 7. Kod Standartları
 
 - Tüm dosyalar kebab-case, yalnızca mongoose modelleri PascalCase sınıf isimlerine sahiptir.
+- **Mongoose index tanımı (zorunlu):** Aynı alan için aynı index pattern’i iki kez tanımlanmaz. `unique: true` kullanılıyorsa ayrıca `.index({ field: 1 })` eklenmez; unique index gerekiyorsa ya field-level `unique: true` ya da `schema.index({ field: 1 }, { unique: true })` seçilir.
 - Importlarda `@/` alias’ı `backend/src/` dizinine işaret eder (`@/services/token-service` vb.).
 - Tekrarlayan iş mantığı servis katmanında tutulur; controller’lar sadece doğrulama ve response’la ilgilenir.
 

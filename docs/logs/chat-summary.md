@@ -28,6 +28,20 @@
 
 ---
 
+## 17 Aralık 2025 - Context Window #9
+
+### Yapılanlar
+
+- JobOrder modelindeki `orderNo` duplicate schema index warning’i giderildi (tek index tanımı).
+
+### Alınan Kararlar
+
+- Mongoose index tanımı aynı alan için tek yerde yapılır; `unique: true` varken ayrıca `.index({ field: 1 })` tanımı eklenmez.
+
+### Sonraki Adımlar
+
+- Reports, export, audit log ve test altyapısı işleri.
+
 ## 17 Aralık 2025 - Context Window #8
 
 ### Yapılanlar

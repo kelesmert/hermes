@@ -64,7 +64,7 @@
 - [x] Data-gen planned stopped mode (planlı duruş açıkken signal/metrik = 0)
 - [x] JobOrder orderNo üretimi: silme sonrası duplicate engelle (max sequence + retry)
 - [x] Simülasyon kontrol API'si: `/api/simulations` (başlat/durdur/log) + permission guard + env flag
-- [ ] (İleride) JobOrder orderNo duplicate index warning'ini temizle (tek index tanımı)
+- [x] JobOrder orderNo duplicate index warning'ini temizle (tek index tanımı)
 - [ ] Event zamanlarının lokal timezone desteği (UTC+3 gibi) için helper/formatlama katmanı
 - [ ] Raporlama endpointleri (verimlilik, duruş süreleri vb.)
 - [ ] CSV/Excel export servisi

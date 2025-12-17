@@ -293,3 +293,10 @@ Yeni kararlar alındıkça bu dosyaya tarih/başlık/gerekçe formatıyla ekleme
 - **Karar:** JobOrder `orderNo` otomatik üretimi `countDocuments` tabanlı sıra yerine “günün max sequence’i + 1” yaklaşımıyla yapılır; `E11000 duplicate key (orderNo)` durumunda otomatik numaralı oluşturma 5 denemeye kadar retry eder.
 - **Gerekçe:** Completed job order silme sonrası prefix bazlı count düşerek aynı `orderNo` tekrar üretilebiliyor; ayrıca eşzamanlı oluşturmalarda çakışma riski var. Max+retry, ayrı counter koleksiyonu olmadan stabil ve pratik çözüm sağlar.
 - **Etki:** `createJobOrder` artık duplicate orderNo’yu kullanıcıya ham `E11000` olarak yansıtmaz. Kullanıcı `orderNo` verirse çakışmada 409 döner, sistem otomatik üretiyorsa retry ile yeni sıra üretir.
+
+### JobOrder orderNo Index Tanımı Tekilleştirme
+
+- **Domain:** Backend - production
+- **Karar:** JobOrder `orderNo` için index tanımı tek yerde tutulur; `orderNo` alanındaki `unique: true` yeterlidir, ayrıca `jobOrderSchema.index({ orderNo: 1 })` tanımı eklenmez.
+- **Gerekçe:** Aynı index pattern’i iki kez tanımlamak Mongoose tarafında startup sırasında “duplicate schema index” uyarısı üretir ve gereksiz index oluşturma denemelerine yol açar.
+- **Etki:** `backend/src/domains/production/models/job-order-model.js` içindeki duplicate `.index` kaldırıldı; unique kuralı korunur.
