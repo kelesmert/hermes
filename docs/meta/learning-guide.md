@@ -129,7 +129,7 @@ Bu rehber, backend ve frontend'i MVP hedefiyle nasıl kurduğumuzu öğretici ş
 
 - Mimari: Vite + React (SPA) ve JavaScript; ihtiyaç halinde TypeScript’e geçilecek.
 - UI: MUI bileşenleri; formlar/grafikler gerektiğinde farklı kütüphanelerle desteklenebilir.
-- Router & Veri Katmanı: React Router v6, TanStack Query; HTTP çağrıları axios ile yapılacak, `baseURL = VITE_API_URL`.
+- Router & Veri Katmanı: React Router v7, TanStack Query; HTTP çağrıları axios ile yapılacak, `baseURL = VITE_API_URL`.
 - Formlar: React Hook Form + Zod doğrulama şemaları.
 - Tablolar & Grafikler: TanStack Table + MUI compose, Recharts grafikler.
 - Bildirimler: react-hot-toast.
@@ -157,7 +157,7 @@ Bu rehber, backend ve frontend'i MVP hedefiyle nasıl kurduğumuzu öğretici ş
 - Event’ler ayrı koleksiyonda (`machine_events`, yapım aşamasında) saklanacak; makine modeli sadece son durumu özetlemek için denormalize alanlara sahiptir.
 - Telemetry kayıtları `backend/src/domains/machines/models/machine-telemetry-model.js` ile `machine_telemetry` koleksiyonunda tutulur; her kayıt makine id’si, sinyal (0/1), timestamp ve seçili metrikleri içerir. `backend/scripts/data-gen.js` makinenin `currentJobOrder` + `status` bilgisine bakarak aktif/idle profilleri üretir; `DATA_GEN_TRANSITION_MS` (varsayılan 10 sn) boyunca sıcaklık/tork/enerji ramp-up/down yapar ve `DATA_GEN_MACHINE_REFRESH_MS` (varsayılan 5 sn) süreleriyle aktif makine listesini yeniden sorgular. Monitoring grafikleri bir job başladığında birkaç saniye içinde yükselişi gösterir.
 - `backend/src/domains/parts/models/part-model.js` parça tanımlarını ve hangi makinelerde üretilebileceğini tutar; production/job order akışı başlamadan önce bu domain’in geçerliliği kontrol edilmelidir.
-- `backend/src/domains/oee/services/oee-processor.js` telemetry verilerini JSON konfigine göre işler; yalnızca makine aktif bir iş emri yürütürken sinyal 0 serileri duruş açar. Job yoksa veya makine duraklatıldıysa status IDLE’da kalır, açık event referansları kapanır. `backend/src/jobs/oee-processor-job.js` belirli aralıklarla bu servisi tetikler ve uygun koşullarda duruş eventlerini otomatik oluşturur/kapatır.
+- `backend/src/domains/oee/services/oee-processor.js` telemetry verilerini JSON konfigine göre işler; yalnızca makine aktif bir iş emri yürütürken sinyal 0 serileri için plansız duruş timing’ini tespit eder. Event yazımı doğrudan model üzerinden yapılmaz, downtime domain orchestrator üzerinden orkestre edilir. Job yoksa veya makine duraklatıldıysa status IDLE’da kalır, açık event referansları kapanır. `backend/src/jobs/oee-processor-job.js` belirli aralıklarla bu servisi tetikler.
 - **Processor vs Job ayrımı:** `oee-processor.js` iş mantığını (telemetry → OEE state → machine events) barındırır. `oee-processor-job.js` ise bu mantığı periyodik olarak çalıştıran tetikleyicidir. Örneğin telemetry’de MCH-001 için yeni kayıt olduğunda cron job 2 saniyede bir `processTelemetryBatch()` çağırır; processor makinenin aktif job yürütüp yürütmediğine bakar, gerekiyorsa `machine_events` koleksiyonunda duruş açar/kapatır. Böylece domain kodu (kurallar) ve scheduler (setInterval) birbirinden bağımsız yönetilir.
 - `backend/src/domains/board/services/board-service.js` OEE sonuçları + telemetry ortalamalarını birleştirerek `/api/board/metrics` endpoint’ine veri sağlar (Dashboard izinli kullanıcılar varsayılan 2 sn polling ile tüketir; değer çevresel olarak ayarlanabilir).
 
@@ -167,3 +167,35 @@ Bu rehber, backend ve frontend'i MVP hedefiyle nasıl kurduğumuzu öğretici ş
 - Makine modeli `currentJobOrder` alanı tutar; job start/resume edildiğinde set edilir, complete/cancel’de temizlenir. ProductionEvent kayıtları her aksiyon sırasında oluşturulur ve frontend event dialog’unda gösterilir.
 - Simülasyon: `npm run data:gen` telemetry sinyalini üretir, `npm run job:sim` ise `job_orders` koleksiyonunda `status = in_progress` kayıtları bulup son telemetry sinyaline göre good/defect üretim kayıtları oluşturur. Sinyal 1 değilse üretim yazılmaz; fractional cycle mantığı ideal çevrim süresini korur.
 - Frontend: `frontend/src/features/production/` altında liste tablosu, form dialog ve aksiyon dialogları bulunur. TanStack Query ile hem liste hem de aksiyon mutasyonları yönetilir; event geçmişi ayrı bir modalda gösterilir.
+
+## 18) Downtime Domain Akışı
+
+- Tasarım kaynağı: `docs/specs/downtime-design-v2.md`
+- Manuel test rehberi: `docs/dev-notes/downtime-smoke.md`
+
+Backend
+
+- Duruşlar `machine_events` timeline’ında tutulur ve aynı anda 1 makinede yalnızca 1 açık event kuralı `machine-event-service` ile enforce edilir.
+- Plansız duruşlar telemetry üzerinden otomatik yönetilir ve operatör job aktifken manuel başlatabilir:
+  - `backend/src/domains/oee/services/oee-processor.js` sinyal 0 serisi eşiğini tespit eder
+  - `backend/src/domains/downtime/services/downtime-orchestrator-service.js` open/close işlemlerini yapar
+  - Operatör manuel başlatma: `POST /api/downtimes/manual-start`
+  - Telemetry ile açılan plansız duruş 5 dk’dan uzun sürerse kapanışta “onay bekliyor” işaretlenir ve `POST /api/downtimes/:id/confirm` ile onaylanır
+- Planlı duruşlar rule/run modeli ve scheduler ile yönetilir:
+  - Kurallar: `backend/src/domains/downtime/models/planned-downtime-rule-model.js`
+  - Run kayıtları: `backend/src/domains/downtime/models/planned-downtime-run-model.js`
+  - Runner: `backend/src/jobs/planned-downtime-scheduler-job.js` (env ile açılır)
+- API’ler:
+  - Downtime list/update/split: `/api/downtimes`
+  - Manuel plansız başlatma: `/api/downtimes/manual-start`
+  - Uzun plansız onayı: `/api/downtimes/:id/confirm`
+  - Planned rule CRUD: `/api/planned-downtime-rules`
+  - Planned run list: `/api/planned-downtime-runs`
+  - Reason katalog: `/api/oee/reasons`
+
+Frontend
+
+- Duruşlar sayfası: `frontend/src/features/downtime/pages/downtimes.jsx`
+  - Açık duruşlar, planlı kurallar ve run geçmişi, geçmiş duruş filtreleri
+  - Reason düzeltme: 5 dk penceresi içindeyse edit, değilse split
+- Production sayfasında pause aksiyonu duruş yazmaz, Duruşlar sayfasına yönlendirir

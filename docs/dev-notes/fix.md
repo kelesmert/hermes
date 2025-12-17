@@ -74,9 +74,13 @@ Karar verilince aşağıdaki dokümanların güncellenmesi gerekir
 
 ## T02 React Router sürüm tutarsızlığı
 
+### Durum
+
+- Tamamlandı: Dokümanlar `react-router-dom` major v7 ile hizalandı.
+
 ### Gözlem
 
-- Dokümanlarda React Router v6 geçiyor.
+- Dokümanlarda React Router v6 referansları vardı.
 - Frontend bağımlılığında `react-router-dom` sürümü v7 görünüyor.
 
 Kaynaklar
@@ -382,4 +386,3 @@ Seçenek B Kodu standarda uydurma
 3. T04 ve T05 onboarding ve operasyonel tutarlılık için hızlı dokümantasyon düzeltmeleri olarak planlanabilir
 4. T06 UI yetkilendirme doğruluğu için T01 sonrasında ele alınmalı
 5. T07 ve T08 bakım ve stil standardı olarak düşük öncelikte tutulabilir
-

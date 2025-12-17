@@ -55,6 +55,13 @@
 - [x] Board domain: Dashboard metrik endpoint'leri (`/api/board/metrics`, `/api/board/machines/:id/metrics`, `/api/board/machines/:id/telemetry`)
 - [x] Parts domaini: model + CRUD endpointleri + RBAC izinleri ve seed verileri
 - [x] Production domaini: JobOrder + ProductionEvent modelleri, CRUD + start/pause/resume/produce endpointleri ve telemetry bağlı job-simulator scripti
+- [x] Downtime domaini v2: PlannedDowntimeRule/Run modelleri, rule CRUD + run list endpointleri ve scheduler job (feature-flag)
+- [x] Downtime API: açık/geçmiş duruş listesi, 5 dk düzeltme (PATCH) ve split endpointi
+- [x] Telemetry ve scheduler event yazımını DowntimeService entrypoint'inde toplama (doğrudan `MachineEvent.create` yok)
+- [x] Operatör manuel plansız duruş başlatma endpoint'i (`POST /api/downtimes/manual-start`) ve aktif job kontrolü
+- [x] Uzun plansız duruş “onay bekliyor” işareti + onay endpoint'i (`POST /api/downtimes/:id/confirm`)
+- [x] Reason katalog API'si (`GET /api/oee/reasons`) ve reasonCatalog genişletmesi (planned|unplanned + fallback kodlar)
+- [x] Data-gen planned stopped mode (planlı duruş açıkken signal/metrik = 0)
 - [ ] Event zamanlarının lokal timezone desteği (UTC+3 gibi) için helper/formatlama katmanı
 - [ ] Raporlama endpointleri (verimlilik, duruş süreleri vb.)
 - [ ] CSV/Excel export servisi
@@ -66,7 +73,7 @@
 
 ## Frontend
 
-- [x] Frontend teknoloji kararları (Vite + React (JS), MUI, React Router v6, TanStack Query, axios, React Hook Form + Zod, TanStack Table + MUI, Recharts, react-hot-toast, Context/Zustand stratejisi)
+- [x] Frontend teknoloji kararları (Vite + React (JS), MUI, React Router v7, TanStack Query, axios, React Hook Form + Zod, TanStack Table + MUI, Recharts, react-hot-toast, Context/Zustand stratejisi)
 - [x] Import alias konfigürasyonu (`@/` kısayolu hem frontend hem backend)
 - [x] React (Vite) projesi kurulumu ve temel yapı
 - [x] UI kit seçimi ve tema ayarları
@@ -80,6 +87,10 @@
 - [x] Monitoring sayfası: Seçili makine için canlı telemetry grafikler (2sn polling, 10dk kayan pencere, Recharts)
 - [x] Parça yönetimi sayfası (liste + ekle/düzenle/sil formları, kategori/birim/makine uyumluluğu)
 - [x] Production/İş Emirleri sayfası (liste, form dialog ve start/pause/resume/produce/complete aksiyon butonları)
+- [x] Downtime sayfası (`/downtimes`): Açık/Planlı/Geçmiş tabları, reason sınıflandırma (5 dk edit + split), planlı kural CRUD ve run geçmişi
+- [x] Downtime UI: Operatör manuel plansız duruş başlatma dialogu + uzun plansız duruş “Onay Bekliyor”/Onayla akışı
+- [x] Sidebar'a `Duruşlar` menüsü ve any-of permission guard (`work_orders.execute` veya `production.manage`)
+- [x] Production pause UX'i downtime yazmaz, Duruşlar sayfasına yönlendirir
 - [ ] Raporlama sayfası + filtreler
 - [x] Roller/izinler için yönetim ekranı; permission set düzenleme ve kullanıcıya rol atama modalları
 - [x] Dashboard/rapor placeholder’larını gerçek makine/event verileriyle besleyip React Query polling/WebSocket desteği ekle _(dashboard kısmı tamamlandı, rapor ekranı beklemede)_
@@ -94,6 +105,8 @@
 - [ ] Frontend için temel component testleri (React Testing Library)
 - [ ] ESLint + Prettier kurulumları, `npm run lint`/`format` script’leri ve dokümantasyonu
 - [ ] Manual end-to-end senaryoların listesi
+- [x] Downtime manuel smoke senaryoları (`docs/dev-notes/downtime-smoke.md`)
+- [ ] (Opsiyonel) Downtime stabilization ve UX polish maddeleri (bkz `docs/specs/downtime-design-v2.md`)
 - [ ] Lokal çalıştırma rehberi (README güncellemesi)
 - [ ] Docker/Docker Compose dosyaları (opsiyonel)
 - [ ] Nihai raporlama ve gelecek iş listesi güncellemesi

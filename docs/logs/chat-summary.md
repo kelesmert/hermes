@@ -9,7 +9,7 @@
 **Format:**
 
 ```markdown
-## 📅 [Tarih] - Context Window #[Numara]
+## [Tarih] - Context Window #[Numara]
 
 ### Yapılanlar
 
@@ -28,7 +28,32 @@
 
 ---
 
-## 📅 18 Kasım 2025 - Context Window #6
+## 17 Aralık 2025 - Context Window #7
+
+### Yapılanlar
+
+- Downtime v2 backend tamamlandı: planned rule/run modelleri, scheduler job, downtime list/update/split API'leri ve reason katalog endpoint'i eklendi.
+- Plansız duruş event yazımı telemetry tarafında Downtime orchestrator üzerinden tek entrypoint'e alındı.
+- Planlı duruş sırasında simülatör stopped mode eklendi (planlı event açıkken signal/metrik = 0).
+- Frontend'e `/downtimes` sayfası eklendi (Açık, Planlı, Geçmiş sekmeleri) ve Production pause akışı bu sayfaya yönlendirildi.
+- Checklist, roadmap, requirements, summary, file-overview, learning-guide, standart dokümanlar ve downtime spec güncellendi.
+
+### Alınan Kararlar
+
+- Plansız duruş telemetry-only, operatör sadece reason sınıflandırır.
+- Planlı duruş scheduler ile otomatik başlar ve biter, bitince job resume denenir.
+- Duruş reasonCode zorunlu, 5 dk düzeltme penceresi var, pencere sonrası reason değişimi split ile yapılır.
+- Permission eşlemesi ilk fazda mevcut izinlerle yapılır (any-of `work_orders.execute` veya `production.manage`).
+
+### Sonraki Adımlar
+
+- Downtime stabilization ve UX polish maddelerini tamamla (bkz `docs/specs/downtime-design-v2.md`).
+- Production `pauseJobOrder` endpoint'inde legacy MachineEvent yazımını kaldırma veya ayrı endpoint'e taşıma kararını netleştir.
+- Reports, export, audit log ve test altyapısı işleri.
+
+---
+
+## 18 Kasım 2025 - Context Window #6
 
 ### Yapılanlar
 
@@ -54,7 +79,7 @@
 
 ---
 
-## 📅 17 Kasım 2025 - Context Window #5
+## 17 Kasım 2025 - Context Window #5
 
 ### Yapılanlar
 
@@ -74,11 +99,11 @@
 
 ### Dokümantasyon Durumu
 
-- ✅ 20/21 dosya güncelleme kurallarına %100 uyumlu
-- ✅ decision-log.md: Tarih alanı yok (Domain/Karar/Gerekçe/Etki) + Markdown kuralları kararı eklendi
-- ✅ project-checklist.md: Checkbox format örnekleri korunmuş
-- ✅ Tüm MD dosyaları "Güncelleme Kuralları" bölümüne sahip
-- ✅ doc-maintenance.md: Genel Markdown Kuralları bölümü eklendi
+- 20/21 dosya güncelleme kurallarına %100 uyumlu
+- decision-log.md: Tarih alanı yok (Domain/Karar/Gerekçe/Etki) + Markdown kuralları kararı eklendi
+- project-checklist.md: Checkbox format örnekleri korunmuş
+- Tüm MD dosyaları "Güncelleme Kuralları" bölümüne sahip
+- doc-maintenance.md: Genel Markdown Kuralları bölümü eklendi
 
 ### Sonraki Adımlar
 
@@ -88,7 +113,7 @@
 
 ---
 
-## 📅 16 Kasım 2025 - Context Window #4
+## 16 Kasım 2025 - Context Window #4
 
 ### Yapılanlar
 
@@ -106,10 +131,10 @@
 
 ### Dokümantasyon Güncellemeleri
 
-- ✅ `context-initialization-prompt.md` → 600+ satırdan ~200 satıra düştü
-- ✅ `chat-summary.md` → Yeni format uygulandı
-- ✅ `doc-maintenance.md` → Cross-domain referansları eklendi
-- ✅ `project-guidelines.md` → Doküman haritası güncellendi
+- `context-initialization-prompt.md` → 600+ satırdan ~200 satıra düştü
+- `chat-summary.md` → Yeni format uygulandı
+- `doc-maintenance.md` → Cross-domain referansları eklendi
+- `project-guidelines.md` → Doküman haritası güncellendi
 
 ### Sonraki Adım
 
@@ -117,7 +142,7 @@ Reports backend entegrasyonu veya Audit Log UI geliştirmesi
 
 ---
 
-## 📅 15 Kasım 2025 - Context Window #3
+## 15 Kasım 2025 - Context Window #3
 
 ### Yapılanlar
 
@@ -145,7 +170,7 @@ Dashboard metrik kartlarını test et, Reports backend entegrasyonuna başla
 
 ---
 
-## 📅 14 Kasım 2025 - Context Window #2
+## 14 Kasım 2025 - Context Window #2
 
 ### Yapılanlar
 
@@ -173,7 +198,7 @@ Monitoring UI geliştir, Dashboard'u gerçek veriye bağla
 
 ---
 
-## 📅 13 Kasım 2025 - Context Window #1
+## 13 Kasım 2025 - Context Window #1
 
 ### Yapılanlar
 
@@ -203,16 +228,16 @@ Machines domain geliştir, OEE altyapısını kur
 
 ---
 
-## 📝 Daha Eski Kayıtlar
+## Daha Eski Kayıtlar
 
-Daha önceki context window kayıtları için:
+Daha önceki context window kayıtları için
 
-```
+```text
 /home/kelesmert/Desktop/projects/hermes/docs/logs/chat-summary-OLD-BACKUP.md
 ```
 
 ---
 
-**Son güncelleme:** 18 Kasım 2025  
-**Context window sayısı:** 6  
-**Proje durumu:** Production domain tamamlandı; Reports/Audit çalışmaları sırada
+**Son güncelleme:** 17 Aralık 2025
+**Context window sayısı:** 7
+**Proje durumu:** Downtime domain tamamlandı; Reports/Audit çalışmaları sırada

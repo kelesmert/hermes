@@ -1,5 +1,23 @@
 # OEE ve Downtime Tasarımı
 
+## Güncelleme Kuralları
+
+**Ne zaman güncellenir**
+
+- OEE formülü ve KPI kapsamı netleştiğinde
+- Downtime tasarımında v1 notlarına referans verilmesi gerektiğinde
+- Bu dokümanın “tarihsel kayıt” rolü değiştiğinde
+
+**Önemli**
+
+- Downtime implementasyonu için ana kaynak `docs/specs/downtime-design-v2.md` dokümanıdır
+- Bu doküman v1 tasarım notlarını ve OEE ile ilgili arka planı korumak için tutulur
+
+## Durum
+
+- Downtime kısmı için kaynak: `docs/specs/downtime-design-v2.md`
+- OEE KPI (Availability Performance Quality) implementasyonu bu projede daha sonra ele alınacaktır
+
 ## Amaç
 
 Bu doküman Hermes MES içinde OEE ve downtime özelliklerini tasarlamak için hazırlanmıştır.

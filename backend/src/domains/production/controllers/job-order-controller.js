@@ -50,6 +50,7 @@ const pauseJobOrder = asyncHandler(async (req, res) => {
     operatorId: req.auth?.userId,
     source: req.body?.source || 'operator',
     reason: req.body?.reason,
+    skipMachineEvent: true,
   });
   res.json({ jobOrder });
 });
@@ -58,6 +59,7 @@ const resumeJobOrder = asyncHandler(async (req, res) => {
   const jobOrder = await jobOrderService.resumeJobOrder(req.params.id, {
     operatorId: req.auth?.userId,
     source: 'operator',
+    skipMachineEvent: true,
   });
   res.json({ jobOrder });
 });

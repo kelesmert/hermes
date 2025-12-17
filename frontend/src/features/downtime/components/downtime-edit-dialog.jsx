@@ -30,8 +30,10 @@ const DowntimeEditDialog = ({ open, downtime, reasons, onClose, onSubmit, isSubm
 
   const [form, setForm] = useState({ reasonCode: '', notes: '' });
 
+  const isClosed = Boolean(downtime?.endedAt);
   const canPatch = downtime ? isEditableWithinWindow(downtime, 5) : false;
-  const actionLabel = canPatch ? 'Kaydet' : 'Split ile Değiştir';
+  const canSplit = Boolean(downtime) && !isClosed && !canPatch;
+  const actionLabel = canPatch ? 'Kaydet' : canSplit ? 'Split ile Değiştir' : 'Düzenleme Kapalı';
 
   const handleEnter = () => {
     setForm({
@@ -43,6 +45,7 @@ const DowntimeEditDialog = ({ open, downtime, reasons, onClose, onSubmit, isSubm
   const handleConfirm = () => {
     if (!downtime) return;
     if (!form.reasonCode) return;
+    if (!canPatch && !canSplit) return;
     onSubmit({ downtime, payload: { reasonCode: form.reasonCode, notes: form.notes } });
   };
 
@@ -95,7 +98,9 @@ const DowntimeEditDialog = ({ open, downtime, reasons, onClose, onSubmit, isSubm
           />
           {!canPatch && (
             <Typography variant="caption" color="text.secondary">
-              5 dk düzeltme penceresi doldu, reason değişimi split ile yapılacak.
+              {isClosed
+                ? '5 dk düzeltme penceresi doldu. Geçmiş kayıt değiştirilemez.'
+                : '5 dk düzeltme penceresi doldu, reason değişimi split ile yapılacak.'}
             </Typography>
           )}
         </Stack>
@@ -107,7 +112,7 @@ const DowntimeEditDialog = ({ open, downtime, reasons, onClose, onSubmit, isSubm
         <Button
           onClick={handleConfirm}
           variant="contained"
-          disabled={isSubmitting || !form.reasonCode}
+          disabled={isSubmitting || !form.reasonCode || (!canPatch && !canSplit)}
         >
           {actionLabel}
         </Button>
@@ -132,4 +137,3 @@ DowntimeEditDialog.propTypes = {
 };
 
 export default DowntimeEditDialog;
-

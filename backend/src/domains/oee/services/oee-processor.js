@@ -4,7 +4,7 @@ const MachineTelemetry = require('../../machines/models/machine-telemetry-model'
 const Machine = require('../../machines/models/machine-model');
 const OeeMachineState = require('../models/oee-machine-state-model');
 const machineStatuses = require('../../../constants/machine-statuses');
-const { createEvent: createMachineEvent } = require('../../machines/services/machine-event-service');
+const downtimeOrchestrator = require('../../downtime/services/downtime-orchestrator-service');
 
 const CONFIG_PATH = path.join(__dirname, '../config/oee-rules.json');
 
@@ -53,14 +53,12 @@ const getMachineState = async (machineId) => {
 
 const openDowntimeEvent = async (state, startedAt, machine) => {
   if (!machine) return;
-  const event = await createMachineEvent(machine._id, {
-    state: machineStatuses.DOWNTIME,
+  const event = await downtimeOrchestrator.openDowntimeFromTelemetry({
+    machine,
     startedAt,
     reasonCode: defaultSignalRule.reasonCode,
     reasonCategory: defaultSignalRule.reasonCategory || 'unplanned',
-    jobOrder: machine.currentJobOrder || undefined,
     description: 'Otomatik tespit edilen duruş',
-    source: 'system',
   });
 
   state.currentState = 'downtime';
@@ -69,13 +67,7 @@ const openDowntimeEvent = async (state, startedAt, machine) => {
 
 const closeDowntimeEvent = async (state, endedAt, machine, hasAssignedJob) => {
   if (machine) {
-    await createMachineEvent(machine._id, {
-      state: hasAssignedJob ? machineStatuses.RUNNING : machineStatuses.IDLE,
-      startedAt: endedAt,
-      source: 'system',
-      jobOrder: hasAssignedJob ? machine.currentJobOrder : undefined,
-      description: 'Otomatik tespit edilen duruş bitti',
-    });
+    await downtimeOrchestrator.closeDowntimeFromTelemetry({ machine, endedAt, hasAssignedJob });
   }
   state.currentState = 'running';
   state.openEvent = undefined;

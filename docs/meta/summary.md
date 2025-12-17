@@ -6,22 +6,17 @@ Bu doküman, yeni bir geliştiricinin projeyi en kısa sürede kavraması için 
 
 **Ne zaman güncellenir:**
 
-- Büyük bir domain tamamlandığında ("Tamamlanan Domainler" bölümü)
-- Teknoloji stack'i değiştiğinde (bağımlılık ekleme/çıkarma)
-- Mimari yaklaşım değiştiğinde
-- Yeni bir bölüm (örn: deployment, test) eklendiğinde
+- Büyük bir domain tamamlandığında veya mimari yaklaşım değiştiğinde
+- Teknoloji stack'i veya doküman bölümleri (deployment, test vb.) değiştiğinde
 
 **Format:**
 
-- Kısa ve öz, maksimum 60 satır tut
-- Tablo formatını koru (Katman | Teknolojiler | Kapsam)
-- "Kaynak Dosyalar" bölümünde diğer dokümanlara referans ver
+- Kısa ve öz (maksimum 60 satır), tablo formatını koru ve "Kaynak Dosyalar" referanslarını güncel tut
 
 **Önemli:**
 
 - Bu dosya özet olarak kalmalı, detay diğer dosyalara taşınmalı
 - Her context window başında okunacak kısa bir "ön bilgi" sağlamalı
-- Büyük değişiklikler dışında sık güncellenmemeli
 
 ## 1. Amaç ve Kapsam
 
@@ -33,43 +28,33 @@ Bu doküman, yeni bir geliştiricinin projeyi en kısa sürede kavraması için 
 
 | Katman   | Teknolojiler                                                                                                           | Kapsam                                                                                      |
 | -------- | ---------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| Backend  | Node.js (Express 5), MongoDB + Mongoose, JWT + refresh tokens, bcrypt                                                  | Auth, RBAC, Machines/Parts/OEE/Board/Production domainleri, seed + simülasyon scriptleri |
-| Frontend | Vite + React (JS), MUI, React Router v6, TanStack Query/Table, axios, React Hook Form + Zod, Recharts, react-hot-toast | Login akışı, kullanıcı & rol yönetimi ekranları, dashboard/rapor placeholder’ları           |
+| Backend  | Node.js (Express 5), MongoDB + Mongoose, JWT + refresh tokens, bcrypt                                                  | Auth, RBAC, Machines/Parts/Production/OEE/Board/Downtime domainleri, seed + simülasyon scriptleri |
+| Frontend | Vite + React (JS), MUI, React Router v7, TanStack Query/Table, axios, React Hook Form + Zod, Recharts, react-hot-toast | Auth akışı, yönetim ekranları, dashboard, monitoring, production ve downtimes sayfaları     |
 | Ortak    | dotenv, nodemon, `@/` alias (frontend), planlı ESLint/Prettier                                                         | Config, geliştirme deneyimi                                                                 |
 
 ## 3. Kaynak Dosyalar
 
-- `README.md`: Repo yapısı, kurulum adımları ve teknoloji listesi.
-- `backend/README.md` & `frontend/README.md`: Her katmanın çalışma talimatları.
-- `docs/project-guidelines.md`: Dil, iletişim ve süreç kuralları; doküman haritası.
-- `docs/meta/file-overview.md`: Önemli dosya/klasörlerin açıklamaları.
-- `docs/meta/learning-guide.md`: Backend/frontend akışları ve doğrulama adımları (öğretici).
-- `docs/meta/doc-maintenance.md`: Kod değişikliğinde hangi dokümanların güncelleneceği.
-- `docs/meta/summary.md` (bu dosya): Genel bakış; yeni context window'da ilk okunacak kısa özet.
-- `docs/specs/project-report.md`: Detaylı proje raporu (mezuniyet projesi tezi için); alınan kararlar ve uygulama adımları.
-- `docs/specs/project-roadmap.md`: MVP geliştirme fazları ve zaman planı.
-- `docs/roadmaps/production-roadmap.md`: Parts ve Production domain'i için özel roadmap (gelecek domainler için de benzer dosyalar oluşturulacak).
+- Readme ve kurulum: `README.md`, `backend/README.md`, `frontend/README.md`
+- Repo haritası: `docs/meta/file-overview.md`, `docs/meta/learning-guide.md`
+- Kapsam ve plan: `docs/specs/requirements.md`, `docs/specs/project-roadmap.md`, `docs/tasks/project-checklist.md`
+- Downtime tasarım kaynağı: `docs/specs/downtime-design-v2.md`
+- Süreç ve standartlar: `docs/project-guidelines.md`, `docs/meta/doc-maintenance.md`, `docs/standart/*.md`
 
 ## 4. Öne Çıkan Özellikler
 
-1. **RBAC**: `permissions → roles → users` zinciri; kullanıcılar en az bir role sahip.
-2. **Auth Akışı**: Username + şifre, JWT access token, Mongo’da saklanan hash’li refresh token, rotation destekli.
-3. **API’ler**: `/api/auth/*`, `/api/users`, `/api/roles`, `/api/permissions`, `/api/parts`, `/api/machines + /api/machines/:id/events`, `/api/production/job-orders` ve telemetry/OEE altyapısı (data-gen + job-sim, `machine_telemetry`, yalnızca aktif iş emri yürütülürken duruş açan OEE job’u). Data-gen script’i makinenin `status/currentJobOrder` bilgisine göre aktif/idle profiller arasında 10 sn içinde ramp-up/down yapıyor ve aktif makine listesini en geç 5 sn’de bir yeniliyor; dashboard metrikleri `/api/board/metrics`, Production ekranı iş emri aksiyon endpoint’lerini kullanıyor.
-4. **Seed Script**: Default roller (master/supervisor/operator/viewer) ve admin/sys/viewer kullanıcılarını üretir; kategori sözlüğüne göre örnek parçalar + makineler + telemetry verisi ekler.
-5. **Frontend UI**: Sidebar + header layout, guarded routing (PrivateRoute + PermissionGuard), TanStack Table tabanlı kullanıcı listesi, rol & izin yönetim modalları, makineler ve parçalar için CRUD ekranları.
-6. **Makine, Parça ve Üretim Domainleri**: `machines` koleksiyonu ve event modelleri, `parts` domain’i ve kategori sözlüğü ile birlikte Production domaini (JobOrder + ProductionEvent) tamamlandı. Backend’de `/api/production/job-orders` endpointleri, frontend’de `/production` sayfası üzerinden iş emirleri oluşturulup start/pause/resume/produce/complete akışı yönetiliyor.
+1. **RBAC ve Auth**: `permissions → roles → users`, username login, JWT access + refresh token rotation
+2. **Telemetry Pipeline**: `data-gen` + `machine_telemetry` + OEE processor + Board metrikleri + Monitoring grafikleri
+3. **Production**: JobOrder akışı (start/pause/resume/produce/complete) + telemetry tabanlı job simülatörü
+4. **Downtime v2**: Planlı duruş scheduler (rule/run) + plansız duruş telemetry eşiği + `/downtimes` UI (sınıflandırma, 5 dk edit, split)
+5. **Yönetim UI**: Sidebar layout + izin bazlı guard’lar, kullanıcı/rol/izin yönetimi ve domain CRUD ekranları
 
 ## 5. Roadmap ve Eksikler
 
-- **Tamamlanan:** Auth, Users, Machines, Parts, OEE, Board, Production domainleri; Dashboard, Monitoring ve Production sayfaları; data-gen + job-sim altyapısı.
-- **Devam eden:** Reports ekranı genişletmesi (`docs/specs/project-roadmap.md`), export + audit log geliştirmeleri.
-- **Eksik:** Reports ekranı genişletmesi, Audit log UI, AI içgörü modülü, cookie tabanlı token yönetimi, test/lint altyapısı.
-- Ayrıntılar: `docs/specs/project-roadmap.md`, `docs/specs/requirements.md`, `docs/roadmaps/` klasörü.
+- **Tamamlanan:** Auth, Users, Machines, Parts, Production, OEE, Board, Downtime; Dashboard, Monitoring, Production ve Downtimes sayfaları
+- **Sıradaki:** Reports ekranı, export + audit log + AI işleri (detay: `docs/specs/project-roadmap.md`, `docs/specs/requirements.md`)
 
-## 6. Nasıl Başlanır?
+## 6. Nasıl Başlanır
 
-1. `README.md` ve bu dosyayı oku; proje yapısını kavra.
-2. Gereksinimler & roadmap (#5’teki dosyalar) ile kapsamı netleştir.
-3. Backend & frontend README’lerine göre ortamı çalıştır (`npm run seed`, `npm run dev`).
-4. Güncel kararlar ve standartlar için `docs/project-guidelines.md`, `docs/standart/*.md` dosyalarını kontrol et.
-5. Kod veya doküman güncellemesi yaparken `docs/meta/doc-maintenance.md` rehberini takip et.
+1. `README.md` + `docs/meta/file-overview.md` ile repo yapısını kavra
+2. `docs/specs/requirements.md` + `docs/specs/project-roadmap.md` ile kapsamı netleştir
+3. README’lere göre ortamı çalıştır ve checklist ile doğrula (`docs/tasks/project-checklist.md`)

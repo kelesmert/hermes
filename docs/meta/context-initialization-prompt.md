@@ -55,7 +55,7 @@ docs/logs/chat-summary.md
 - Projenin amacı: MES MVP
 - Teknoloji stack: Node.js/Express + React/Vite + MongoDB
 - Repo yapısı: backend/, frontend/, docs/
-- Tamamlanan domainler: Auth, Access Control, Users, Machines, Parts, OEE, Board, Production, Dashboard
+- Tamamlanan domainler: Auth, Access Control, Users, Machines, Parts, Production, OEE, Board, Downtime, Dashboard
 
 ### project-guidelines.md
 
@@ -68,7 +68,7 @@ docs/logs/chat-summary.md
 
 - Fonksiyonel gereksinimler: Auth, RBAC, Dashboard, Makine İzleme, Parts, Raporlama, AI
 - Kullanıcı rolleri: Master, Supervisor, Operator, Viewer
-- Veri modeli: users, roles, permissions, machines, machine_events, machine_telemetry, parts, job_orders, production_events
+- Veri modeli: users, roles, permissions, machines, machine_events, machine_telemetry, parts, job_orders, production_events, planned_downtime_rules, planned_downtime_runs
 - RBAC zinciri: permissions → roles → users
 - Cross-domain ilişkiler: Machines → Parts → JobOrders
 
@@ -105,7 +105,7 @@ docs/logs/chat-summary.md
 
 Kullanıcı spesifik bir task/soru sorduğunda, o konuyla ilgili dosyaları TAM detay ile oku.
 
-### Backend Task İçin Oku:
+### Backend Task İçin Oku
 
 ```text
 docs/standart/backend-decisions.md
@@ -125,7 +125,7 @@ backend/src/domains/[domain]/controllers/
 backend/src/domains/[domain]/routes/
 ```
 
-### Frontend Task İçin Oku:
+### Frontend Task İçin Oku
 
 ```text
 docs/standart/frontend-decisions.md
@@ -143,7 +143,7 @@ frontend/src/features/[feature]/
 frontend/src/components/
 ```
 
-### Ortak/Teknik Task İçin Oku:
+### Ortak/Teknik Task İçin Oku
 
 ```text
 docs/standart/technical-decisions.md
@@ -152,10 +152,12 @@ docs/specs/project-roadmap.md
 docs/logs/tech-decision-logs.md
 ```
 
-### Cross-Domain Task İçin Oku:
+### Cross-Domain Task İçin Oku
 
 ```text
 docs/roadmaps/production-roadmap.md
+docs/specs/downtime-design-v2.md
+docs/dev-notes/downtime-smoke.md
 docs/dev-notes/dashboard-next-steps.md
 docs/meta/file-overview.md (TÜM dosya)
 ```

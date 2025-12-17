@@ -46,7 +46,7 @@ Bu doküman, mezuniyet projesi kapsamında geliştirilecek olan hafif bir Manufa
 
 - SPA yaklaşımı: Vite + React (JavaScript). Gerektiğinde TypeScript’e geçiş yapılabilir.
 - UI katmanı: MUI temel bileşenleri; gerektiğinde formlar/grafikler için alternatif kütüphaneler eklenebilir.
-- Router: React Router v6; korumalı rotalar ve permission guard’ları planlandı.
+- Router: React Router v7; korumalı rotalar ve permission guard’ları planlandı.
 - Veri katmanı: TanStack Query ile server state yönetimi ve polling; HTTP çağrıları axios üzerinden yapılacak (`baseURL = VITE_API_URL`).
 - Form doğrulama: React Hook Form + Zod.
 - Tablolar: TanStack Table + MUI bileşenleri.
@@ -93,7 +93,7 @@ Bu doküman, mezuniyet projesi kapsamında geliştirilecek olan hafif bir Manufa
 
 - SPA mimarisi için Vite + React (JavaScript) tercih edildi; TypeScript’e ihtiyaç halinde geçilebileceği not düşüldü.
 - UI kiti olarak MUI belirlendi; formlar/grafikler için gerekli olduğunda farklı kütüphaneler kullanılabilecek.
-- Router, veri çekme ve formlar için React Router v6, TanStack Query, axios, React Hook Form + Zod ikilisi seçildi; tablo/grafik için TanStack Table + MUI ve Recharts kararı alındı.
+- Router, veri çekme ve formlar için React Router v7, TanStack Query, axios, React Hook Form + Zod ikilisi seçildi; tablo/grafik için TanStack Table + MUI ve Recharts kararı alındı.
 - Bildirim altyapısı react-hot-toast ile sağlanacak; tema kararı ileriki tasarım çalışmasında verilecek.
 - Frontend `.env` yapısı ve `VITE_API_URL` standardı belirlendi; axios `baseURL` ve `withCredentials` ayarlarının backend token stratejisiyle uyumlu olması planlandı.
 - Token saklama yaklaşımı, cookie’ye geçiş tamamlanana kadar `localStorage` içinde refresh token tutup uygulama başlatıldığında `refresh` endpoint’ini çağıracak şekilde belirlendi; ileride HttpOnly cookie’lere geçilecek.

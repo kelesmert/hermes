@@ -322,7 +322,7 @@ const JobOrdersTable = () => {
                   const canEdit =
                     canManage && (status === 'pending' || status === 'paused');
                   const canDeleteJob =
-                    canManage && (status === 'pending' || status === 'cancelled');
+                    canManage && (status === 'pending' || status === 'cancelled' || status === 'completed');
                   const canStart = canExecute && status === 'pending';
                   const canPauseAction = canExecute && status === 'in_progress';
                   const canResumeAction = canExecute && status === 'paused';

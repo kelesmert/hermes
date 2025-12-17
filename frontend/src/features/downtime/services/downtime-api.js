@@ -20,6 +20,16 @@ export const splitDowntime = async (id, payload) => {
   return data.downtime;
 };
 
+export const startManualUnplannedDowntime = async (payload) => {
+  const { data } = await apiClient.post('/downtimes/manual-start', payload);
+  return data.downtime;
+};
+
+export const confirmDowntime = async (id) => {
+  const { data } = await apiClient.post(`/downtimes/${id}/confirm`);
+  return data.downtime;
+};
+
 export const fetchPlannedDowntimeRules = async (params = {}) => {
   const { data } = await apiClient.get('/planned-downtime-rules', { params });
   return data.rules;
@@ -39,3 +49,7 @@ export const deletePlannedDowntimeRule = async (id) => {
   await apiClient.delete(`/planned-downtime-rules/${id}`);
 };
 
+export const fetchPlannedDowntimeRuns = async (params = {}) => {
+  const { data } = await apiClient.get('/planned-downtime-runs', { params });
+  return data.runs;
+};

@@ -157,6 +157,15 @@ const startPlannedRun = async ({ run, rule, machineId }) => {
     });
   }
 
+  await OeeMachineState.updateOne(
+    { machine: machineId },
+    {
+      $set: { currentState: 'running' },
+      $unset: { openEvent: 1, zeroSequenceStart: 1 },
+    },
+    { upsert: true },
+  );
+
   const plannedEvent = await createMachineEvent(machineId, {
     state: machineStatuses.DOWNTIME,
     startedAt: now,
@@ -185,7 +194,10 @@ const endPlannedRun = async (run) => {
 
   await OeeMachineState.updateOne(
     { machine: run.machineId },
-    { $unset: { zeroSequenceStart: 1 } },
+    {
+      $set: { currentState: 'running' },
+      $unset: { openEvent: 1, zeroSequenceStart: 1 },
+    },
     { upsert: true },
   );
 

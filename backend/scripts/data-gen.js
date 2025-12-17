@@ -7,6 +7,7 @@ dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 const { connectDatabase } = require('../src/config/database');
 require('../src/models');
 const Machine = require('../src/domains/machines/models/machine-model');
+const MachineEvent = require('../src/domains/machines/models/machine-event-model');
 const MachineTelemetry = require('../src/domains/machines/models/machine-telemetry-model');
 const machineStatuses = require('../src/constants/machine-statuses');
 
@@ -33,6 +34,11 @@ const DEFAULT_IDLE_SIGNAL_RISE_PROB = Number.isFinite(IDLE_SIGNAL_RISE_PROB)
   ? IDLE_SIGNAL_RISE_PROB
   : 0.15;
 
+const PLANNED_STOPPED_MODE =
+  process.env.DATA_GEN_PLANNED_STOPPED_MODE === undefined
+    ? true
+    : String(process.env.DATA_GEN_PLANNED_STOPPED_MODE).toLowerCase() === 'true';
+
 const METRIC_PROFILES = {
   active: {
     temperature: { base: 60, variance: 3, smoothing: 0.25, noise: 0.4, min: 40 },
@@ -43,6 +49,11 @@ const METRIC_PROFILES = {
     temperature: { base: 34, variance: 2, smoothing: 0.25, noise: 0.3, min: 25 },
     torque: { base: 6, variance: 2, smoothing: 0.3, noise: 0.5, min: 0 },
     energy: { base: 0.25, variance: 0.05, smoothing: 0.35, noise: 0.02, min: 0.05 },
+  },
+  planned: {
+    temperature: { base: 0, variance: 0, smoothing: 0.9, noise: 0, min: 0 },
+    torque: { base: 0, variance: 0, smoothing: 0.9, noise: 0, min: 0 },
+    energy: { base: 0, variance: 0, smoothing: 0.9, noise: 0, min: 0 },
   },
 };
 
@@ -107,6 +118,27 @@ const ensureMachineState = (machine) => {
   return machineStates.get(key);
 };
 
+const loadOpenPlannedDowntimeMachineSet = async () => {
+  if (!PLANNED_STOPPED_MODE) return new Set();
+  if (!machines.length) return new Set();
+
+  const machineIds = machines.map((machine) => machine._id);
+  if (!machineIds.length) return new Set();
+
+  const openPlanned = await MachineEvent.find({
+    machine: { $in: machineIds },
+    state: machineStatuses.DOWNTIME,
+    reasonCategory: 'planned',
+    endedAt: { $exists: false },
+  }).select({ machine: 1 });
+
+  const plannedMachines = new Set();
+  openPlanned.forEach((event) => {
+    plannedMachines.add(event.machine.toString());
+  });
+  return plannedMachines;
+};
+
 const loadMachines = async () => {
   machines = await Machine.find({ isActive: true });
   machines.forEach((machine) => ensureMachineState(machine));
@@ -121,8 +153,31 @@ const ensureMachinesUpToDate = async () => {
   }
 };
 
-const generateTelemetryPayload = (machine) => {
+const generateTelemetryPayload = (machine, { plannedDowntimeMachines } = {}) => {
   const state = ensureMachineState(machine);
+  const machineKey = machine.id || machine._id.toString();
+  const isPlannedStopped = plannedDowntimeMachines?.has(machineKey);
+  if (isPlannedStopped) {
+    state.mode = 'planned';
+    state.signal = 0;
+    state.temperature = 0;
+    state.torque = 0;
+    state.energy = 0;
+    state.transitionTicks = TRANSITION_TICKS;
+    return {
+      machine: machine._id,
+      timestamp: new Date(),
+      signalValue: 0,
+      metrics: {
+        temperatureC: 0,
+        torqueNm: 0,
+        energyKwh: 0,
+      },
+      intervalMs: INTERVAL_MS,
+      source: 'simulator',
+    };
+  }
+
   const hasActiveJob = Boolean(machine.currentJobOrder);
   const isRunning = hasActiveJob && machine.status === machineStatuses.RUNNING;
   const mode = isRunning ? 'active' : 'idle';
@@ -177,7 +232,10 @@ const tick = async () => {
     if (!machines.length) {
       return;
     }
-    const docs = machines.map((machine) => generateTelemetryPayload(machine));
+    const plannedDowntimeMachines = await loadOpenPlannedDowntimeMachineSet();
+    const docs = machines.map((machine) =>
+      generateTelemetryPayload(machine, { plannedDowntimeMachines }),
+    );
     if (docs.length > 0) {
       await MachineTelemetry.insertMany(docs);
       console.log(`Data-gen: ${docs.length} telemetry kaydı eklendi.`);

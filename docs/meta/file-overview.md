@@ -5,9 +5,9 @@ Yeni geliştirici projeyi anlamak için bu dosyaya bakmalıdır.
 
 ## Kapsam
 
-- ✅ **Backend:** Tüm domain'ler (models/services/controllers/routes), config, middleware, utils, constants, scripts
-- ✅ **Frontend:** Tüm feature modülleri, ana bileşenler, lib klasörü, app providers, routing
-- ✅ **Docs:** Tüm dokümantasyon dosyaları ve klasör yapısı
+- **Backend:** Tüm domain'ler (models/services/controllers/routes), config, middleware, utils, constants, scripts
+- **Frontend:** Tüm feature modülleri, ana bileşenler, lib klasörü, app providers, routing
+- **Docs:** Tüm dokümantasyon dosyaları ve klasör yapısı
 
 ## Güncelleme Kuralı
 
@@ -32,24 +32,26 @@ Yeni geliştirici projeyi anlamak için bu dosyaya bakmalıdır.
 - `backend/src/server.js`: HTTP sunucusunu oluşturur, MongoDB bağlantısını başlatır ve app’i dinlemeye açar.
 - `backend/src/config/index.js`: Ortam değişkenlerini okuyup yapılandırma nesnesi sunar (port, client URL, JWT süreleri vb.).
 - `backend/src/config/database.js`: Mongoose ile MongoDB bağlantısını kuran yardımcı fonksiyon.
-- `backend/src/routes/index.js`: Tüm API rotalarını birleştirir (`/health`, `/auth`, `/users`, `/roles`, `/permissions`).
+- `backend/src/routes/index.js`: Tüm API rotalarını birleştirir (`/health`, `/auth`, `/users`, `/roles`, `/permissions`, `/machines`, `/parts`, `/production`, `/board`, `/oee`, `/downtimes`, `/planned-downtime-rules`, `/planned-downtime-runs`).
 - `backend/src/routes/health-routes.js`: `/api/health` uç noktasını içerir; servis durumu için basit yanıt verir.
 - `backend/src/domains/auth/`: Auth & RBAC domain’i; `controllers`, `services` (auth-service, token-service), `routes` (`auth-routes`), `models` (user, role, permission, refresh-token) klasörlerini içerir.
 - `backend/src/domains/access-control/`: Rol ve permission yönetimi için controller/service/route dosyaları (`roles-routes`, `permissions-routes`).
 - `backend/src/domains/users/`: Kullanıcı yönetimi domain’i; `users-controller`, `users-routes` burada bulunur.
-- `backend/src/domains/machines/`: Makine domain’i; ilk etapta `models/machine-model.js` ile `machines` koleksiyonunu tanımlar, ileride ilgili controller/service/route dosyaları burada yer alacak.
+- `backend/src/domains/machines/`: Makine domain’i; `machines`, `machine_events` ve `machine_telemetry` modelleri ile birlikte controller/service/route katmanlarını içerir.
 - `backend/src/domains/machines/models/machine-telemetry-model.js`: Makineye ait anlık telemetry/sinyal kayıtlarını (`machine_telemetry` koleksiyonu) saklar; 0/1 sinyal değeri, timestamp ve metrikler içerir.
 - `backend/src/domains/parts/`: Parça tanımları için domain; `models/part-model.js` parça, ideal süre ve üretilebildiği makineleri tutar, `constants/part-categories.js` kategori/birim/varsayılan makine ayarı sözlüğünü barındırır.
 - `backend/src/domains/production/`: JobOrder ve ProductionEvent modelleri, servisler ve rotalar; iş emirleri için CRUD + start/pause/resume/produce/complete aksiyonları içerir ve makine/part/operatör ilişkilerini doğrular.
+- `backend/src/domains/downtime/`: Duruş domain’i; planlı duruş rule/run modelleri, scheduler ve downtime listesi ile reason düzeltme/split API’lerini içerir.
 - `backend/src/domains/oee/config/oee-rules.json`: OEE/sinyal işleme domaini için downtime eşikleri, reason kod haritaları ve aggregation ayarlarının tutulduğu JSON konfigurasyonu.
 - `backend/src/domains/oee/models/oee-machine-state-model.js`: Her makine için son sinyal değerini, aktif duruş event’ini ve sıfır (0) serisinin başlangıcını tutar; OEE job’u bu tabloyu kullanır.
-- `backend/src/domains/oee/services/oee-processor.js`: Telemetry kayıtlarını batch halinde okuyup kuralları uygulayan servis; makine aktif iş emri yürütüyorsa `machine_events` üzerinde duruş başlatır/kapatır, değilse status’ü IDLE’da korur.
+- `backend/src/domains/oee/services/oee-processor.js`: Telemetry kayıtlarını batch halinde okuyup kuralları uygulayan servis; plansız duruş timing’ini üretir ve event yazımını downtime domain üzerinden orkestre eder.
 - `backend/src/domains/oee/services/oee-dashboard-service.js`: Telemetry/OEE verilerinden dashboard için gerekli ortalama, toplam ve trend verilerini üretir; board domain’i bu servis üzerinden API cevaplarını oluşturur.
 - `backend/src/jobs/oee-processor-job.js`: Sunucu açıldığında çalışan cron benzeri job; belirlenen aralıklarla OEE processor servisini tetikler.
+- `backend/src/jobs/planned-downtime-scheduler-job.js`: Planlı duruş scheduler runner; rule/run modeline göre planlı duruş başlatır/bitirir (feature-flag ile).
 - `backend/src/domains/board/`: Dashboard’a yönelik metrikleri toplayan domain; `services/board-service.js` telemetry/OEE sonuçlarını birleştirir, `routes/board-routes.js` `/api/board/metrics` ve `/api/board/machines/:id/metrics` endpointlerini sunar.
 - `backend/src/middleware/auth-guard.js`: JWT doğrulaması yaparak isteğe `req.auth` bilgisi ekler.
 - `backend/src/middleware/permission-guard.js`: İstenen izinlere göre erişim kontrolü yapan middleware.
-- `backend/src/models/index.js`: Domain modellerini preload eder (`domains/auth/models/*`).
+- `backend/src/models/index.js`: Domain modellerini preload eder (auth, machines, oee, production, downtime).
 - `backend/src/utils/password.js`: Şifre hash’leme ve doğrulama yardımcıları (bcrypt).
 - `backend/src/utils/jwt.js`: JWT access token üretimi ve doğrulama işlevleri.
 - `backend/src/utils/token.js`: Rastgele refresh token değeri üretme ve hash’leme yardımcıları.
@@ -60,7 +62,7 @@ Yeni geliştirici projeyi anlamak için bu dosyaya bakmalıdır.
 - `backend/src/constants/permissions.js`: Sistem genelinde kullanılacak izin anahtarlarını listeler (örn. `machines.read`).
 - `backend/src/constants/machine-statuses.js`: Makine durum enum değerlerini (`running`, `idle`, `downtime`, `maintenance`, `unknown`) merkezi olarak paylaşır.
 - `backend/scripts/seed.js`: Varsayılan rol kayıtlarını ve `.env` üzerinden verilen admin hesabını oluşturan script (`npm run seed`).
-- `backend/scripts/data-gen.js`: Simülasyon amaçlı telemetry/sinyal üretir; `npm run data:gen` ile çalıştırıldığında periyodik olarak `machine_telemetry` koleksiyonuna veri yazar, makinenin `currentJobOrder` + `status` bilgisine göre aktif (yüksek sıcaklık/tork/enerji) ile idle (düşük) profilleri arasında `DATA_GEN_TRANSITION_MS` süresince ramp-up/ramp-down uygular ve aktif makine listesini en geç `DATA_GEN_MACHINE_REFRESH_MS` süresinde yeniden sorgular.
+- `backend/scripts/data-gen.js`: Simülasyon amaçlı telemetry/sinyal üretir; `npm run data:gen` ile çalıştırıldığında periyodik olarak `machine_telemetry` koleksiyonuna veri yazar, makinenin `currentJobOrder` + `status` bilgisine göre aktif (yüksek sıcaklık/tork/enerji) ile idle (düşük) profilleri arasında `DATA_GEN_TRANSITION_MS` süresince ramp-up/ramp-down uygular ve aktif makine listesini en geç `DATA_GEN_MACHINE_REFRESH_MS` süresinde yeniden sorgular. Planlı duruş açıkken `DATA_GEN_PLANNED_STOPPED_MODE` ile signal/metrikleri 0’a kilitleyebilir.
 - `backend/scripts/job-simulator.js`: Aktif JobOrder kayıtları için ideal çevrim süresine göre good/defect üretim verisi üretir; telemetry sinyalini okuyup yalnızca makine fiziksel olarak çalışıyorsa üretim kaydı oluşturur.
 
 ## Docs
@@ -85,7 +87,8 @@ Yeni geliştirici projeyi anlamak için bu dosyaya bakmalıdır.
 - `docs/specs/requirements.md`: Proje gereksinimleri, roller, veri modeli.
 - `docs/specs/project-report.md`: Tez raporu taslağı ve mimari anlatım.
 - `docs/specs/project-roadmap.md`: Geliştirme fazları ve kilometre taşları.
-- `docs/specs/oee-downtime-design.md`: OEE ve downtime tasarımı; planlı/plansız/kısa duruş yaklaşımı, reasonCode standardı, akışlar, faz planı ve açık sorular.
+- `docs/specs/oee-downtime-design.md`: OEE ve downtime tasarımı v1; tarihsel kayıt ve OEE notları için korunur, downtime implementasyonu için kaynak değildir.
+- `docs/specs/downtime-design-v2.md`: Downtime implementasyonu için ana tasarım; planlı scheduler, plansız telemetry + operatör manuel başlatma semantiği, API ve UI akışları.
 
 ### docs/roadmaps
 
@@ -111,6 +114,7 @@ Yeni geliştirici projeyi anlamak için bu dosyaya bakmalıdır.
 ### docs/dev-notes
 
 - `docs/dev-notes/dashboard-next-steps.md`: Telemetry → OEE → board akışındaki gelecek iyileştirme planları ve hızlı bakım notları (TODO'lar tamamlanınca silinir).
+- `docs/dev-notes/downtime-smoke.md`: Downtime kapsamındaki manuel smoke test senaryoları.
 
 ## Frontend
 
@@ -121,14 +125,15 @@ Yeni geliştirici projeyi anlamak için bu dosyaya bakmalıdır.
 - `frontend/src/features/*`: Domain odaklı modüller (auth, dashboard, raporlar, kullanıcılar vb.).
 - `frontend/src/features/machines/`: Makine yönetimi modülü; liste, CRUD dialogları ve duruş kayıtlarını içeren bileşenler.
 - `frontend/src/features/parts/`: Parça tanımları için liste + CRUD modülü; backend Parts domain’i ile çalışır, makine uyumluluğu ve varsayılan ayarların girildiği form bileşenlerini içerir. `components/part-form-dialog.jsx` kategori sözlüğündeki `defaultValue` alanlarını form alanlarına placeholder olarak işler ve kullanıcı boş bırakırsa aynı değerler otomatik olarak kayda yazılır.
-- `frontend/src/features/production/`: İş emirleri (JobOrder) ekranı; liste tablosu, oluştur/düzenle dialogu ve start/pause/resume/produce/complete/cancel aksiyon dialoglarını içerir, backend Production API’sine entegredir.
+- `frontend/src/features/production/`: İş emirleri (JobOrder) ekranı; liste tablosu, oluştur/düzenle dialogu ve start/resume/produce/complete/cancel aksiyon dialoglarını içerir. “Pause” aksiyonu downtime event yazmaz ve kullanıcıyı `/downtimes` sayfasına yönlendirir.
+- `frontend/src/features/downtime/`: Duruşlar sayfası; açık duruş listesi, planlı duruş kural yönetimi ve run geçmişi, geçmiş duruş filtreleri ve reason sınıflandırma akışlarını içerir. Operatör manuel plansız duruş başlatabilir (aktif job şartlı) ve 5 dk’dan uzun telemetry plansız duruşlar “Onay Bekliyor” olarak işaretlenip onaylanabilir.
 - `frontend/src/features/monitoring/pages/monitoring.jsx`: Makine/hat seçimi yaparak anlık telemetry ve sinyal trendini gösteren canlı izleme sayfası.
 - `frontend/src/features/users/components/`: Kullanıcı tablosu, kullanıcı formu, rol/permission yönetimi gibi modüler bileşenler.
 - `frontend/src/lib/api/client.js`: Tüm frontend HTTP çağrılarını yapan axios instance; `baseURL` her zaman `VITE_API_URL`'dir.
 - `frontend/src/lib/query-client.js`: TanStack Query client konfigürasyonu.
 - `frontend/src/lib/storage.js`: LocalStorage helper ve `SESSION_STORAGE_KEY` tanımı.
 - `frontend/src/styles/global.css`: Global tema/Reset ayarları.
-- Teknoloji seti: Vite + React (JS), MUI, React Router v6, TanStack Query + axios, React Hook Form + Zod, TanStack Table + MUI, Recharts ve react-hot-toast. Tema hafif/sade tutulacak, durum yönetimi Context + custom hook ile başlayacak (gerekirse Zustand).
+- Teknoloji seti: Vite + React (JS), MUI, React Router v7, TanStack Query + axios, React Hook Form + Zod, TanStack Table + MUI, Recharts ve react-hot-toast. Tema hafif/sade tutulacak, durum yönetimi Context + custom hook ile başlayacak (gerekirse Zustand).
 - Import alias kuralı: Hem frontend hem backend’de `@/` alias’ı kök `src/` klasörlerine işaret edecek; böylece dosya yapısı uzun relatif yollara ihtiyaç duymadan okunabilir kalacak.
 
 > Not: Yeni dosyalar (örneğin RBAC middleware, simülasyon script’i, frontend bileşenleri) eklendikçe bu liste güncellenecek.

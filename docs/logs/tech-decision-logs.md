@@ -82,10 +82,11 @@ Bu doküman projede kullanılan veya ileride kullanılacak teknolojileri, neden 
 - **Neden?** Zengin bileşen seti, tema sistemi ve kurumsal dashboard’lar için hazır tasarım bileşenleri sağlar.
 - **Görev:** Layout, form kontrolleri, tablo/grafik kapsayıcıları ve genel UI elemanlarını sunar.
 
-### React Router v6
+### React Router
 
 - **Neden?** SPA içinde sayfa/rota yönetimini deklaratif şekilde kurmak için modern bir çözüm.
 - **Görev:** Auth guard’ları, rol bazlı erişim ve nested layout yapılarının temelini oluşturur.
+- **Not:** Projede kullanılan paket `react-router-dom` (mevcut major: v7).
 
 ### @tanstack/react-query
 

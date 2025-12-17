@@ -30,7 +30,7 @@
 - Frontend için güncel kararlar:
   - Proje iskeleti Vite + React (SPA) ve JavaScript ile kurulacak; ihtiyaç halinde TypeScript’e geçilecek.
   - UI kiti olarak temel MUI bileşenleri kullanılacak; formlar veya grafiklerde gerektiğinde farklı kütüphaneler tercih edilebilecek.
-  - React Router v6 yönlendirme, TanStack Query veri çekme, axios HTTP istemcisi olacak.
+  - React Router v7 yönlendirme, TanStack Query veri çekme, axios HTTP istemcisi olacak.
   - Formlar React Hook Form + Zod ile yönetilecek; tablolar TanStack Table + MUI, grafikler Recharts ile render edilecek.
   - Bildirimler için react-hot-toast kullanılacak.
 - Refresh token şimdilik `localStorage` içinde saklanacak ve uygulama açılışında otomatik `POST /api/auth/refresh` çağrısı yapılacak; HttpOnly cookie yapısına geçiş opsiyonel olup gereksinim ortaya çıkarsa ayrıca planlanacak.
@@ -70,6 +70,7 @@
 - [logs/tech-decision-logs.md](logs/tech-decision-logs.md): Kullanılan/planlanan teknolojilerin neden seçildiği; bilgi amaçlı.
 - [logs/chat-summary.md](logs/chat-summary.md): **[ESKİ FORMAT - ARTİK KULLANILMIYOR]** Yeni context window için `meta/context-initialization-prompt.md` kullanın.
 - [specs/requirements.md](specs/requirements.md): Ürün gereksinimleri, roller, veri modeli ve açık sorular.
+- [specs/downtime-design-v2.md](specs/downtime-design-v2.md): Downtime implementasyonu için ana tasarım ve yol haritası.
 - [specs/project-report.md](specs/project-report.md): Tez raporu taslağı; mimari ve bulguların akademik anlatımı.
 - [specs/project-roadmap.md](specs/project-roadmap.md): Faz planları ve kilometre taşları.
 - [tasks/project-checklist.md](tasks/project-checklist.md): Somut görevlerin listesi; tamamlananlar işaretlenir, silinmez.

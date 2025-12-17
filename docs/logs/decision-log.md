@@ -76,7 +76,7 @@ Bu dosya, projede alınan mimarî ve teknolojik kararları, gerekçelerini ve be
 
 ### MUI + Destekleyici Kütüphaneler
 
-- **Karar:** UI kiti olarak MUI; veri katmanı için React Router v6, TanStack Query, axios; formlar için React Hook Form + Zod; tablolar için TanStack Table + MUI; grafikler için Recharts; bildirimler için react-hot-toast.
+- **Karar:** UI kiti olarak MUI; veri katmanı için React Router v7, TanStack Query, axios; formlar için React Hook Form + Zod; tablolar için TanStack Table + MUI; grafikler için Recharts; bildirimler için react-hot-toast.
 - **Gerekçe:** Dashboard odaklı kurumsal UI’ler için hızlı bileşen üretimi, veri çekme/polling için hazır çözüm, formlarda performanslı validasyon, tablo/grafiklerde React-first yaklaşımlar.
 - **Etkisi:** Tutarlı tasarım dili, tekrar kullanılabilir component kütüphanesi, polling/tablo/export gereksinimleri için hazır altyapı.
 
@@ -152,7 +152,7 @@ Bu dosya, projede alınan mimarî ve teknolojik kararları, gerekçelerini ve be
 
 Yeni kararlar alındıkça bu dosyaya tarih/başlık/gerekçe formatıyla ekleme yapılmalıdır.
 
-- ### Kullanıcı Adı Bazlı Kimlik Doğrulama
+### Kullanıcı Adı Bazlı Kimlik Doğrulama
 
 - **Karar:** Kullanıcı girişleri e-posta yerine zorunlu `username` alanı ile yapılacak; e-posta opsiyonel olup sadece bildirim/şifre sıfırlama için saklanacak. Seed script’i admin/sys hesaplarına username tanımlar ve mevcut kullanıcıların eksik username alanlarını doldurur.
 - **Gerekçe:** Üretim sahasında kullanıcılar genellikle şirket e-postası kullanmıyor; sade ve benzersiz bir kimlik gerekli.
@@ -230,3 +230,52 @@ Yeni kararlar alındıkça bu dosyaya tarih/başlık/gerekçe formatıyla ekleme
 - **Karar:** Parça formu kategori sözlüğündeki `defaultValue` alanlarını varsayılan makine ayarı alanlarında placeholder olarak gösteriyor ve kullanıcı boş bıraktığında aynı değerleri kayda yazıyor.
 - **Gerekçe:** Her yeni parçada feed rate/spindle gibi değerleri elle girmek zaman alıyordu; yanlış veya eksik girişler oluyordu.
 - **Etki:** `frontend/src/features/parts/constants/part-categories.js` defaultValue alanlarıyla güncellendi, `part-form-dialog.jsx` ise bu değerleri hem placeholder olarak gösteriyor hem de boş alanları otomatik dolduruyor.
+
+### Downtime v2 Planlı ve Plansız Semantiği
+
+- **Domain:** Ortak - downtime/oee/production
+- **Karar:** Plansız duruşlar telemetry eşiği ile otomatik açılır ve sinyal 1 gelince kapanır; ayrıca operatör job `in_progress` iken plansız duruşu manuel başlatabilir (reason zorunlu). Telemetry ile açılan plansız duruş 5 dk’dan uzun sürerse kapanışta “onay bekliyor” işaretlenir ve UI’dan onaylanır. Planlı duruşlar scheduler ile otomatik başlar ve otomatik biter; bitişte job resume denenir.
+- **Gerekçe:** Operatörün “makineyi şimdi durduruyorum” senaryosunda 10 sn beklemeden duruşu başlatabilmesi ve sebep girebilmesi gerekir. Telemetry ile açılan kısa micro-stop’larda operatörü yormamak, uzun duruşlarda ise kayıt kalitesini artırmak için “onay bekliyor” görünürlüğü gerekir. Planlı duruşların otomatik olması, “uygulanmadı/skipped” ve “çakışma/conflict” gibi gerçek durumların ölçülebilir olmasını sağlar.
+- **Etki:** `POST /api/downtimes/manual-start` ile operatör manuel plansız duruş açar; `POST /api/downtimes/:id/confirm` ile uzun plansız duruş onayı yapılır. UI akışı `Duruşlar` sayfasında başlatma + sınıflandırma + plan yönetimi üzerine kurulur.
+
+### Downtime Event Yazımı Tek Kapı
+
+- **Domain:** Backend - downtime/machines/oee/production
+- **Karar:** Downtime event’leri (telemetry ve scheduler kaynaklı) doğrudan `MachineEvent.create` ile yazılmaz; tek entrypoint Downtime domain orchestrator/service olur ve altında `machine-event-service` kullanılır.
+- **Gerekçe:** Tek açık event kuralı, makine status güncellemesi ve preempt gibi çakışma senaryoları tek bir yerde enforce edilmezse süreler şişer ve “makinenin şu anki state’i” belirsizleşir.
+- **Etki:** `oee-processor` ve planlı scheduler, `downtime-orchestrator-service` üzerinden event aç/kapat çağırır; Production pause/resume akışı MachineEvent yazımı yapmaz.
+
+### Downtime Event Snapshot Alanları
+
+- **Domain:** Backend - machines/downtime
+- **Karar:** Downtime event’i açılırken `jobOrder` (ObjectId) ve `reasonCategory` (planned|unplanned) değerleri event’e snapshot olarak yazılır; yalnızca `metadata.jobOrderNo` gibi string alanlarla yetinilmez.
+- **Gerekçe:** `Machine.currentJobOrder` zaman içinde değişebileceği için geçmiş event’lerin “hangi job sırasında yaşandığı” güvenilir şekilde çıkarılamaz. Katalog değişse bile geçmiş event kategorisi sabit kalmalıdır.
+- **Etki:** `MachineEvent` model/svc imzaları genişler; downtime listesi ve raporlama için event geçmişi daha güvenilir olur.
+
+### Reason Kataloğu ve Kategori Modeli
+
+- **Domain:** Ortak - oee/downtime/ui
+- **Karar:** Reason katalog iki kategoriye ayrılır (planned/unplanned); `maintenance` planned kabul edilir. İlk faz minimum set + `other_planned` ve `other_unplanned` fallback kodları ile başlar; UI reason listesi `GET /api/oee/reasons` ile servis edilir.
+- **Gerekçe:** Reason zorunluluğu varken “kaçış” seçenekleri yoksa kullanıcı akışı kilitlenir. Maintenance’in ayrı kategori olması filtre/OEE tarafında karmaşıklık yaratır.
+- **Etki:** `oee-rules.json` reasonCatalog genişler, UI dropdown’ları tek endpoint’ten beslenir; event yazımında `reasonCategory` snapshot uygulanır.
+
+### Düzeltme Penceresi ve Split Politikası
+
+- **Domain:** Backend - downtime
+- **Karar:** Reason değişimi normalde split ile yapılır (bitir + yeni event başlat). Yanlış seçimleri hızlı düzeltmek için 5 dk düzeltme penceresinde aynı event üzerinde PATCH izin verilir: event açıksa `startedAt + 5dk`, kapalıysa `endedAt + 5dk`.
+- **Gerekçe:** Tek event içinde birden fazla reason süre kırılımını bozar; ancak saha kullanımı için “yanlış seçimi hızlı düzelt” ihtiyacı gerçek.
+- **Etki:** `PATCH /api/downtimes/:id` sadece pencere içinde çalışır; pencere dışı değişiklik `POST /api/downtimes/:id/split` ile yapılır.
+
+### Downtime RBAC Eşlemesi ve UI Erişimi
+
+- **Domain:** Ortak - access-control/downtime
+- **Karar:** İlk fazda yeni permission eklenmez; planlı kural CRUD `production.manage`, duruş sınıflandırma/düzeltme/split `work_orders.execute` ile korunur. Açık/geçmiş duruş listesi ve planlı run geçmişini operator ve supervisor görebilir.
+- **Gerekçe:** MVP’de permission sayısını şişirmeden yetki ayrımını korumak; planlı kural yönetimi supervisor, operasyonel sınıflandırma operator sorumluluğunda.
+- **Etki:** Frontend’de “Duruşlar” menüsü ve sayfası any-of guard ile açılır; backend route guard’ları mevcut permissionlarla yönetilir.
+
+### Simülatör Planned Stopped Mode
+
+- **Domain:** Backend - simulation/downtime
+- **Karar:** Planlı downtime event açıkken data-gen sinyali ve metrikleri 0’a kilitler (planned stopped mode); planlı event bittiğinde normal mod’a döner.
+- **Gerekçe:** Planlı duruş sırasında monitoring ekranında metriklerin “çalışıyor” gibi görünmesi operatör güvenini kırar ve duruşun gerçekliğini sorgulatır.
+- **Etki:** `DATA_GEN_PLANNED_STOPPED_MODE` env ile kontrol edilen simülasyon davranışı; smoke test senaryolarında planlı duruş görsel olarak doğrulanabilir.

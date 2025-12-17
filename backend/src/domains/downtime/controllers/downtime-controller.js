@@ -20,9 +20,24 @@ const splitDowntime = asyncHandler(async (req, res) => {
   res.status(201).json({ downtime: created });
 });
 
+const startManualUnplannedDowntime = asyncHandler(async (req, res) => {
+  const created = await downtimeService.startManualUnplannedDowntime(req.body, {
+    userId: req.auth?.userId,
+  });
+  res.status(201).json({ downtime: created });
+});
+
+const confirmDowntime = asyncHandler(async (req, res) => {
+  const updated = await downtimeService.confirmDowntime(req.params.id, {
+    userId: req.auth?.userId,
+  });
+  res.json({ downtime: updated });
+});
+
 module.exports = {
   listDowntimes,
   updateDowntime,
   splitDowntime,
+  startManualUnplannedDowntime,
+  confirmDowntime,
 };
-

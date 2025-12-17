@@ -66,22 +66,30 @@ Bu proje, Node.js/Express backend, React frontend ve MongoDB veritabanı kullana
    - Supervisor rolü bir parça seçip uyumlu makineler arasından hedef makineyi belirleyerek iş emri oluşturur.
    - Start/pause/resume/produce/complete/cancel aksiyonları API tarafında ayrı endpoint’lerle sağlanır; izin kontrolleri `production.manage` ve `work_orders.execute` üzerinden yapılır.
    - `ProductionEvent` kayıtları her aksiyonu, üretim miktarını ve (varsa) hata tipini loglar; frontend’de olay geçmişi modalı üzerinden görüntülenir.
-9. **Veri Simülasyonu**
+9. **Duruş Yönetimi (Downtime)**
+   - Planlı ve plansız duruşlar `machine_events` timeline’ında tutulur, aynı anda 1 makinede yalnızca 1 açık event kuralı uygulanır.
+   - Plansız duruşlar sadece telemetry eşiği ile açılır (minor stop eleme): makine aktif job yürütürken sinyal 0 serisi `downtimeThresholdMs` (varsayılan 10 sn) aşarsa açılır, sinyal 1 gelince kapanır.
+   - Operatör plansız duruş başlatıp bitirmez, yalnızca reasonCode ile sınıflandırır. ReasonCode zorunludur; yanlış seçim için 5 dk düzeltme penceresi vardır, pencere sonrası reason değişimi split ile yapılır.
+   - Planlı duruşlar scheduler ile otomatik başlar ve biter. Planlı kural modeli günlük tekrar (recurrence) ve tek seferlik tarih aralığını destekler; saat dilimi `Europe/Istanbul` olarak ele alınır.
+   - Planlı duruş kuralı yalnızca seçili makineler için geçerlidir. Varsayılan öğle arası kuralı otomatik eklenmez, supervisor seçip ekler.
+   - Çakışma yönetimi: kullanıcı planlı > öğle arası planlı > plansız. Planlı başlarken plansız açıksa kapatılır ve planlı başlar.
+   - Yetki ayrımı: planlı kural CRUD supervisor, sınıflandırma/düzeltme/split operator ve supervisor (ilk fazda mevcut permissionlarla).
+10. **Veri Simülasyonu**
    - `npm run data:gen`: Her makine için telemetry sinyali (0/1) ve metrikler üretir. Aktif job varken sinyalin 1’de kalma olasılığı artırılmıştır, idle makinelerde rastgele 0/1 üretilir.
    - Sinyal/mount profili `DATA_GEN_TRANSITION_MS` ile yönetilir; varsayılan 10 saniye içinde sıcaklık/tork/enerji değerleri yeni moda hızlıca yaklaşır ve monitoring ekranları ramp-up/ramp-down davranışı gösterir.
    - `npm run job:sim`: Aktif JobOrder kayıtlarını okuyup son telemetry sinyaline göre good/defect üretim eventleri oluşturur; sinyal 1 değilse üretim yazılmaz.
    - OEE processor yalnızca `downtimeThresholdMs` boyunca sinyal 0 olduğunda duruş açar; signal timeout devre dışı bırakılmıştır.
-10. **Raporlama & Export**
+11. **Raporlama & Export**
    - Verimlilik, OEE benzeri metrikler veya makine bazlı uptime/downtime süreleri.
    - Zaman aralığı/rol/etiket filtreleri.
    - CSV veya Excel çıktısı indirme.
-11. **AI Destekli Analiz**
+12. **AI Destekli Analiz**
     - Toplanan verilerden “en stabil makine”, “duruş sebebi tahmini” gibi özetler.
     - İlk etapta kural tabanlı veya hazır servis kullanımı; ileride model genişletilebilir.
-12. **Audit Log**
+13. **Audit Log**
     - Login, kritik CRUD işlemleri, rol değişimleri gibi aksiyonlar kaydedilecek.
     - Basit arama/filtre arayüzü ile görüntülenebilecek.
-13. **Bildirimler (Opsiyonel)**
+14. **Bildirimler (Opsiyonel)**
 
 - Kritik duruşlarda e-posta veya sistem içi uyarılar (MVP’de sadece dashboard bildirimleri).
 
@@ -100,10 +108,12 @@ Bu proje, Node.js/Express backend, React frontend ve MongoDB veritabanı kullana
 - `roles`: rol adı, açıklama, permission referansları, varsayılan rol bilgisi.
 - `permissions`: sistem genelindeki aksiyonların (örn. `machines.read`, `reports.export`) tanımı; roller bu koleksiyondan izin referansı alır.
 - `machines`: makine adı/kodu, açıklama, bağlı operatörler, mevcut durum.
-- `machine_events`: makine, durum, başlangıç/bitiş zamanları, notlar, tetikleyen kullanıcı/script bilgisi.
+- `machine_events`: makine, state, başlangıç/bitiş zamanları, reasonCode ve reasonCategory (planned|unplanned), jobOrder snapshot, metadata (plannedRuleId/runId, autoDetected vb.).
 - `machine_telemetry`: makine id, timestamp, sinyal değeri (0/1), metrikler (sıcaklık, tork, enerji), kaynak bilgisi (simulator/edge_gateway).
 - `oee_machine_states`: Makine başına son sinyal değeri, aktif downtime event referansı, sıfır serisi başlangıç zamanı; OEE processor job tarafından kullanılır.
 - `parts`: parça adı/kodu, kategori, birim, ideal cycle time, uyumlu makineler, varsayılan makine ayarları.
+- `planned_downtime_rules`: planlı duruş kuralları (machineIds, recurrence/one_time, timezone, priority, reasonCode, createdBy).
+- `planned_downtime_runs`: planlı duruş çalıştırma kayıtları (scheduledStart/End, status, machineEventId, jobOrderId snapshot, debug).
 - `reports`: rapor tipi, filtreler, sonuç özeti, oluşturulma tarihi.
 - `audit_logs`: kullanıcı, aksiyon tipi, hedef kaynak, timestamp, ek bilgiler.
 - `ai_insights`: algoritma tipi, çıktı, güven skoru, oluşturulma zamanı.
@@ -116,6 +126,8 @@ Bu proje, Node.js/Express backend, React frontend ve MongoDB veritabanı kullana
 - **Parts:** `GET /parts`, `POST /parts`, `PATCH /parts/:id`, `DELETE /parts/:id`, `GET /parts/:id/compatible-machines`.
 - **Production:** `GET/POST /production/job-orders`, `PATCH /production/job-orders/:id`, `POST /production/job-orders/:id/start|pause|resume|produce|complete|cancel`, `GET /production/job-orders/:id/events`.
 - **Board (Dashboard):** `GET /board/metrics` (global metrikler), `GET /board/machines/:id/metrics` (tekil makine), `GET /board/machines/:id/telemetry` (telemetry serisi).
+- **OEE:** `GET /oee/reasons` (reason katalog).
+- **Downtime:** `GET /downtimes`, `PATCH /downtimes/:id`, `POST /downtimes/:id/split`, `GET/POST/PATCH/DELETE /planned-downtime-rules`, `GET /planned-downtime-runs`.
 - **Reports:** `GET /reports/summary`, `GET /reports/export`.
 - **AI Insights:** `GET /insights/latest`, `POST /insights/recompute` (admin).
 - **Audit:** `GET /audit?user=&action=&date=`.
@@ -129,6 +141,7 @@ Bu proje, Node.js/Express backend, React frontend ve MongoDB veritabanı kullana
 - Monitoring sayfası (canlı telemetry grafikler, 2sn polling, Recharts).
 - Makine listesi + detay modal/ekranı.
 - Parts listesi + CRUD modal/ekranı (kategori/birim/makine uyumluluğu).
+- Duruşlar sayfası: Açık duruşlar, planlı duruş kural yönetimi ve run geçmişi, geçmiş duruş filtreleri, reason sınıflandırma (5 dk edit + split).
 - Raporlama ekranı (filtreler + tablo/grafik + export butonu).
 - AI içgörü paneli.
 - Kullanıcı yönetimi ekranları.
@@ -158,7 +171,7 @@ Bu proje, Node.js/Express backend, React frontend ve MongoDB veritabanı kullana
 
 - Mimari: Vite + React (SPA) ve JavaScript; gerektiğinde TypeScript’e geçiş yapılacak.
 - UI: MUI temel bileşenleri, ihtiyaç halinde spesifik formlar/grafikler için ek kütüphaneler kullanılacak.
-- Router: React Router v6.
+- Router: React Router v7.
 - Veri çekme: TanStack Query (React Query) + axios (`baseURL = VITE_API_URL`, gerekirse cookie tabanlı auth için `withCredentials` desteği devreye alınacak).
 - Form doğrulama: React Hook Form + Zod.
 - Tablo/Grafik: TanStack Table + MUI bileşenleri, Recharts.

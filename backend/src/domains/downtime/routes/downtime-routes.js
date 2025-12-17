@@ -14,6 +14,18 @@ router.get(
   downtimeController.listDowntimes,
 );
 
+router.post(
+  '/manual-start',
+  requireAnyPermission(permissions.WORK_ORDERS_EXECUTE, permissions.PRODUCTION_MANAGE),
+  downtimeController.startManualUnplannedDowntime,
+);
+
+router.post(
+  '/:id/confirm',
+  requireAnyPermission(permissions.WORK_ORDERS_EXECUTE, permissions.PRODUCTION_MANAGE),
+  downtimeController.confirmDowntime,
+);
+
 router.patch(
   '/:id',
   requireAnyPermission(permissions.WORK_ORDERS_EXECUTE, permissions.PRODUCTION_MANAGE),
@@ -27,4 +39,3 @@ router.post(
 );
 
 module.exports = router;
-

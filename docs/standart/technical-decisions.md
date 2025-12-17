@@ -30,7 +30,7 @@
 
 ## 2. Ortam Değişkenleri
 
-- Backend `.env` dosyaları `backend/.envexample` şablonunu takip eder; frontend `VITE_` prefix’li env kullanır.
+- Backend `.env` dosyaları `backend/.env.example` şablonunu takip eder; frontend `VITE_` prefix’li env kullanır.
 - `VITE_API_URL` değeri backend API kökünü gösterir (lokalde `http://localhost:5000/api`).
 - Access/refresh token cookie mimarisine geçildiğinde hem backend hem frontend `.env` şablonları aynı anda güncellenir.
 

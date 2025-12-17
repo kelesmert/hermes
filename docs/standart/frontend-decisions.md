@@ -35,7 +35,7 @@
 
 - **Build Tool:** Vite (React + JavaScript template). TypeScript’e geçiş gerekiyorsa bu dosya güncellenecek.
 - **UI Kiti:** MUI temel bileşenleri. Farklı form/grafik kütüphanesi eklemek gerekiyorsa önce gerekçesiyle burada belirtilir.
-- **Router:** React Router v6.
+- **Router:** React Router v7.
 - **Data Fetching:** TanStack Query (React Query) + axios.
 - **Formlar:** React Hook Form + Zod.
 - **Tablolar & Grafikler:** TanStack Table + MUI kombinasyonu ve Recharts.
@@ -68,6 +68,7 @@ frontend/
 - Header bölümleri: kullanıcı menüsü, genel arama alanı, notifications dropdown. Placeholder dahi olsa bu yapıyı korur.
 - Breadcrumbs her korumalı sayfada görünür; React Router konfigürasyonu breadcrumb bilgisini route meta’sından alacak şekilde tasarlanır.
 - Mobil tam destek zorunlu değil ancak tablet (≥768px) görünümü bozulmamalı.
+- Downtime sayfası `/downtimes` rotasında yer alır ve sidebar’da ayrı bir menü maddesi olarak görünür; erişim kuralı any-of `work_orders.execute` veya `production.manage` olmalıdır.
 
 ## 4. Auth & State Yönetimi
 
@@ -77,13 +78,14 @@ frontend/
 - SessionProvider backend’den gelen rol + permission detaylarını saklar; `ROLE_PERMISSIONS` yalnızca varsayılan roller için fallback olarak tutulur.
 - Route guard’lar:
   - `PrivateRoute`: kimlik doğrulaması gerekli sayfalar.
-  - `PermissionGuard`: `requiredPermissions` dizisindeki tüm izinlerin varlığını kontrol eder (backend ile uyumlu).
+  - `PermissionGuard`: default olarak `requiredPermissions` dizisindeki tüm izinlerin varlığını kontrol eder (`mode="every"`). Bazı sayfalar için any-of kontrolü gerekir (`mode="any"`).
 - `/users` rotası TanStack Table ile kullanıcı listesini gösterir; kullanıcı silme/düzenleme dialogları yalnızca `users.manage` iznine sahip kullanıcılar için aktiftir. Aynı sayfadaki “Roller & İzinler” sekmesi `roles.manage` iznine sahip kullanıcılara açıktır.
 - `/machines` rotası makine tablosu, CRUD modalları ve event diyaloğunu içerir; menüde `machines.read` izni ile görünür. Durum kaydı ekleyebilmek için kullanıcıların `machines.write` iznine sahip olması zorunludur.
 - **Monitoring Sayfası (`/monitoring`):** Seçili makinenin canlı telemetry grafiklerini gösterir. TanStack Query `refetchInterval: 2000` ile backend'den telemetry serisi çeker. 10 dakikalık kayan pencere (telemetryWindowMs) içindeki veriler Recharts kütüphanesi ile görselleştirilir. Metrikler: Sinyal durumu (0/1), sıcaklık, tork, enerji tüketimi.
 - **Dashboard Makine Kartları (`/dashboard`):** Board domain endpoint'leri (`/api/board/metrics`, `/api/board/machines/:id/metrics`) üzerinden veri alır. React Query `refetchInterval` ile polling yapılır; kart bileşenleri MUI Card + Grid yapısı kullanır.
 - **Parts Sayfası (`/parts`):** Parça listesi TanStack Table ile gösterilir. CRUD modalları kategori/birim/makine uyumluluğu seçimlerini içerir. Kategori seçimi yapıldığında frontend `part-categories.js` konfigürasyonuna göre izin verilen birim ve makine ayarı alanlarını dinamik olarak gösterir.
-- **Production/İş Emirleri Sayfası (`/production`):** JobOrder tablosu TanStack Table ile render edilir; start/pause/resume/produce/complete/cancel aksiyonları dialog tabanlıdır ve backend izinleriyle (`production.read`, `work_orders.execute`) guard’lanır. Operasyonlar TanStack Query mutation’ları üzerinden axios API çağrılarıyla yapılır, event geçmişi ayrı dialog’da gösterilir.
+- **Production/İş Emirleri Sayfası (`/production`):** JobOrder tablosu TanStack Table ile render edilir; start/resume/produce/complete/cancel aksiyonları dialog tabanlıdır ve backend izinleriyle (`production.read`, `work_orders.execute`) guard’lanır. “Pause” aksiyonu downtime event yazmaz ve kullanıcıyı `/downtimes` sayfasına yönlendirir. Operasyonlar TanStack Query mutation’ları üzerinden axios API çağrılarıyla yapılır, event geçmişi ayrı dialog’da gösterilir.
+- **Downtime Sayfası (`/downtimes`):** Açık duruşlar, planlı duruş kuralları ve run geçmişi ile geçmiş duruş filtrelerini içerir. Operatör job aktifken manuel plansız duruş başlatabilir (reason zorunlu). Reason sınıflandırma akışı 5 dk düzeltme penceresi ve split semantiğine göre çalışır; 5 dk’dan uzun telemetry plansız duruşlar “Onay Bekliyor” olarak işaretlenir ve geçmiş listeden onaylanır.
 
 ## 5. Veri Erişimi ve Hata Yönetimi
 

@@ -450,8 +450,8 @@ const recordProduction = async (
 
 const deleteJobOrder = async (id) => {
   const jobOrder = await ensureJobOrder(id);
-  if (![JOB_STATUS.PENDING, JOB_STATUS.CANCELLED].includes(jobOrder.status)) {
-    throw new AppError('Sadece bekleyen veya iptal edilmiş iş emirleri silinebilir.', 400);
+  if (![JOB_STATUS.PENDING, JOB_STATUS.CANCELLED, JOB_STATUS.COMPLETED].includes(jobOrder.status)) {
+    throw new AppError('Sadece bekleyen, iptal edilmiş veya tamamlanmış iş emirleri silinebilir.', 400);
   }
   const machine = await Machine.findById(jobOrder.machine);
   if (machine?.currentJobOrder && machine.currentJobOrder.equals(jobOrder._id)) {
