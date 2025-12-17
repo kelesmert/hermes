@@ -29,6 +29,8 @@ Varsayılan adres: `http://localhost:5173/`
   - `/dashboard` (dashboard.read): global metrikler + seçili makine telemetry özeti
   - `/monitoring` (dashboard.read): canlı telemetry grafikler (2sn polling, kayan pencere)
   - `/production` (production.read): job order listesi + aksiyonlar (start/pause/resume/produce/complete/cancel)
+  - `/downtimes` (work_orders.execute | production.manage): planlı/plansız duruşlar (event geçmişi, planlı kurallar, düzeltme/split)
+  - `/simulations` (production.manage): `data-gen` ve `job-sim` script’lerini UI’dan başlat/durdur + log konsolu
   - `/machines` (machines.read): makine CRUD + event diyaloğu
   - `/parts` (parts.read): parça CRUD (kategori/birim/makine uyumluluğu)
   - `/users` (users.manage): kullanıcı yönetimi; roller/izinler sekmesi `roles.manage` izni ile açılır

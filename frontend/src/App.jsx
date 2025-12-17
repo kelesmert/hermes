@@ -9,6 +9,7 @@ import MachinesPage from '@/features/machines/pages/machines.jsx';
 import PartsPage from '@/features/parts/pages/parts.jsx';
 import JobOrdersPage from '@/features/production/pages/job-orders.jsx';
 import DowntimesPage from '@/features/downtime/pages/downtimes.jsx';
+import SimulationsPage from '@/features/simulations/pages/simulations.jsx';
 import NotFoundPage from '@/components/feedback/not-found.jsx';
 import PrivateRoute from '@/app/routes/private-route.jsx';
 import PermissionGuard from '@/app/routes/permission-guard.jsx';
@@ -81,6 +82,14 @@ const App = () => (
           element={
             <PermissionGuard mode="any" requiredPermissions={["work_orders.execute", "production.manage"]}>
               <DowntimesPage />
+            </PermissionGuard>
+          }
+        />
+        <Route
+          path="/simulations"
+          element={
+            <PermissionGuard requiredPermissions={["production.manage"]}>
+              <SimulationsPage />
             </PermissionGuard>
           }
         />

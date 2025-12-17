@@ -12,6 +12,7 @@ const oeeRoutes = require('../domains/oee/routes/oee-routes');
 const downtimeRoutes = require('../domains/downtime/routes/downtime-routes');
 const plannedDowntimeRuleRoutes = require('../domains/downtime/routes/planned-downtime-rule-routes');
 const plannedDowntimeRunRoutes = require('../domains/downtime/routes/planned-downtime-run-routes');
+const simulationsRoutes = require('../domains/simulations/routes/simulations-routes');
 
 const router = Router();
 
@@ -28,5 +29,6 @@ router.use('/oee', oeeRoutes);
 router.use('/downtimes', downtimeRoutes);
 router.use('/planned-downtime-rules', plannedDowntimeRuleRoutes);
 router.use('/planned-downtime-runs', plannedDowntimeRunRoutes);
+router.use('/simulations', simulationsRoutes);
 
 module.exports = router;

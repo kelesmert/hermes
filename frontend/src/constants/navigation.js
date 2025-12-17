@@ -6,6 +6,7 @@ import SensorsOutlinedIcon from '@mui/icons-material/SensorsOutlined';
 import CategoryOutlinedIcon from '@mui/icons-material/CategoryOutlined';
 import AssignmentTurnedInOutlinedIcon from '@mui/icons-material/AssignmentTurnedInOutlined';
 import PauseCircleOutlineIcon from '@mui/icons-material/PauseCircleOutline';
+import ScienceOutlinedIcon from '@mui/icons-material/ScienceOutlined';
 
 export const NAV_ITEMS = [
   {
@@ -55,5 +56,11 @@ export const NAV_ITEMS = [
     path: '/parts',
     icon: CategoryOutlinedIcon,
     permission: 'parts.read',
+  },
+  {
+    label: 'Simülasyonlar',
+    path: '/simulations',
+    icon: ScienceOutlinedIcon,
+    permission: 'production.manage',
   },
 ];
