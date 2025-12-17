@@ -5,6 +5,7 @@ import PrecisionManufacturingOutlinedIcon from '@mui/icons-material/PrecisionMan
 import SensorsOutlinedIcon from '@mui/icons-material/SensorsOutlined';
 import CategoryOutlinedIcon from '@mui/icons-material/CategoryOutlined';
 import AssignmentTurnedInOutlinedIcon from '@mui/icons-material/AssignmentTurnedInOutlined';
+import PauseCircleOutlineIcon from '@mui/icons-material/PauseCircleOutline';
 
 export const NAV_ITEMS = [
   {
@@ -24,6 +25,12 @@ export const NAV_ITEMS = [
     path: '/production',
     icon: AssignmentTurnedInOutlinedIcon,
     permission: 'production.read',
+  },
+  {
+    label: 'Duruşlar',
+    path: '/downtimes',
+    icon: PauseCircleOutlineIcon,
+    permission: ['work_orders.execute', 'production.manage'],
   },
   {
     label: 'Kullanıcılar',

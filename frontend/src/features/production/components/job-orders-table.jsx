@@ -22,6 +22,7 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -61,7 +62,7 @@ const formatDate = (value) => {
   if (!value) return '-';
   try {
     return format(new Date(value), 'dd.MM.yyyy HH:mm', { locale: tr });
-  } catch (error) {
+  } catch {
     return value;
   }
 };
@@ -90,6 +91,7 @@ const ACTION_MESSAGES = {
 
 const JobOrdersTable = () => {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const { hasPermission } = usePermissions();
   const canManage = hasPermission(PERMISSIONS.PRODUCTION_MANAGE);
   const canExecute = hasPermission(PERMISSIONS.WORK_ORDERS_EXECUTE) || canManage;
@@ -200,6 +202,15 @@ const JobOrdersTable = () => {
   };
 
   const handleActionClick = (type, jobOrder) => {
+    if (type === 'pause') {
+      const machineId = getId(jobOrder.machine);
+      const jobOrderId = getId(jobOrder);
+      const params = new URLSearchParams();
+      if (machineId) params.set('machineId', machineId);
+      if (jobOrderId) params.set('jobOrderId', jobOrderId);
+      navigate(`/downtimes${params.toString() ? `?${params.toString()}` : ''}`);
+      return;
+    }
     setActionDialog({ type, jobOrder });
     const remaining = Math.max(jobOrder.targetQuantity - jobOrder.producedQuantity, 1);
     setActionForm({
@@ -380,7 +391,7 @@ const JobOrdersTable = () => {
                             </Tooltip>
                           )}
                           {canPauseAction && (
-                            <Tooltip title="Duraklat">
+                            <Tooltip title="Duruşlar">
                               <span>
                                 <IconButton size="small" onClick={() => handleActionClick('pause', job)}>
                                   <PauseIcon fontSize="small" />

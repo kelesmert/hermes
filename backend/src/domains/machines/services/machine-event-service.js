@@ -34,7 +34,18 @@ const closeOpenEvents = async (machineId, closeTime) => {
 
 const createEvent = async (machineId, payload) => {
   const machine = await ensureMachine(machineId);
-  const { state, startedAt, endedAt, reasonCode, description, triggeredBy, source, metadata } =
+  const {
+    state,
+    startedAt,
+    endedAt,
+    reasonCode,
+    reasonCategory,
+    jobOrder,
+    description,
+    triggeredBy,
+    source,
+    metadata,
+  } =
     payload;
 
   if (!state || !MACHINE_STATUS_VALUES.includes(state)) {
@@ -60,6 +71,8 @@ const createEvent = async (machineId, payload) => {
     startedAt: eventStart,
     endedAt: eventEnd,
     reasonCode,
+    reasonCategory,
+    jobOrder,
     description,
     triggeredBy,
     source,

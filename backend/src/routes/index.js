@@ -8,6 +8,10 @@ const machinesRoutes = require('../domains/machines/routes/machines-routes');
 const boardRoutes = require('../domains/board/routes/board-routes');
 const partsRoutes = require('../domains/parts/routes/part-routes');
 const productionRoutes = require('../domains/production/routes/job-order-routes');
+const oeeRoutes = require('../domains/oee/routes/oee-routes');
+const downtimeRoutes = require('../domains/downtime/routes/downtime-routes');
+const plannedDowntimeRuleRoutes = require('../domains/downtime/routes/planned-downtime-rule-routes');
+const plannedDowntimeRunRoutes = require('../domains/downtime/routes/planned-downtime-run-routes');
 
 const router = Router();
 
@@ -20,5 +24,9 @@ router.use('/machines', machinesRoutes);
 router.use('/board', boardRoutes);
 router.use('/parts', partsRoutes);
 router.use('/production', productionRoutes);
+router.use('/oee', oeeRoutes);
+router.use('/downtimes', downtimeRoutes);
+router.use('/planned-downtime-rules', plannedDowntimeRuleRoutes);
+router.use('/planned-downtime-runs', plannedDowntimeRunRoutes);
 
 module.exports = router;

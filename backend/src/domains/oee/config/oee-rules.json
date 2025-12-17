@@ -28,7 +28,42 @@
     {
       "code": "maintenance",
       "label": "Bakım",
-      "category": "maintenance"
+      "category": "planned"
+    },
+    {
+      "code": "cleaning",
+      "label": "Temizlik",
+      "category": "planned"
+    },
+    {
+      "code": "quality_check",
+      "label": "Kalite Kontrol",
+      "category": "planned"
+    },
+    {
+      "code": "other_planned",
+      "label": "Diğer Planlı",
+      "category": "planned"
+    },
+    {
+      "code": "material_shortage",
+      "label": "Malzeme Bitti",
+      "category": "unplanned"
+    },
+    {
+      "code": "breakdown",
+      "label": "Arıza",
+      "category": "unplanned"
+    },
+    {
+      "code": "tooling_change",
+      "label": "Takım Değişimi",
+      "category": "unplanned"
+    },
+    {
+      "code": "other_unplanned",
+      "label": "Diğer Plansız",
+      "category": "unplanned"
     }
   ],
   "aggregation": {

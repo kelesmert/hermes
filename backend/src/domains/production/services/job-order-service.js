@@ -248,13 +248,14 @@ const startJobOrder = async (id, { operatorId, source = 'operator' } = {}) => {
     state: machineStatuses.RUNNING,
     source,
     triggeredBy: operatorId,
+    jobOrder: jobOrder._id,
     description: `${jobOrder.orderNo} başlatıldı`,
   });
 
   return jobOrder;
 };
 
-const resumeJobOrder = async (id, { operatorId, source = 'operator' } = {}) => {
+const resumeJobOrder = async (id, { operatorId, source = 'operator', skipMachineEvent = false } = {}) => {
   const jobOrder = await ensureJobOrder(id);
   if (jobOrder.status !== JOB_STATUS.PAUSED) {
     throw new AppError('Sadece duraklatılan iş emirleri devam ettirilebilir.', 400);
@@ -275,17 +276,20 @@ const resumeJobOrder = async (id, { operatorId, source = 'operator' } = {}) => {
     source,
   });
 
-  await createMachineEvent(machine._id, {
-    state: machineStatuses.RUNNING,
-    source,
-    triggeredBy: operatorId,
-    description: `${jobOrder.orderNo} devam ettirildi`,
-  });
+  if (!skipMachineEvent) {
+    await createMachineEvent(machine._id, {
+      state: machineStatuses.RUNNING,
+      source,
+      triggeredBy: operatorId,
+      jobOrder: jobOrder._id,
+      description: `${jobOrder.orderNo} devam ettirildi`,
+    });
+  }
 
   return jobOrder;
 };
 
-const pauseJobOrder = async (id, { operatorId, source = 'operator', reason } = {}) => {
+const pauseJobOrder = async (id, { operatorId, source = 'operator', reason, skipMachineEvent = false } = {}) => {
   const jobOrder = await ensureJobOrder(id);
   if (jobOrder.status !== JOB_STATUS.IN_PROGRESS) {
     throw new AppError('Sadece aktif iş emirleri duraklatılabilir.', 400);
@@ -303,16 +307,19 @@ const pauseJobOrder = async (id, { operatorId, source = 'operator', reason } = {
     notes: reason,
   });
 
-  await createMachineEvent(machine._id, {
-    state: machineStatuses.DOWNTIME,
-    source,
-    triggeredBy: operatorId,
-    description: `${jobOrder.orderNo} duraklatıldı`,
-    metadata: {
-      jobOrder: jobOrder.orderNo,
-      reason,
-    },
-  });
+  if (!skipMachineEvent) {
+    await createMachineEvent(machine._id, {
+      state: machineStatuses.DOWNTIME,
+      source,
+      triggeredBy: operatorId,
+      jobOrder: jobOrder._id,
+      description: `${jobOrder.orderNo} duraklatıldı`,
+      metadata: {
+        jobOrder: jobOrder.orderNo,
+        reason,
+      },
+    });
+  }
 
   return jobOrder;
 };
@@ -342,6 +349,7 @@ const finalizeJobOrder = async (jobOrder, { operatorId, source, eventType }) => 
     state: machineStatuses.IDLE,
     source,
     triggeredBy: operatorId,
+    jobOrder: jobOrder._id,
     description: `${jobOrder.orderNo} tamamlandı`,
   });
 
@@ -388,6 +396,7 @@ const cancelJobOrder = async (id, { operatorId, source = 'operator', reason } = 
     state: machineStatuses.IDLE,
     source,
     triggeredBy: operatorId,
+    jobOrder: jobOrder._id,
     description: `${jobOrder.orderNo} iptal edildi`,
     metadata: { reason },
   });

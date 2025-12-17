@@ -2,10 +2,16 @@ import PropTypes from 'prop-types';
 import { Alert, Box } from '@mui/material';
 import usePermissions from '@/hooks/use-permissions.js';
 
-const PermissionGuard = ({ requiredPermissions = [], children }) => {
-  const { hasEveryPermission } = usePermissions();
+const PermissionGuard = ({ requiredPermissions = [], mode = 'every', children }) => {
+  const { hasPermission, hasEveryPermission } = usePermissions();
 
-  if (requiredPermissions.length === 0 || hasEveryPermission(requiredPermissions)) {
+  const isAllowed =
+    requiredPermissions.length === 0 ||
+    (mode === 'any'
+      ? requiredPermissions.some((perm) => hasPermission(perm))
+      : hasEveryPermission(requiredPermissions));
+
+  if (isAllowed) {
     return children;
   }
 
@@ -20,6 +26,7 @@ const PermissionGuard = ({ requiredPermissions = [], children }) => {
 
 PermissionGuard.propTypes = {
   requiredPermissions: PropTypes.arrayOf(PropTypes.string),
+  mode: PropTypes.oneOf(['every', 'any']),
   children: PropTypes.node.isRequired,
 };
 

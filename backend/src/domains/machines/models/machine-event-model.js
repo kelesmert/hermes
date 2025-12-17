@@ -20,6 +20,15 @@ const machineEventSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
+    reasonCategory: {
+      type: String,
+      enum: ['planned', 'unplanned'],
+      trim: true,
+    },
+    jobOrder: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'JobOrder',
+    },
     description: {
       type: String,
       trim: true,

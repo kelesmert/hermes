@@ -10,6 +10,14 @@ const Sidebar = () => {
   const location = useLocation();
   const { hasPermission } = usePermissions();
 
+  const hasNavAccess = (permission) => {
+    if (!permission) return true;
+    if (Array.isArray(permission)) {
+      return permission.some((perm) => hasPermission(perm));
+    }
+    return hasPermission(permission);
+  };
+
   return (
     <Drawer
       variant="permanent"
@@ -29,7 +37,7 @@ const Sidebar = () => {
         <Logo />
       </Toolbar>
       <List>
-        {NAV_ITEMS.filter((item) => hasPermission(item.permission)).map((item) => {
+        {NAV_ITEMS.filter((item) => hasNavAccess(item.permission)).map((item) => {
           const Icon = item.icon;
           const active = location.pathname.startsWith(item.path);
           return (

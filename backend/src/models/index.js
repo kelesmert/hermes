@@ -8,3 +8,5 @@ require('../domains/machines/models/machine-telemetry-model');
 require('../domains/oee/models/oee-machine-state-model');
 require('../domains/production/models/job-order-model');
 require('../domains/production/models/production-event-model');
+require('../domains/downtime/models/planned-downtime-rule-model');
+require('../domains/downtime/models/planned-downtime-run-model');
