@@ -23,6 +23,241 @@ const loadAggregationRules = () => {
 const aggregationRules = loadAggregationRules();
 const telemetryWindowMs = aggregationRules.telemetryWindowMs || 10 * 60 * 1000; // 10 dk varsayılan
 
+const ISTANBUL_TIMEZONE = 'Europe/Istanbul';
+const ISTANBUL_OFFSET_MINUTES = 180;
+
+const SHIFT_START_HHMM = process.env.SHIFT_SIM_SHIFT_START || '07:00';
+const SHIFT_END_HHMM = process.env.SHIFT_SIM_SHIFT_END || '18:00';
+
+const parseTime = (hhmm) => {
+  const [hh, mm] = String(hhmm || '').split(':').map((item) => Number(item));
+  return { hh, mm };
+};
+
+const getIstanbulYmd = (date) => {
+  const formatted = new Intl.DateTimeFormat('en-CA', {
+    timeZone: ISTANBUL_TIMEZONE,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(date);
+  const [year, month, day] = formatted.split('-').map((item) => Number(item));
+  return { year, month, day };
+};
+
+const computeDayWindowUtc = (ymd, startTime, endTime) => {
+  const { hh: startH, mm: startM } = parseTime(startTime);
+  const { hh: endH, mm: endM } = parseTime(endTime);
+
+  const startAt = new Date(
+    Date.UTC(ymd.year, ymd.month - 1, ymd.day, startH, startM, 0) -
+      ISTANBUL_OFFSET_MINUTES * 60 * 1000,
+  );
+  const endAt = new Date(
+    Date.UTC(ymd.year, ymd.month - 1, ymd.day, endH, endM, 0) - ISTANBUL_OFFSET_MINUTES * 60 * 1000,
+  );
+
+  if (endAt.getTime() <= startAt.getTime()) {
+    endAt.setUTCDate(endAt.getUTCDate() + 1);
+  }
+
+  return { startAt, endAt };
+};
+
+const normalizeBucketMinutes = (value, fallback = 15) => {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) return fallback;
+  return Math.min(Math.max(Math.round(numeric), 5), 60);
+};
+
+const resolveEffectiveNow = async (filter = {}) => {
+  const now = new Date();
+  const latest = await MachineTelemetry.findOne(filter)
+    .sort({ timestamp: -1 })
+    .select({ timestamp: 1 })
+    .lean();
+
+  if (latest?.timestamp && latest.timestamp.getTime() > now.getTime()) {
+    return latest.timestamp;
+  }
+
+  return now;
+};
+
+const getMachineShiftTelemetrySeries = async (machine, { bucketMinutes } = {}) => {
+  const effectiveBucketMinutes = normalizeBucketMinutes(bucketMinutes, 15);
+  const bucketMs = effectiveBucketMinutes * 60 * 1000;
+  const signalLongStopThresholdMs = 5 * 60 * 1000;
+
+  const latestShiftSimTelemetry = await MachineTelemetry.findOne({
+    machine: machine._id,
+    source: 'shift-sim',
+    simulationRunId: { $exists: true, $ne: null },
+  })
+    .sort({ timestamp: -1 })
+    .select({ timestamp: 1, source: 1, simulationRunId: 1 })
+    .lean();
+
+  const latestTelemetry =
+    latestShiftSimTelemetry ||
+    (await MachineTelemetry.findOne({
+      machine: machine._id,
+      source: { $ne: 'seed' },
+    })
+      .sort({ timestamp: -1 })
+      .select({ timestamp: 1, source: 1, simulationRunId: 1 })
+      .lean());
+
+  const referenceDate = latestTelemetry?.timestamp || new Date();
+  const ymd = getIstanbulYmd(referenceDate);
+  const { startAt: shiftStartAt, endAt: shiftEndAt } = computeDayWindowUtc(
+    ymd,
+    SHIFT_START_HHMM,
+    SHIFT_END_HHMM,
+  );
+
+  const match = {
+    machine: machine._id,
+    timestamp: { $gte: shiftStartAt, $lt: shiftEndAt },
+    source: { $ne: 'seed' },
+  };
+
+  if (latestShiftSimTelemetry?.simulationRunId) {
+    match.source = 'shift-sim';
+    match.simulationRunId = latestShiftSimTelemetry.simulationRunId;
+  }
+
+  const bucketAgg = await MachineTelemetry.aggregate([
+    { $match: match },
+    { $sort: { timestamp: 1 } },
+    {
+      $project: {
+        timestamp: 1,
+        signalValue: 1,
+        metrics: 1,
+        intervalMs: { $ifNull: ['$intervalMs', 2000] },
+        offsetMs: { $subtract: ['$timestamp', shiftStartAt] },
+      },
+    },
+    {
+      $addFields: {
+        bucketIndex: { $floor: { $divide: ['$offsetMs', bucketMs] } },
+      },
+    },
+    {
+      $group: {
+        _id: '$bucketIndex',
+        avgTemperatureC: { $avg: '$metrics.temperatureC' },
+        avgTorqueNm: { $avg: '$metrics.torqueNm' },
+        avgEnergyKwh: { $avg: '$metrics.energyKwh' },
+        onMs: {
+          $sum: {
+            $cond: [{ $eq: ['$signalValue', 1] }, '$intervalMs', 0],
+          },
+        },
+        offMs: {
+          $sum: {
+            $cond: [{ $eq: ['$signalValue', 0] }, '$intervalMs', 0],
+          },
+        },
+        signalSamples: {
+          $push: {
+            signalValue: '$signalValue',
+            intervalMs: '$intervalMs',
+          },
+        },
+        samples: { $sum: 1 },
+        lastAt: { $max: '$timestamp' },
+      },
+    },
+    {
+      $addFields: {
+        maxConsecutiveOffMs: {
+          $let: {
+            vars: {
+              reduced: {
+                $reduce: {
+                  input: '$signalSamples',
+                  initialValue: { current: 0, max: 0 },
+                  in: {
+                    $cond: [
+                      { $eq: ['$$this.signalValue', 0] },
+                      {
+                        current: { $add: ['$$value.current', '$$this.intervalMs'] },
+                        max: {
+                          $max: ['$$value.max', { $add: ['$$value.current', '$$this.intervalMs'] }],
+                        },
+                      },
+                      { current: 0, max: '$$value.max' },
+                    ],
+                  },
+                },
+              },
+            },
+            in: '$$reduced.max',
+          },
+        },
+      },
+    },
+    { $project: { signalSamples: 0 } },
+    { $sort: { _id: 1 } },
+  ]);
+
+  const shiftDurationMs = shiftEndAt.getTime() - shiftStartAt.getTime();
+  const bucketCount = Math.ceil(shiftDurationMs / bucketMs);
+  const bucketMap = new Map(bucketAgg.map((row) => [Number(row._id), row]));
+
+  const series = [];
+  for (let bucketIndex = 0; bucketIndex < bucketCount; bucketIndex += 1) {
+    const bucketStart = new Date(shiftStartAt.getTime() + bucketIndex * bucketMs);
+    const row = bucketMap.get(bucketIndex);
+    if (!row) {
+      series.push({
+        timestamp: bucketStart,
+        signalValue: null,
+        metrics: { temperatureC: null, torqueNm: null, energyKwh: null },
+        samples: 0,
+        onMs: 0,
+        offMs: 0,
+        bucketIndex,
+      });
+      continue;
+    }
+
+    const onMs = Number(row.onMs) || 0;
+    const offMs = Number(row.offMs) || 0;
+    const totalMs = onMs + offMs;
+    const maxConsecutiveOffMs = Number(row.maxConsecutiveOffMs) || 0;
+    series.push({
+      timestamp: bucketStart,
+      signalValue:
+        totalMs > 0 ? (maxConsecutiveOffMs >= signalLongStopThresholdMs ? 0 : 1) : null,
+      metrics: {
+        temperatureC: row.avgTemperatureC ?? null,
+        torqueNm: row.avgTorqueNm ?? null,
+        energyKwh: row.avgEnergyKwh ?? null,
+      },
+      samples: Number(row.samples) || 0,
+      onMs,
+      offMs,
+      bucketIndex,
+    });
+  }
+
+  return {
+    view: 'shift',
+    bucketMinutes: effectiveBucketMinutes,
+    shiftStartAt,
+    shiftEndAt,
+    series,
+    windowStart: shiftStartAt,
+    windowEnd: shiftEndAt,
+    latestAt: latestTelemetry?.timestamp || null,
+    simulationRunId: latestShiftSimTelemetry?.simulationRunId || latestTelemetry?.simulationRunId || null,
+    source: latestShiftSimTelemetry?.source || latestTelemetry?.source || null,
+  };
+};
+
 const getMachineCounts = async () => {
   const [totalMachines, runningMachines, downtimeMachines] = await Promise.all([
     Machine.countDocuments(),
@@ -41,9 +276,10 @@ const getMachineCounts = async () => {
 };
 
 const getTelemetryMetrics = async () => {
-  const windowStart = new Date(Date.now() - telemetryWindowMs);
+  const effectiveNow = await resolveEffectiveNow();
+  const windowStart = new Date(effectiveNow.getTime() - telemetryWindowMs);
   const telemetryAgg = await MachineTelemetry.aggregate([
-    { $match: { timestamp: { $gte: windowStart } } },
+    { $match: { timestamp: { $gte: windowStart, $lte: effectiveNow } } },
     {
       $group: {
         _id: null,
@@ -74,8 +310,8 @@ const getTelemetryMetrics = async () => {
 };
 
 const getDowntimeSummary = async () => {
-  const windowStart = new Date(Date.now() - telemetryWindowMs);
-  const now = new Date();
+  const now = await resolveEffectiveNow();
+  const windowStart = new Date(now.getTime() - telemetryWindowMs);
 
   const downtimeAgg = await MachineEvent.aggregate([
     {
@@ -151,12 +387,13 @@ const getMachineTelemetrySummary = async (machineId) => {
     throw new AppError('Makine bulunamadı.', 404);
   }
 
-  const windowStart = new Date(Date.now() - telemetryWindowMs);
+  const effectiveNow = await resolveEffectiveNow({ machine: machine._id });
+  const windowStart = new Date(effectiveNow.getTime() - telemetryWindowMs);
   const telemetryAgg = await MachineTelemetry.aggregate([
     {
       $match: {
         machine: machine._id,
-        timestamp: { $gte: windowStart },
+        timestamp: { $gte: windowStart, $lte: effectiveNow },
       },
     },
     {
@@ -205,14 +442,31 @@ const getMachineTelemetrySummary = async (machineId) => {
   };
 };
 
-const getMachineTelemetrySeries = async (machineId, { limit = 20, since } = {}) => {
+const getMachineTelemetrySeries = async (
+  machineId,
+  { limit = 20, since, view, bucketMinutes } = {},
+) => {
   const machine = await Machine.findById(machineId);
   if (!machine) {
     throw new AppError('Makine bulunamadı.', 404);
   }
 
+  const resolvedView = String(view || '').toLowerCase();
+  if (resolvedView === 'shift') {
+    const payload = await getMachineShiftTelemetrySeries(machine, { bucketMinutes });
+    return {
+      machine: {
+        id: machine.id,
+        code: machine.code,
+        name: machine.name,
+      },
+      ...payload,
+    };
+  }
+
   const cappedLimit = Math.min(Math.max(Number(limit) || 20, 5), 200);
-  const windowStart = new Date(Date.now() - telemetryWindowMs);
+  const effectiveNow = await resolveEffectiveNow({ machine: machine._id });
+  const windowStart = new Date(effectiveNow.getTime() - telemetryWindowMs);
   let effectiveStart = windowStart.getTime();
   let sinceDate;
   if (since) {
@@ -225,7 +479,7 @@ const getMachineTelemetrySeries = async (machineId, { limit = 20, since } = {}) 
 
   const filter = {
     machine: machine._id,
-    timestamp: { $gte: new Date(effectiveStart) },
+    timestamp: { $gte: new Date(effectiveStart), $lte: effectiveNow },
   };
 
   let query = MachineTelemetry.find(filter).select({
@@ -253,7 +507,7 @@ const getMachineTelemetrySeries = async (machineId, { limit = 20, since } = {}) 
     },
     series,
     windowStart,
-    windowEnd: new Date(),
+    windowEnd: effectiveNow,
   };
 };
 

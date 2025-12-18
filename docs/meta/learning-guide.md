@@ -155,7 +155,9 @@ Bu rehber, backend ve frontend'i MVP hedefiyle nasıl kurduğumuzu öğretici ş
 - Model: `backend/src/domains/machines/models/machine-model.js` alanları `code`, `name`, `status`, `lastEventAt`, `tags`, `isActive` ve otomatik timestamp’lerden oluşur. `code` benzersizdir; UI aramalarında kullanılır.
 - Durum enumları `backend/src/constants/machine-statuses.js` içinde tutulur (running/idle/downtime/maintenance/unknown) ve event sistemi bu değerleri kullanarak makine kaydındaki `status` + `lastEventAt` alanlarını güncelleyecektir.
 - Event’ler ayrı koleksiyonda (`machine_events`, yapım aşamasında) saklanacak; makine modeli sadece son durumu özetlemek için denormalize alanlara sahiptir.
-- Telemetry kayıtları `backend/src/domains/machines/models/machine-telemetry-model.js` ile `machine_telemetry` koleksiyonunda tutulur; her kayıt makine id’si, sinyal (0/1), timestamp ve seçili metrikleri içerir. `backend/scripts/data-gen.js` makinenin `currentJobOrder` + `status` bilgisine bakarak aktif/idle profilleri üretir; `DATA_GEN_TRANSITION_MS` (varsayılan 10 sn) boyunca sıcaklık/tork/enerji ramp-up/down yapar ve `DATA_GEN_MACHINE_REFRESH_MS` (varsayılan 5 sn) süreleriyle aktif makine listesini yeniden sorgular. Monitoring grafikleri bir job başladığında birkaç saniye içinde yükselişi gösterir.
+- Telemetry kayıtları `backend/src/domains/machines/models/machine-telemetry-model.js` ile `machine_telemetry` koleksiyonunda tutulur; her kayıt makine id’si, sinyal (0/1), timestamp, metrikler ve `source` içerir. Hızlandırılmış simülasyon koşuları için kayıtlar `simulationRunId` ile etiketlenir.
+  - `backend/scripts/data-gen.js`: Sürekli telemetry üretir; `currentJobOrder` + `status` bilgisine göre aktif/idle profilleri üretir ve `DATA_GEN_TRANSITION_MS` (varsayılan 10 sn) boyunca sıcaklık/tork/enerji ramp-up/down yapar.
+  - `backend/scripts/shift-simulator.js`: 07:00–18:00 vardiyası için deterministik telemetry üretir ve birkaç dakika içinde “vardiya boyunca” veriyi adım adım yazar (`npm run shift:sim`).
 - `backend/src/domains/parts/models/part-model.js` parça tanımlarını ve hangi makinelerde üretilebileceğini tutar; production/job order akışı başlamadan önce bu domain’in geçerliliği kontrol edilmelidir.
 - `backend/src/domains/oee/services/oee-processor.js` telemetry verilerini JSON konfigine göre işler; yalnızca makine aktif bir iş emri yürütürken sinyal 0 serileri için plansız duruş timing’ini tespit eder. Event yazımı doğrudan model üzerinden yapılmaz, downtime domain orchestrator üzerinden orkestre edilir. Job yoksa veya makine duraklatıldıysa status IDLE’da kalır, açık event referansları kapanır. `backend/src/jobs/oee-processor-job.js` belirli aralıklarla bu servisi tetikler.
 - **Processor vs Job ayrımı:** `oee-processor.js` iş mantığını (telemetry → OEE state → machine events) barındırır. `oee-processor-job.js` ise bu mantığı periyodik olarak çalıştıran tetikleyicidir. Örneğin telemetry’de MCH-001 için yeni kayıt olduğunda cron job 2 saniyede bir `processTelemetryBatch()` çağırır; processor makinenin aktif job yürütüp yürütmediğine bakar, gerekiyorsa `machine_events` koleksiyonunda duruş açar/kapatır. Böylece domain kodu (kurallar) ve scheduler (setInterval) birbirinden bağımsız yönetilir.
@@ -166,7 +168,10 @@ Bu rehber, backend ve frontend'i MVP hedefiyle nasıl kurduğumuzu öğretici ş
 - Backend: `backend/src/domains/production/` klasöründe `job-order-model.js`, `production-event-model.js`, servis ve controller dosyaları bulunur. CRUD + aksiyon endpoint’leri (`start`, `pause`, `resume`, `produce`, `complete`, `cancel`) `production.manage` ve `work_orders.execute` izinleriyle guard’lanır.
 - JobOrder `orderNo` alanı unique’tir ve varsayılan olarak `JO-YYYYMMDD-###` formatında otomatik üretilir. Günlük sıra hesabı “max sequence + retry” yaklaşımıyla yapılır; completed job silinse bile aynı numara tekrar üretilmez, çakışma olursa otomatik retry edilir.
 - Makine modeli `currentJobOrder` alanı tutar; job start/resume edildiğinde set edilir, complete/cancel’de temizlenir. ProductionEvent kayıtları her aksiyon sırasında oluşturulur ve frontend event dialog’unda gösterilir.
-- Simülasyon: `npm run data:gen` telemetry sinyalini üretir, `npm run job:sim` ise `job_orders` koleksiyonunda `status = in_progress` kayıtları bulup son telemetry sinyaline göre good/defect üretim kayıtları oluşturur. Sinyal 1 değilse üretim yazılmaz; fractional cycle mantığı ideal çevrim süresini korur. Alternatif olarak bu iki script UI’dan `/simulations` sayfasında da yönetilebilir.
+- Simülasyon:
+  - Telemetry: `npm run shift:sim` (önerilen) veya `npm run data:gen` telemetry sinyalini üretir (aynı anda çalıştırılmaz).
+  - Üretim: `npm run job:sim` aktif JobOrder kayıtlarını okuyup telemetry timestamp’lerine göre ideal çevrim süresinden üretim miktarı hesaplar ve `production_events` yazar. Sinyal 1 değilse üretim yazılmaz; shift-sim koşularında production event’leri simülasyon timestamp’lerini korur.
+  - Alternatif olarak script’ler UI’dan `/simulations` sayfasında da yönetilebilir.
 - Frontend: `frontend/src/features/production/` altında liste tablosu, form dialog ve aksiyon dialogları bulunur. TanStack Query ile hem liste hem de aksiyon mutasyonları yönetilir; event geçmişi ayrı bir modalda gösterilir.
 
 ## 18) Downtime Domain Akışı
@@ -205,5 +210,6 @@ Frontend
 
 - Sayfa: `frontend/src/features/simulations/pages/simulations.jsx` → `/simulations` (izin: `production.manage`)
 - Backend API: `GET /api/simulations` ve `POST /api/simulations/:name/start|stop` ile process yönetilir; loglar `GET /api/simulations/:name/logs` ile çekilir.
+- Not: `data-gen` ile `shift-sim` aynı anda çalıştırılmaz; telemetry kaynağı olarak birini seçip onunla beraber `job-sim` çalıştırılır.
 - Prod güvenliği: `NODE_ENV=production` iken `ENABLE_SIMULATION_CONTROL=true` değilse simülasyon kontrolü kapalıdır.
 - Log davranışı: Loglar backend process’inde in-memory buffer olarak tutulur; sunucu restart olursa loglar sıfırlanır.

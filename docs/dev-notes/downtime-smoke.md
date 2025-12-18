@@ -32,6 +32,18 @@ cd backend
 npm run data:gen
 ```
 
+Alternatif (test için, hızlandırılmış vardiya verisi)
+
+```bash
+cd backend
+npm run shift:sim
+```
+
+Not
+
+- Aşağıdaki senaryoların çoğu `data-gen` env değişkenleriyle sinyal davranışını kontrol ettiği için varsayılan olarak `data-gen` üstünden anlatılır.
+- `shift-sim` ile test yapacaksan, senaryolardaki “probability” adımlarını atlayıp vardiya desenine göre duruşların oluştuğunu gözlemleyebilirsin.
+
 Üretim simülatörü (opsiyonel)
 
 ```bash

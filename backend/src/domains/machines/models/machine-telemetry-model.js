@@ -30,6 +30,11 @@ const telemetrySchema = new mongoose.Schema(
       default: 'simulator',
       trim: true,
     },
+    simulationRunId: {
+      type: String,
+      trim: true,
+      index: true,
+    },
     processedAt: Date,
   },
   {
@@ -39,6 +44,7 @@ const telemetrySchema = new mongoose.Schema(
 
 telemetrySchema.index({ machine: 1, timestamp: -1 });
 telemetrySchema.index({ processedAt: 1, timestamp: 1 });
+telemetrySchema.index({ source: 1, simulationRunId: 1, timestamp: 1 });
 
 applyDefaultToJSON(telemetrySchema);
 

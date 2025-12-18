@@ -75,9 +75,10 @@ Bu proje, Node.js/Express backend, React frontend ve MongoDB veritabanı kullana
    - Çakışma yönetimi: kullanıcı planlı > öğle arası planlı > plansız. Planlı başlarken plansız açıksa kapatılır ve planlı başlar.
    - Yetki ayrımı: planlı kural CRUD supervisor, sınıflandırma/düzeltme/split operator ve supervisor (ilk fazda mevcut permissionlarla).
 10. **Veri Simülasyonu**
-   - `npm run data:gen`: Her makine için telemetry sinyali (0/1) ve metrikler üretir. Aktif job varken sinyalin 1’de kalma olasılığı artırılmıştır, idle makinelerde rastgele 0/1 üretilir.
+   - `npm run shift:sim`: 07:00–18:00 vardiyası için deterministik, hızlandırılmış telemetry üretir (birkaç dakikada tüm vardiya). Kayıtlar `simulationRunId` ile etiketlenir. `data-gen` ile aynı anda çalıştırılmaz.
+   - `npm run data:gen`: (Legacy) Her makine için telemetry sinyali (0/1) ve metrikler üretir. Aktif job varken sinyalin 1’de kalma olasılığı artırılmıştır, idle makinelerde rastgele 0/1 üretilir.
    - Sinyal/mount profili `DATA_GEN_TRANSITION_MS` ile yönetilir; varsayılan 10 saniye içinde sıcaklık/tork/enerji değerleri yeni moda hızlıca yaklaşır ve monitoring ekranları ramp-up/ramp-down davranışı gösterir.
-   - `npm run job:sim`: Aktif JobOrder kayıtlarını okuyup son telemetry sinyaline göre good/defect üretim eventleri oluşturur; sinyal 1 değilse üretim yazılmaz.
+   - `npm run job:sim`: Aktif JobOrder kayıtlarını okuyup telemetry timestamp’lerine göre ideal çevrim süresinden üretim miktarı hesaplar ve good/defect üretim eventleri oluşturur; sinyal 1 değilse üretim yazılmaz. Shift-sim koşularında üretim event’leri simülasyon zamanını korur.
    - OEE processor yalnızca `downtimeThresholdMs` boyunca sinyal 0 olduğunda duruş açar; signal timeout devre dışı bırakılmıştır.
 11. **Raporlama & Export**
    - Verimlilik, OEE benzeri metrikler veya makine bazlı uptime/downtime süreleri.
@@ -109,7 +110,7 @@ Bu proje, Node.js/Express backend, React frontend ve MongoDB veritabanı kullana
 - `permissions`: sistem genelindeki aksiyonların (örn. `machines.read`, `reports.export`) tanımı; roller bu koleksiyondan izin referansı alır.
 - `machines`: makine adı/kodu, açıklama, bağlı operatörler, mevcut durum.
 - `machine_events`: makine, state, başlangıç/bitiş zamanları, reasonCode ve reasonCategory (planned|unplanned), jobOrder snapshot, metadata (plannedRuleId/runId, autoDetected vb.).
-- `machine_telemetry`: makine id, timestamp, sinyal değeri (0/1), metrikler (sıcaklık, tork, enerji), kaynak bilgisi (simulator/edge_gateway).
+- `machine_telemetry`: makine id, timestamp, sinyal değeri (0/1), metrikler (sıcaklık, tork, enerji), kaynak bilgisi (simulator/edge_gateway), `intervalMs` ve simülasyon koşuları için `simulationRunId`.
 - `oee_machine_states`: Makine başına son sinyal değeri, aktif downtime event referansı, sıfır serisi başlangıç zamanı; OEE processor job tarafından kullanılır.
 - `parts`: parça adı/kodu, kategori, birim, ideal cycle time, uyumlu makineler, varsayılan makine ayarları.
 - `planned_downtime_rules`: planlı duruş kuralları (machineIds, recurrence/one_time, timezone, priority, reasonCode, createdBy).

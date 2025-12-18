@@ -24,6 +24,15 @@ const SIMULATION_DEFS = {
     args: ['scripts/data-gen.js'],
     cwd: BACKEND_ROOT,
   },
+  'shift-sim': {
+    name: 'shift-sim',
+    label: 'Vardiya Telemetry (shift-sim)',
+    description:
+      '07:00–18:00 vardiyası için hızlandırılmış deterministik telemetry üretir (npm run shift:sim). data-gen ile aynı anda çalıştırılmaz.',
+    command: NODE_BIN,
+    args: ['scripts/shift-simulator.js'],
+    cwd: BACKEND_ROOT,
+  },
   'job-sim': {
     name: 'job-sim',
     label: 'Üretim (job-sim)',
@@ -32,7 +41,7 @@ const SIMULATION_DEFS = {
     command: NODE_BIN,
     args: ['scripts/job-simulator.js'],
     cwd: BACKEND_ROOT,
-    dependsOn: ['data-gen'],
+    dependsOn: ['shift-sim'],
   },
 };
 
@@ -149,6 +158,13 @@ const startSimulation = async (name, { requestedBy } = {}) => {
 
   if (state.running || state.process) {
     throw new AppError('Simülasyon zaten çalışıyor.', 409);
+  }
+
+  if (name === 'shift-sim' && states.get('data-gen')?.running) {
+    throw new AppError('shift-sim başlatılamaz: data-gen çalışıyor. Önce data-gen durdurun.', 409);
+  }
+  if (name === 'data-gen' && states.get('shift-sim')?.running) {
+    throw new AppError('data-gen başlatılamaz: shift-sim çalışıyor. Önce shift-sim durdurun.', 409);
   }
 
   const cwd = state.cwd || BACKEND_ROOT;

@@ -27,10 +27,10 @@ Varsayılan adres: `http://localhost:5173/`
 - Route erişimleri permission guard ile kontrol edilir; sidebar menüsü de permission'a göre filtrelenir.
 - Mevcut sayfalar:
   - `/dashboard` (dashboard.read): global metrikler + seçili makine telemetry özeti
-  - `/monitoring` (dashboard.read): canlı telemetry grafikler (2sn polling, kayan pencere)
+  - `/monitoring` (dashboard.read): 07:00–18:00 sabit vardiya ekseni üzerinde 15 dk bucket telemetry grafikleri (2sn polling)
   - `/production` (production.read): job order listesi + aksiyonlar (start/pause/resume/produce/complete/cancel)
   - `/downtimes` (work_orders.execute | production.manage): planlı/plansız duruşlar (event geçmişi, planlı kurallar, düzeltme/split)
-  - `/simulations` (production.manage): `data-gen` ve `job-sim` script’lerini UI’dan başlat/durdur + log konsolu
+  - `/simulations` (production.manage): `shift-sim`/`data-gen` ve `job-sim` script’lerini UI’dan başlat/durdur + log konsolu
   - `/machines` (machines.read): makine CRUD + event diyaloğu
   - `/parts` (parts.read): parça CRUD (kategori/birim/makine uyumluluğu)
   - `/users` (users.manage): kullanıcı yönetimi; roller/izinler sekmesi `roles.manage` izni ile açılır

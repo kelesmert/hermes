@@ -65,6 +65,8 @@
 - [x] JobOrder orderNo üretimi: silme sonrası duplicate engelle (max sequence + retry)
 - [x] Simülasyon kontrol API'si: `/api/simulations` (başlat/durdur/log) + permission guard + env flag
 - [x] JobOrder orderNo duplicate index warning'ini temizle (tek index tanımı)
+- [x] Shift-sim: hızlandırılmış vardiya telemetry simülatörü (`npm run shift:sim`) + `simulationRunId` tagging + data-gen ile aynı anda çalıştırmama kuralı
+- [ ] (Opsiyonel) Monitoring periyot/bucket endpoint'i (vardiya görünümü için ayrı endpoint ve UI)
 - [ ] Event zamanlarının lokal timezone desteği (UTC+3 gibi) için helper/formatlama katmanı
 - [ ] Raporlama endpointleri (verimlilik, duruş süreleri vb.)
 - [ ] CSV/Excel export servisi
@@ -87,14 +89,15 @@
 - [x] `/api/users` listesini TanStack Table ile entegre et; aktif/pasif toggle, rol atama ve filtreleme akışlarını tamamla
 - [x] Dashboard layout ve genel metrik kartları (Board domain endpoint'leri, polling)
 - [x] Makine kartları (durum renkleri, polling/React Query refetchInterval)
-- [x] Monitoring sayfası: Seçili makine için canlı telemetry grafikler (2sn polling, 10dk kayan pencere, Recharts)
+- [x] Monitoring sayfası: Seçili makine için canlı telemetry grafikler (2sn polling, kayan pencere, Recharts)
+- [ ] (Opsiyonel) Monitoring vardiya/periyot görünümü (15/30 dk bucket veya downsample)
 - [x] Parça yönetimi sayfası (liste + ekle/düzenle/sil formları, kategori/birim/makine uyumluluğu)
 - [x] Production/İş Emirleri sayfası (liste, form dialog ve start/pause/resume/produce/complete aksiyon butonları)
 - [x] Downtime sayfası (`/downtimes`): Açık/Planlı/Geçmiş tabları, reason sınıflandırma (5 dk edit + split), planlı kural CRUD ve run geçmişi
 - [x] Downtime UI: Operatör manuel plansız duruş başlatma dialogu + uzun plansız duruş “Onay Bekliyor”/Onayla akışı
 - [x] Sidebar'a `Duruşlar` menüsü ve any-of permission guard (`work_orders.execute` veya `production.manage`)
 - [x] Production pause UX'i downtime yazmaz, Duruşlar sayfasına yönlendirir
-- [x] Simülasyonlar sayfası (`/simulations`): data-gen/job-sim başlat-durdur + log konsolu
+- [x] Simülasyonlar sayfası (`/simulations`): shift-sim/data-gen/job-sim başlat-durdur + log konsolu
 - [ ] Raporlama sayfası + filtreler
 - [x] Roller/izinler için yönetim ekranı; permission set düzenleme ve kullanıcıya rol atama modalları
 - [x] Dashboard/rapor placeholder’larını gerçek makine/event verileriyle besleyip React Query polling/WebSocket desteği ekle _(dashboard kısmı tamamlandı, rapor ekranı beklemede)_

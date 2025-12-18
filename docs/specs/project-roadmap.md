@@ -49,6 +49,7 @@ Amaç, Node.js/Express backend, React frontend ve MongoDB veritabanı kullanarak
 7. **Production Domain:** JobOrder + ProductionEvent modelleri, start/pause/resume/produce/complete endpointleri, telemetry tabanlı üretim simülatörü ve frontend iş emri ekranı → **Tamamlandı**
 8. **Downtime Domain (v2):** Planlı duruş scheduler (rule/run modeli), plansız duruş telemetry eşiği + operatör manuel başlatma, reason düzeltme/split API'leri, uzun plansız duruş “onay bekliyor” akışı ve frontend Duruşlar sayfası → **Tamamlandı**
 9. **Simülasyon Yönetimi (Ek):** UI üzerinden `data-gen` ve `job-sim` script’lerini başlat/durdur + log görüntüleme (backend `/api/simulations`) → **Tamamlandı**
+10. **Shift Simülasyonu (Ek):** `shift-sim` ile hızlandırılmış vardiya telemetry üretimi (deterministik test verisi) → **Tamamlandı**
 
 ### Devam Eden Fazlar
 
@@ -69,5 +70,5 @@ Amaç, Node.js/Express backend, React frontend ve MongoDB veritabanı kullanarak
 
 - **Tamamlanan Domainler:** Auth, Users, Access-Control, Machines, Parts, OEE, Board, Production, Downtime, Simulations
 - **Frontend Sayfaları:** Login, Dashboard, Monitoring, Users, Machines, Parts, Production/Job Orders (CRUD + aksiyon ekranı), Downtimes, Simulations
-- **Telemetry/OEE Altyapısı:** Data-gen script çalışıyor, job-simulator aktif job'lar için üretim verisi üretiyor, OEE job'u 0 serisi eşiği ile plansız duruşları yönetiyor; planlı duruşlar scheduler ile rule/run modelinden yürütülüyor
+- **Telemetry/OEE Altyapısı:** Shift-sim (önerilen) veya data-gen telemetry üretir, job-simulator aktif job'lar için üretim verisi üretir, OEE job'u 0 serisi eşiği ile plansız duruşları yönetiyor; planlı duruşlar scheduler ile rule/run modelinden yürütülüyor
 - **Sıradaki:** Reports sayfası genişletmesi, export + audit log geliştirmeleri

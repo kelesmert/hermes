@@ -66,6 +66,13 @@ Bu dosya, projede alınan mimarî ve teknolojik kararları, gerekçelerini ve be
 - **Gerekçe:** Frontend tarafında manuel map’ler yazmadan tüm API yanıtlarından okunabilir `id` alanı üretmek ve tekrar eden kodu azaltmak.
 - **Etkisi:** Makine/MachineEvent response’ları otomatik `id` içeriyor; ileride ihtiyaç duyulan diğer modeller aynı helper’ı kullanarak aynı davranışı kazanabilecek.
 
+### Hızlandırılmış Vardiya Simülasyonu (shift-sim)
+
+- **Domain:** Backend - simulations/machines/oee/board, Frontend - monitoring
+- **Karar:** `shift-sim` adlı deterministik, hızlandırılmış vardiya telemetry simülatörü eklendi; telemetry kayıtları `simulationRunId` ile etiketleniyor. `data-gen` ile `shift-sim` aynı anda çalıştırılmaz. `job-sim` üretimi telemetry timestamp’lerine göre hesaplar ve shift-sim koşularında simülasyon zamanını korur. MB-001 için simülasyon üretim hızı `JOB_SIM_PART_MB_001_CYCLE_TIME_SECONDS` ile yavaşlatılabilir (varsayılan 600 sn).
+- **Gerekçe:** Gerçek makine erişimi olmadığı için deterministik test verisi gerekli; hızlandırılmış vardiyada üretim/telemetry sıralamasını bozmadan hızlı smoke test yapılabilmeli ve aşırı hızlı üretim (çok düşük cycle time) kontrol edilebilmeli.
+- **Etki:** `backend/scripts/shift-simulator.js`, `backend/scripts/job-simulator.js`, `backend/scripts/seed.js`, `backend/src/domains/machines/models/machine-telemetry-model.js`, `backend/src/domains/oee/services/oee-dashboard-service.js`, `backend/.env.example`, `backend/README.md`, `frontend/src/features/monitoring/pages/monitoring.jsx` ve ilgili dokümanlar güncellendi.
+
 ## Frontend Kararları
 
 ### Vite + React (JavaScript) SPA

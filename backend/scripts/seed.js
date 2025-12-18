@@ -269,7 +269,7 @@ const partSeeds = [
     code: "PART-MB-001",
     name: "Anakart Seti",
     description: "Laptop anakart montaj seti",
-    idealCycleTime: 3.5,
+    idealCycleTime: 600,
     category: "electronics",
     unit: "set",
     tags: ["motherboard", "electronics"],

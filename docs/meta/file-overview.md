@@ -38,11 +38,11 @@ Yeni geliştirici projeyi anlamak için bu dosyaya bakmalıdır.
 - `backend/src/domains/access-control/`: Rol ve permission yönetimi için controller/service/route dosyaları (`roles-routes`, `permissions-routes`).
 - `backend/src/domains/users/`: Kullanıcı yönetimi domain’i; `users-controller`, `users-routes` burada bulunur.
 - `backend/src/domains/machines/`: Makine domain’i; `machines`, `machine_events` ve `machine_telemetry` modelleri ile birlikte controller/service/route katmanlarını içerir.
-- `backend/src/domains/machines/models/machine-telemetry-model.js`: Makineye ait anlık telemetry/sinyal kayıtlarını (`machine_telemetry` koleksiyonu) saklar; 0/1 sinyal değeri, timestamp ve metrikler içerir.
+- `backend/src/domains/machines/models/machine-telemetry-model.js`: Makineye ait telemetry/sinyal kayıtlarını (`machine_telemetry` koleksiyonu) saklar; 0/1 sinyal değeri, timestamp, metrikler, `source`, `intervalMs` ve simülasyon koşuları için `simulationRunId` içerir.
 - `backend/src/domains/parts/`: Parça tanımları için domain; `models/part-model.js` parça, ideal süre ve üretilebildiği makineleri tutar, `constants/part-categories.js` kategori/birim/varsayılan makine ayarı sözlüğünü barındırır.
 - `backend/src/domains/production/`: JobOrder ve ProductionEvent modelleri, servisler ve rotalar; iş emirleri için CRUD + start/pause/resume/produce/complete aksiyonları içerir ve makine/part/operatör ilişkilerini doğrular.
 - `backend/src/domains/downtime/`: Duruş domain’i; planlı duruş rule/run modelleri, scheduler ve downtime listesi ile reason düzeltme/split API’lerini içerir.
-- `backend/src/domains/simulations/`: Simülasyon kontrol domain’i; `data-gen` ve `job-sim` script’lerini UI’dan başlat/durdurmak için process yönetimi ve log buffer API’lerini içerir.
+- `backend/src/domains/simulations/`: Simülasyon kontrol domain’i; `data-gen`, `shift-sim` ve `job-sim` script’lerini UI’dan başlat/durdurmak için process yönetimi ve log buffer API’lerini içerir; `data-gen` ile `shift-sim` aynı anda çalıştırılmaz.
 - `backend/src/domains/simulations/routes/simulations-routes.js`: Simülasyon kontrol endpoint’leri (`/api/simulations/*`); `production.manage` ile korunur ve prod ortamında env flag ile kapatılabilir.
 - `backend/src/domains/simulations/services/simulations-service.js`: Child process spawn/stop (SIGTERM/SIGKILL), in-memory ring buffer log toplama ve status raporlama.
 - `backend/src/domains/oee/config/oee-rules.json`: OEE/sinyal işleme domaini için downtime eşikleri, reason kod haritaları ve aggregation ayarlarının tutulduğu JSON konfigurasyonu.
@@ -51,7 +51,7 @@ Yeni geliştirici projeyi anlamak için bu dosyaya bakmalıdır.
 - `backend/src/domains/oee/services/oee-dashboard-service.js`: Telemetry/OEE verilerinden dashboard için gerekli ortalama, toplam ve trend verilerini üretir; board domain’i bu servis üzerinden API cevaplarını oluşturur.
 - `backend/src/jobs/oee-processor-job.js`: Sunucu açıldığında çalışan cron benzeri job; belirlenen aralıklarla OEE processor servisini tetikler.
 - `backend/src/jobs/planned-downtime-scheduler-job.js`: Planlı duruş scheduler runner; rule/run modeline göre planlı duruş başlatır/bitirir (feature-flag ile).
-- `backend/src/domains/board/`: Dashboard’a yönelik metrikleri toplayan domain; `services/board-service.js` telemetry/OEE sonuçlarını birleştirir, `routes/board-routes.js` `/api/board/metrics` ve `/api/board/machines/:id/metrics` endpointlerini sunar.
+- `backend/src/domains/board/`: Dashboard’a yönelik metrikleri toplayan domain; `services/board-service.js` telemetry/OEE sonuçlarını birleştirir, `routes/board-routes.js` `/api/board/metrics`, `/api/board/machines/:id/metrics` ve `/api/board/machines/:id/telemetry` endpointlerini sunar.
 - `backend/src/middleware/auth-guard.js`: JWT doğrulaması yaparak isteğe `req.auth` bilgisi ekler.
 - `backend/src/middleware/permission-guard.js`: İstenen izinlere göre erişim kontrolü yapan middleware.
 - `backend/src/models/index.js`: Domain modellerini preload eder (auth, machines, oee, production, downtime).
@@ -66,7 +66,8 @@ Yeni geliştirici projeyi anlamak için bu dosyaya bakmalıdır.
 - `backend/src/constants/machine-statuses.js`: Makine durum enum değerlerini (`running`, `idle`, `downtime`, `maintenance`, `unknown`) merkezi olarak paylaşır.
 - `backend/scripts/seed.js`: Varsayılan rol kayıtlarını ve `.env` üzerinden verilen admin hesabını oluşturan script (`npm run seed`).
 - `backend/scripts/data-gen.js`: Simülasyon amaçlı telemetry/sinyal üretir; `npm run data:gen` ile çalıştırıldığında periyodik olarak `machine_telemetry` koleksiyonuna veri yazar, makinenin `currentJobOrder` + `status` bilgisine göre aktif (yüksek sıcaklık/tork/enerji) ile idle (düşük) profilleri arasında `DATA_GEN_TRANSITION_MS` süresince ramp-up/ramp-down uygular ve aktif makine listesini en geç `DATA_GEN_MACHINE_REFRESH_MS` süresinde yeniden sorgular. Planlı duruş açıkken `DATA_GEN_PLANNED_STOPPED_MODE` ile signal/metrikleri 0’a kilitleyebilir.
-- `backend/scripts/job-simulator.js`: Aktif JobOrder kayıtları için ideal çevrim süresine göre good/defect üretim verisi üretir; telemetry sinyalini okuyup yalnızca makine fiziksel olarak çalışıyorsa üretim kaydı oluşturur.
+- `backend/scripts/shift-simulator.js`: Hızlandırılmış vardiya telemetry simülatörü; 07:00–18:00 aralığı için deterministik sinyal/telemetry üretir ve `simulationRunId` ile işaretler (`npm run shift:sim`). Planlı duruş açıkken `SHIFT_SIM_PLANNED_STOPPED_MODE` ile signal/metrikleri 0’a kilitleyebilir.
+- `backend/scripts/job-simulator.js`: Aktif JobOrder kayıtları için telemetry’ye bağlı üretim verisi üretir; son telemetry timestamp’lerine göre ideal çevrim süresini hesaplayıp `production_events` yazar ve shift-sim koşularında simülasyon timestamp’lerini korur (`npm run job:sim`).
 
 ## Docs
 

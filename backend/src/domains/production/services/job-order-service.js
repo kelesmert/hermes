@@ -62,6 +62,17 @@ const computeEstimatedDurationMinutes = (part, targetQuantity) => {
   return Number(minutes.toFixed(2));
 };
 
+const parseEventTime = (value) => {
+  if (value === undefined || value === null || value === '') {
+    return new Date();
+  }
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    throw new AppError('Geçersiz zaman formatı.', 400);
+  }
+  return parsed;
+};
+
 const parseTargetQuantity = (value) => {
   const numeric = Number(value);
   if (Number.isNaN(numeric) || numeric <= 0) {
@@ -106,7 +117,10 @@ const ensurePart = async (partId) => {
   return part;
 };
 
-const logProductionEvent = async (jobOrder, { eventType, quantity, qualityStatus, defectType, operator, source, notes, metadata }) => {
+const logProductionEvent = async (
+  jobOrder,
+  { eventType, quantity, qualityStatus, defectType, operator, source, notes, metadata, timestamp },
+) => {
   return ProductionEvent.create({
     jobOrder: jobOrder._id,
     machine: jobOrder.machine,
@@ -118,6 +132,7 @@ const logProductionEvent = async (jobOrder, { eventType, quantity, qualityStatus
     source: source || 'operator',
     notes,
     metadata,
+    ...(timestamp && { timestamp }),
   });
 };
 
@@ -284,17 +299,18 @@ const ensureMachineAvailability = (machine, jobOrder) => {
   }
 };
 
-const startJobOrder = async (id, { operatorId, source = 'operator' } = {}) => {
+const startJobOrder = async (id, { operatorId, source = 'operator', now } = {}) => {
   const jobOrder = await ensureJobOrder(id);
   if (jobOrder.status !== JOB_STATUS.PENDING) {
     throw new AppError('İş emri zaten başlatılmış veya tamamlanmış.', 400);
   }
 
+  const eventTime = parseEventTime(now);
   const machine = await ensureMachine(jobOrder.machine);
   ensureMachineAvailability(machine, jobOrder);
 
   jobOrder.status = JOB_STATUS.IN_PROGRESS;
-  jobOrder.startTime = new Date();
+  jobOrder.startTime = eventTime;
   jobOrder.lastPauseTime = undefined;
   await jobOrder.save();
 
@@ -312,17 +328,22 @@ const startJobOrder = async (id, { operatorId, source = 'operator' } = {}) => {
     source,
     triggeredBy: operatorId,
     jobOrder: jobOrder._id,
+    startedAt: eventTime,
     description: `${jobOrder.orderNo} başlatıldı`,
   });
 
   return jobOrder;
 };
 
-const resumeJobOrder = async (id, { operatorId, source = 'operator', skipMachineEvent = false } = {}) => {
+const resumeJobOrder = async (
+  id,
+  { operatorId, source = 'operator', skipMachineEvent = false, now } = {},
+) => {
   const jobOrder = await ensureJobOrder(id);
   if (jobOrder.status !== JOB_STATUS.PAUSED) {
     throw new AppError('Sadece duraklatılan iş emirleri devam ettirilebilir.', 400);
   }
+  const eventTime = parseEventTime(now);
   const machine = await ensureMachine(jobOrder.machine);
   ensureMachineAvailability(machine, jobOrder);
 
@@ -345,6 +366,7 @@ const resumeJobOrder = async (id, { operatorId, source = 'operator', skipMachine
       source,
       triggeredBy: operatorId,
       jobOrder: jobOrder._id,
+      startedAt: eventTime,
       description: `${jobOrder.orderNo} devam ettirildi`,
     });
   }
@@ -352,15 +374,19 @@ const resumeJobOrder = async (id, { operatorId, source = 'operator', skipMachine
   return jobOrder;
 };
 
-const pauseJobOrder = async (id, { operatorId, source = 'operator', reason, skipMachineEvent = false } = {}) => {
+const pauseJobOrder = async (
+  id,
+  { operatorId, source = 'operator', reason, skipMachineEvent = false, now } = {},
+) => {
   const jobOrder = await ensureJobOrder(id);
   if (jobOrder.status !== JOB_STATUS.IN_PROGRESS) {
     throw new AppError('Sadece aktif iş emirleri duraklatılabilir.', 400);
   }
   const machine = await ensureMachine(jobOrder.machine);
+  const eventTime = parseEventTime(now);
 
   jobOrder.status = JOB_STATUS.PAUSED;
-  jobOrder.lastPauseTime = new Date();
+  jobOrder.lastPauseTime = eventTime;
   await jobOrder.save();
 
   await logProductionEvent(jobOrder, {
@@ -376,6 +402,7 @@ const pauseJobOrder = async (id, { operatorId, source = 'operator', reason, skip
       source,
       triggeredBy: operatorId,
       jobOrder: jobOrder._id,
+      startedAt: eventTime,
       description: `${jobOrder.orderNo} duraklatıldı`,
       metadata: {
         jobOrder: jobOrder.orderNo,
@@ -387,11 +414,12 @@ const pauseJobOrder = async (id, { operatorId, source = 'operator', reason, skip
   return jobOrder;
 };
 
-const finalizeJobOrder = async (jobOrder, { operatorId, source, eventType }) => {
+const finalizeJobOrder = async (jobOrder, { operatorId, source, eventType, now } = {}) => {
+  const eventTime = parseEventTime(now);
   jobOrder.status = JOB_STATUS.COMPLETED;
-  jobOrder.endTime = new Date();
+  jobOrder.endTime = eventTime;
   if (jobOrder.startTime) {
-    const duration = (jobOrder.endTime.getTime() - jobOrder.startTime.getTime()) / 60000;
+    const duration = (eventTime.getTime() - jobOrder.startTime.getTime()) / 60000;
     jobOrder.actualDurationMinutes = Number(duration.toFixed(2));
   }
   await jobOrder.save();
@@ -413,13 +441,14 @@ const finalizeJobOrder = async (jobOrder, { operatorId, source, eventType }) => 
     source,
     triggeredBy: operatorId,
     jobOrder: jobOrder._id,
+    startedAt: eventTime,
     description: `${jobOrder.orderNo} tamamlandı`,
   });
 
   return jobOrder;
 };
 
-const completeJobOrder = async (id, { operatorId, source = 'operator' } = {}) => {
+const completeJobOrder = async (id, { operatorId, source = 'operator', now } = {}) => {
   const jobOrder = await ensureJobOrder(id);
   if (![JOB_STATUS.IN_PROGRESS, JOB_STATUS.PAUSED].includes(jobOrder.status)) {
     throw new AppError('Sadece aktif veya duraklatılmış iş emirleri tamamlanabilir.', 400);
@@ -429,17 +458,19 @@ const completeJobOrder = async (id, { operatorId, source = 'operator' } = {}) =>
     operatorId,
     source,
     eventType: productionEventTypes.COMPLETE,
+    now,
   });
 };
 
-const cancelJobOrder = async (id, { operatorId, source = 'operator', reason } = {}) => {
+const cancelJobOrder = async (id, { operatorId, source = 'operator', reason, now } = {}) => {
   const jobOrder = await ensureJobOrder(id);
   if (![JOB_STATUS.PENDING, JOB_STATUS.PAUSED].includes(jobOrder.status)) {
     throw new AppError('Sadece bekleyen veya duraklatılmış iş emirleri iptal edilebilir.', 400);
   }
 
   jobOrder.status = JOB_STATUS.CANCELLED;
-  jobOrder.endTime = new Date();
+  const eventTime = parseEventTime(now);
+  jobOrder.endTime = eventTime;
   await jobOrder.save();
 
   const machine = await ensureMachine(jobOrder.machine);
@@ -460,6 +491,7 @@ const cancelJobOrder = async (id, { operatorId, source = 'operator', reason } = 
     source,
     triggeredBy: operatorId,
     jobOrder: jobOrder._id,
+    startedAt: eventTime,
     description: `${jobOrder.orderNo} iptal edildi`,
     metadata: { reason },
   });
@@ -469,7 +501,7 @@ const cancelJobOrder = async (id, { operatorId, source = 'operator', reason } = 
 
 const recordProduction = async (
   id,
-  { operatorId, quantity, qualityStatus = 'good', defectType, source = 'operator' },
+  { operatorId, quantity, qualityStatus = 'good', defectType, source = 'operator', timestamp, metadata },
 ) => {
   const jobOrder = await ensureJobOrder(id);
   if (jobOrder.status !== JOB_STATUS.IN_PROGRESS) {
@@ -502,10 +534,12 @@ const recordProduction = async (
     defectType,
     operator: operatorId,
     source,
+    metadata,
+    ...(timestamp && { timestamp: parseEventTime(timestamp) }),
   });
 
   if (jobOrder.producedQuantity >= jobOrder.targetQuantity && jobOrder.status === JOB_STATUS.IN_PROGRESS) {
-    return completeJobOrder(jobOrder.id, { operatorId, source });
+    return completeJobOrder(jobOrder.id, { operatorId, source, now: timestamp });
   }
 
   return jobOrder;

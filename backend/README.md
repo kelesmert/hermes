@@ -40,7 +40,13 @@ Seed sonrası örnek hesaplar:
 - Örnek parçalar: Vida, profil ve anakart seti gibi üç kategori (`fasteners`, `mechanical_plastics`, `electronics`) için kayıtlar eklenir; kategori/birim/varsayılan makine ayarları `src/domains/parts/constants/part-categories.js` sözlüğüne göre doğrulanır.
 
 - Telemetry testi için seed script’i her makineye ait örnek `machine_telemetry` kayıtları oluşturur; OEE job’u ve `/api/board/metrics` endpoint’i bu verilerle hemen doğrulanabilir.
-- Canlı telemetri simülasyonu için:
+- Telemetri simülasyonu için iki seçenek var (aynı anda çalıştırmayın):
+  - Hızlandırılmış vardiya simülasyonu (önerilen, test için): `shift-sim`
+    ```bash
+    npm run shift:sim
+    ```
+    Bu script 07:00–18:00 vardiyası için deterministik telemetry üretir ve birkaç dakika içinde tüm vardiya verisini adım adım yazar.
+  - Sürekli simülasyon (legacy): `data-gen`
   ```bash
   npm run data:gen
   ```
@@ -49,7 +55,7 @@ Seed sonrası örnek hesaplar:
   - Planlı duruş simülasyonu için `DATA_GEN_PLANNED_STOPPED_MODE=true` iken, makinede açık planlı duruş event’i varsa sinyal ve metrikler 0 üretilir; planlı duruş bitince normal profile geri dönülür.
   - Sinyal davranışı için `DATA_GEN_RUNNING_SIGNAL_DROP_PROB`, `DATA_GEN_RUNNING_SIGNAL_RECOVERY_PROB`, `DATA_GEN_IDLE_SIGNAL_DROP_PROB`, `DATA_GEN_IDLE_SIGNAL_RISE_PROB` değişkenleri kullanılabilir; aktif işlerde sinyalin 1’de kalmasını, idle durumda ise daha sık 0 üretmesini sağlar.
   - Isınma/soğuma anındaki metrik geçişi `DATA_GEN_TRANSITION_MS` değişkeniyle kontrol edilir; varsayılan 10 sn boyunca sıcaklık/tork/enerji değerleri hızlıca yeni profile yaklaşır ve monitoring grafikleri gerçekçi ramp-up/ramp-down davranışı sergiler.
-  - Üretim simülatörü (`npm run job:sim`) telemetry verisine bağımlıdır; önce data-gen’i başlat, ardından job-sim’i çalıştır. Telemetry yoksa job-sim üretim yapmaz ve logda uyarı verir.
+  - Üretim simülatörü (`npm run job:sim`) telemetry verisine bağımlıdır; önce shift-sim veya data-gen’i başlat, ardından job-sim’i çalıştır. Telemetry yoksa job-sim üretim yapmaz ve logda uyarı verir.
   - UI üzerinden simülasyon yönetimi için `/simulations` sayfası kullanılabilir (backend API: `GET/POST /api/simulations/*`, izin: `production.manage`). Prod ortamında kapatmak için `ENABLE_SIMULATION_CONTROL=false` bırakın.
 
 ## Dizin Yapısı
@@ -71,7 +77,7 @@ backend/
 │  │   ├─ board/          # dashboard metrikleri (board API)
 │  │   ├─ parts/          # parts CRUD + kategori sözlüğü
 │  │   └─ production/     # job orders + production events + aksiyonlar
-└─ scripts/ (seed.js, data-gen.js, job-simulator.js)
+└─ scripts/ (seed.js, data-gen.js, shift-simulator.js, job-simulator.js)
 ```
 
 ## Kullanıcı Akışı
@@ -89,7 +95,8 @@ backend/
 | -------------- | ------------------------------------------------------------------------------------------ |
 | `npm run dev`  | Nodemon ile geliştirme sunucusu                                                            |
 | `npm run seed` | Permission/role + master/sys kullanıcıları ve örnek makine kayıtlarını oluşturur/günceller |
-| `npm run data:gen` | Makine telemetry verisi simüle eder; OEE ve monitoring için sinyal üretir                |
+| `npm run data:gen` | Makine telemetry verisi simüle eder; OEE ve monitoring için sinyal üretir (legacy)      |
+| `npm run shift:sim` | 07:00–18:00 vardiyası için hızlandırılmış deterministik telemetry üretir (test için)  |
 | `npm run job:sim`  | Aktif job order’lar için üretim (good/defect) verisi üretir; telemetry sinyaline bakar  |
 | `npm test`     | (Planlı)                                                                                   |
 

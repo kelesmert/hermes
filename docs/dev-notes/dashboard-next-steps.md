@@ -24,6 +24,7 @@ Bu not, telemetry → OEE → board akışına dair planlanan iyileştirmeleri v
 ## Referanslar
 
 - `scripts/data-gen.js` – Telemetry üretimi (`npm run data:gen`).
+- `scripts/shift-simulator.js` – Hızlandırılmış vardiya telemetry üretimi (`npm run shift:sim`).
 - `domains/oee/services/oee-processor.js` – Sinyal kuralları + downtime yönetimi.
 - `domains/oee/services/oee-dashboard-service.js` – Dashboard hesaplamaları ve smoothing.
 - `domains/board/routes/board-routes.js` – `/api/board/metrics`, `/api/board/machines/:id/metrics`, `/api/board/machines/:id/telemetry`.

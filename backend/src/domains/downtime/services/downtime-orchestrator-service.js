@@ -10,6 +10,8 @@ const openDowntimeFromTelemetry = async ({
   reasonCode,
   reasonCategory = 'unplanned',
   description,
+  eventSource,
+  eventMetadata,
 }) => {
   if (!machine) return null;
 
@@ -20,11 +22,12 @@ const openDowntimeFromTelemetry = async ({
     reasonCategory,
     jobOrder: machine.currentJobOrder || undefined,
     description: description || 'Otomatik tespit edilen duruş',
-    source: 'system',
+    source: eventSource || 'system',
+    ...(eventMetadata && { metadata: eventMetadata }),
   });
 };
 
-const closeDowntimeFromTelemetry = async ({ machine, endedAt, hasAssignedJob }) => {
+const closeDowntimeFromTelemetry = async ({ machine, endedAt, hasAssignedJob, eventSource, eventMetadata }) => {
   if (!machine) return null;
 
   const closeTime = endedAt ? new Date(endedAt) : new Date();
@@ -41,7 +44,7 @@ const closeDowntimeFromTelemetry = async ({ machine, endedAt, hasAssignedJob }) 
     openEvent &&
     openEvent.state === machineStatuses.DOWNTIME &&
     openEvent.reasonCategory === 'unplanned' &&
-    openEvent.source === 'system' &&
+    ['system', 'simulator'].includes(openEvent.source) &&
     closeTime.getTime() - openEvent.startedAt.getTime() >= UNPLANNED_CONFIRMATION_THRESHOLD_MS
   ) {
     await MachineEvent.updateOne(
@@ -59,9 +62,10 @@ const closeDowntimeFromTelemetry = async ({ machine, endedAt, hasAssignedJob }) 
   return createMachineEvent(machine._id, {
     state: hasAssignedJob ? machineStatuses.RUNNING : machineStatuses.IDLE,
     startedAt: closeTime,
-    source: 'system',
+    source: eventSource || 'system',
     jobOrder: hasAssignedJob ? machine.currentJobOrder : undefined,
     description: 'Otomatik tespit edilen duruş bitti',
+    ...(eventMetadata && { metadata: eventMetadata }),
   });
 };
 

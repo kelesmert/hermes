@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   Alert,
@@ -38,7 +38,8 @@ const LINES = [
 const METRICS_POLL_INTERVAL_MS = 2000;
 const TELEMETRY_POLL_INTERVAL_MS = 2000;
 const TELEMETRY_POLL_INTERVAL_SECONDS = TELEMETRY_POLL_INTERVAL_MS / 1000;
-const DEFAULT_TELEMETRY_WINDOW_MS = 10 * 60 * 1000;
+const SHIFT_BUCKET_MINUTES = 15;
+const SHIFT_TICK_HOURS = 1;
 
 const normalizeTrendPoint = (point) => {
   const timestampMs = point?.timestamp
@@ -80,112 +81,52 @@ const MonitoringPage = () => {
     refetchInterval: METRICS_POLL_INTERVAL_MS,
   });
 
-  const [trendData, setTrendData] = useState([]);
-  const [trendLoading, setTrendLoading] = useState(false);
-  const [trendError, setTrendError] = useState(null);
-  const [trendWindowStartMs, setTrendWindowStartMs] = useState(
-    Date.now() - DEFAULT_TELEMETRY_WINDOW_MS
+  const telemetryQuery = useQuery({
+    queryKey: ["monitoringMachineTelemetry", selectedMachineId, SHIFT_BUCKET_MINUTES],
+    queryFn: () =>
+      fetchMachineTelemetrySeries({
+        machineId: selectedMachineId,
+        view: "shift",
+        bucketMinutes: SHIFT_BUCKET_MINUTES,
+      }),
+    enabled: Boolean(selectedMachineId),
+    refetchInterval: TELEMETRY_POLL_INTERVAL_MS,
+  });
+
+  const trendData = useMemo(
+    () => (telemetryQuery.data?.series || []).map(normalizeTrendPoint),
+    [telemetryQuery.data?.series]
   );
-  const [nowMs, setNowMs] = useState(Date.now());
-  const lastTimestampRef = useRef(null);
-  const intervalRef = useRef(null);
 
-  useEffect(() => {
-    const timer = setInterval(() => setNowMs(Date.now()), 1000);
-    return () => clearInterval(timer);
-  }, []);
+  const shiftWindowStartMs = useMemo(() => {
+    const start = telemetryQuery.data?.windowStart;
+    const parsed = start ? new Date(start) : null;
+    return parsed && !Number.isNaN(parsed.getTime())
+      ? parsed.getTime()
+      : Date.now();
+  }, [telemetryQuery.data?.windowStart]);
 
-  useEffect(() => {
-    if (!selectedMachineId) return () => {};
-    let isMounted = true;
-    setTrendData([]);
-    setTrendError(null);
-    setTrendLoading(true);
-    setTrendWindowStartMs(Date.now() - DEFAULT_TELEMETRY_WINDOW_MS);
-
-    const loadInitial = async () => {
-      try {
-        const payload = await fetchMachineTelemetrySeries({
-          machineId: selectedMachineId,
-          limit: 120,
-        });
-        if (!isMounted) return;
-        const windowStartMs = payload.windowStart
-          ? new Date(payload.windowStart).getTime()
-          : Date.now() - DEFAULT_TELEMETRY_WINDOW_MS;
-        const normalizedSeries = (payload.series || []).map(
-          normalizeTrendPoint
-        );
-        setTrendWindowStartMs(windowStartMs);
-        setTrendData(normalizedSeries);
-        if (normalizedSeries.length) {
-          lastTimestampRef.current =
-            normalizedSeries[normalizedSeries.length - 1].timestamp ||
-            lastTimestampRef.current;
-        } else {
-          lastTimestampRef.current = null;
-        }
-      } catch (error) {
-        if (isMounted) setTrendError(error);
-      } finally {
-        if (isMounted) setTrendLoading(false);
-      }
-    };
-
-    const loadIncremental = async () => {
-      if (!lastTimestampRef.current) return;
-      try {
-        const payload = await fetchMachineTelemetrySeries({
-          machineId: selectedMachineId,
-          since: lastTimestampRef.current,
-        });
-        if (!payload.series?.length) return;
-        const windowStartMs = payload.windowStart
-          ? new Date(payload.windowStart).getTime()
-          : Date.now() - DEFAULT_TELEMETRY_WINDOW_MS;
-        const normalizedSeries = payload.series.map(normalizeTrendPoint);
-        setTrendWindowStartMs(windowStartMs);
-        setTrendData((prev) => {
-          const merged = [...prev, ...normalizedSeries];
-          const filtered = merged.filter(
-            (point) => point.timestampMs >= windowStartMs
-          );
-          if (filtered.length > 240) {
-            filtered.splice(0, filtered.length - 240);
-          }
-          return filtered;
-        });
-        lastTimestampRef.current =
-          normalizedSeries[normalizedSeries.length - 1].timestamp ||
-          lastTimestampRef.current;
-      } catch (error) {
-        setTrendError(error);
-      }
-    };
-
-    loadInitial();
-    intervalRef.current = setInterval(
-      loadIncremental,
-      TELEMETRY_POLL_INTERVAL_MS
-    );
-
-    return () => {
-      isMounted = false;
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
-      lastTimestampRef.current = null;
-    };
-  }, [selectedMachineId]);
+  const shiftWindowEndMs = useMemo(() => {
+    const end = telemetryQuery.data?.windowEnd;
+    const parsed = end ? new Date(end) : null;
+    return parsed && !Number.isNaN(parsed.getTime()) ? parsed.getTime() : Date.now();
+  }, [telemetryQuery.data?.windowEnd]);
 
   const chartDomain = useMemo(() => {
-    const windowStart = Math.max(0, nowMs - DEFAULT_TELEMETRY_WINDOW_MS);
-    if (!trendData.length) {
-      return [windowStart, nowMs];
+    return [shiftWindowStartMs, shiftWindowEndMs];
+  }, [shiftWindowEndMs, shiftWindowStartMs]);
+
+  const chartTicks = useMemo(() => {
+    if (!shiftWindowStartMs || !shiftWindowEndMs) return undefined;
+    const stepMs = SHIFT_TICK_HOURS * 60 * 60 * 1000;
+    if (!stepMs) return undefined;
+
+    const ticks = [];
+    for (let t = shiftWindowStartMs; t <= shiftWindowEndMs; t += stepMs) {
+      ticks.push(t);
     }
-    return [windowStart, "auto"];
-  }, [nowMs, trendData.length]);
+    return ticks;
+  }, [shiftWindowEndMs, shiftWindowStartMs]);
 
   return (
     <Stack spacing={3}>
@@ -313,24 +254,37 @@ const MonitoringPage = () => {
               <Stack spacing={3}>
                 <Typography variant="caption" color="text.secondary">
                   Grafikler {TELEMETRY_POLL_INTERVAL_SECONDS} sn aralıkla sorgulanan
-                  telemetri verisine göre güncellenir; yeni numune gelmezse eksen yine
-                  gerçek zamana göre akmaya devam eder.
+                  telemetri verisine göre güncellenir. X ekseni sabit vardiya aralığıdır
+                  (07:00–18:00, {SHIFT_BUCKET_MINUTES} dk bucket).
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Kaynak: {telemetryQuery.data?.source || "-"}
+                  {telemetryQuery.data?.simulationRunId
+                    ? ` (run ${telemetryQuery.data.simulationRunId})`
+                    : ""}
+                  {telemetryQuery.data?.latestAt
+                    ? `, latest ${format(
+                        new Date(telemetryQuery.data.latestAt),
+                        "dd.MM.yyyy HH:mm",
+                        { locale: tr }
+                      )}`
+                    : ""}
                 </Typography>
                 <Box>
                   <Typography variant="subtitle2" gutterBottom>
-                    Sinyal (0/1)
+                    Sinyal
                   </Typography>
-                  {trendLoading ? (
+                  {telemetryQuery.isLoading ? (
                     <Box
                       sx={{ display: "flex", justifyContent: "center", py: 3 }}
                     >
                       <CircularProgress size={24} />
                     </Box>
-                  ) : trendError ? (
+                  ) : telemetryQuery.isError ? (
                     <Alert severity="error">
                       Trend verisi alınamadı:{" "}
-                      {trendError?.response?.data?.message ||
-                        trendError?.message}
+                      {telemetryQuery.error?.response?.data?.message ||
+                        telemetryQuery.error?.message}
                     </Alert>
                   ) : trendData.length === 0 ? (
                     <Typography color="text.secondary">
@@ -339,17 +293,24 @@ const MonitoringPage = () => {
                   ) : (
                     <Box sx={{ height: 140 }}>
                       <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={trendData}>
+                        <LineChart
+                          data={trendData}
+                          margin={{ top: 5, right: 32, bottom: 0, left: 0 }}
+                        >
                           <XAxis
                             dataKey="timestampMs"
                             type="number"
                             scale="time"
                             domain={chartDomain}
+                            ticks={chartTicks}
+                            allowDataOverflow
+                            interval={0}
+                            padding={{ right: 16 }}
                             stroke="#888"
                             fontSize={12}
                             tickFormatter={(value) =>
                               typeof value === "number"
-                                ? format(new Date(value), "HH:mm:ss", {
+                                ? format(new Date(value), "HH:mm", {
                                     locale: tr,
                                   })
                                 : value
@@ -357,14 +318,18 @@ const MonitoringPage = () => {
                           />
                           <YAxis
                             domain={[0, 1]}
-                            tickCount={2}
+                            ticks={[0, 1]}
                             stroke="#f50057"
-                            tickFormatter={(value) => `${value}`}
+                            tickFormatter={(value) =>
+                              typeof value === "number"
+                                ? Math.round(value)
+                                : value
+                            }
                           />
                           <RechartsTooltip
                             labelFormatter={(value) =>
                               typeof value === "number"
-                                ? format(new Date(value), "dd.MM.yyyy HH:mm:ss", {
+                                ? format(new Date(value), "dd.MM.yyyy HH:mm", {
                                     locale: tr,
                                   })
                                 : value
@@ -386,17 +351,17 @@ const MonitoringPage = () => {
                   <Typography variant="subtitle2" gutterBottom>
                     Telemetry (°C / Nm / kWh)
                   </Typography>
-                  {trendLoading ? (
+                  {telemetryQuery.isLoading ? (
                     <Box
                       sx={{ display: "flex", justifyContent: "center", py: 3 }}
                     >
                       <CircularProgress size={24} />
                     </Box>
-                  ) : trendError ? (
+                  ) : telemetryQuery.isError ? (
                     <Alert severity="error">
                       Trend verisi alınamadı:{" "}
-                      {trendError?.response?.data?.message ||
-                        trendError?.message}
+                      {telemetryQuery.error?.response?.data?.message ||
+                        telemetryQuery.error?.message}
                     </Alert>
                   ) : trendData.length === 0 ? (
                     <Typography color="text.secondary">
@@ -405,17 +370,24 @@ const MonitoringPage = () => {
                   ) : (
                     <Box sx={{ height: 220 }}>
                       <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={trendData}>
+                        <LineChart
+                          data={trendData}
+                          margin={{ top: 5, right: 32, bottom: 0, left: 0 }}
+                        >
                           <XAxis
                             dataKey="timestampMs"
                             type="number"
                             scale="time"
                             domain={chartDomain}
+                            ticks={chartTicks}
+                            allowDataOverflow
+                            interval={0}
+                            padding={{ right: 16 }}
                             stroke="#888"
                             fontSize={12}
                             tickFormatter={(value) =>
                               typeof value === "number"
-                                ? format(new Date(value), "HH:mm:ss", {
+                                ? format(new Date(value), "HH:mm", {
                                     locale: tr,
                                   })
                                 : value
@@ -429,7 +401,7 @@ const MonitoringPage = () => {
                           <RechartsTooltip
                             labelFormatter={(value) =>
                               typeof value === "number"
-                                ? format(new Date(value), "dd.MM.yyyy HH:mm:ss", {
+                                ? format(new Date(value), "dd.MM.yyyy HH:mm", {
                                     locale: tr,
                                   })
                                 : value
