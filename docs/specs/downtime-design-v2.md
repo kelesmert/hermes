@@ -96,10 +96,16 @@ Bu dokümanda “aktif job” şu anlama gelir
   - Terminal olmayan durumlar: `in_progress`, `paused`
   - Terminal durumlar: `completed`, `cancelled`
 
+Ek tanım
+
+- “Running job”: job order durumu `in_progress` olan job
+  - Telemetry tabanlı plansız tespit ve manuel plansız duruş başlatma yalnızca running job varken çalışır
+  - Job `paused` iken telemetry 0 serileri plansız duruş açmaz
+
 Not
 
-- Plansız duruş otomatik tespiti sadece makine gerçekten çalışırken devreye girmelidir
-- Bu yüzden otomatik tespit için ek koşul vardır: `Machine.status` değeri `running` olmalıdır
+- `Machine.status` bazı akışlarda stale kalabilir (örn. job pause MachineEvent yazmıyor)
+- Bu yüzden plansız tespit için esas koşul “running job” olmalıdır; `Machine.status` sadece safety-check olarak kullanılır (downtime veya maintenance iken tekrar tespit yok)
 
 ### Timeline invariants
 
@@ -146,8 +152,8 @@ Gerekçe
 ### Kural 4 Otomatik plansız duruş tespiti
 
 - Koşullar
-  - Makinede aktif job vardır
-  - Makine durumu `running`dir
+  - Makinede running job vardır (`JobOrder.status = in_progress`)
+  - Makine durumu `downtime` veya `maintenance` değildir
   - Telemetry sinyali 0 değerini kesintisiz şekilde eşiğin üzerinde üretir
 - Eşik
   - `downtimeThresholdMs = 10000`
@@ -157,7 +163,7 @@ Gerekçe
   - `source = system`
 - Bitiş
   - Sinyal 1 gelince duruş kapanır
-  - Makine tekrar `running` duruma döner
+  - Job hala `in_progress` ise makine `running` olur, değilse `idle` olur
 
 Not
 
@@ -169,7 +175,7 @@ Not
 - Operatör plansız duruş başlatabilir
   - Amaç “telemetry 10 sn beklemeden” duruşu anında başlatabilmek ve sebep girebilmektir
 - Koşullar
-  - Makinede aktif job vardır
+  - Makinede running job vardır (`JobOrder.status = in_progress`)
   - Makine durumu `running`dir
   - `reasonCode` zorunludur ve kategorisi `unplanned` olmalıdır
 - Başlangıç
@@ -602,6 +608,13 @@ Sayfa üç ana sekmeden oluşur
 - Telemetry sıfır serisi sayacı resetlenir
 - Plansız duruş için 10 sn eşiği yeniden işletilir
 
+### Vardiya bitti shift end
+
+- Bu durum downtime değildir, “çalışma saati bitti” anlamına gelir
+- `in_progress` job varsa job `paused` yapılır (reason: `shift_end`)
+- Açık `MachineEvent` varsa `endedAt=shiftEndAt` ile kapanır ve makine `idle` durumuna çekilir
+- `currentJobOrder` korunur ve üretimin devamı için operatörün job’u manuel `resume` etmesi gerekir
+
 ### Düzeltme penceresi
 
 - Kullanıcı yanlış reason seçtiyse 5 dk içinde düzeltir
@@ -668,6 +681,7 @@ Minimum manuel test senaryoları
 - Plansız açıkken 12:00 gelince plansız kapanır ve planlı başlar
 - Planlı bittikten sonra sinyal 0 kalırsa plansız hemen başlamaz, 10 sn sonra başlar
 - Yanlış reason seçimi 5 dk içinde düzeltilir, 5 dk sonrası split ile yapılır
+- Shift-sim koşusu bitince `in_progress` job `paused` olur (reason: `shift_end`), makine `idle` durumuna çekilir ve downtime event açılmaz
 
 Not
 

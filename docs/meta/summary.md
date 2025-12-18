@@ -43,7 +43,7 @@ Bu doküman, yeni bir geliştiricinin projeyi en kısa sürede kavraması için 
 ## 4. Öne Çıkan Özellikler
 
 1. **RBAC ve Auth**: `permissions → roles → users`, username login, JWT access + refresh token rotation
-2. **Telemetry Pipeline**: `shift-sim`/`data-gen` + `machine_telemetry` + OEE processor + Board metrikleri + Monitoring grafikleri
+2. **Telemetry Pipeline**: `shift-sim`/`data-gen` + `machine_telemetry` + OEE processor + Board metrikleri + Monitoring grafikleri. Shift-sim koşusu bitince `shift_end` uygulanır (job `paused`, makine `idle`)
 3. **Production**: JobOrder akışı (start/pause/resume/produce/complete) + telemetry tabanlı job simülatörü
 4. **Downtime v2**: Planlı duruş scheduler (rule/run) + plansız duruş telemetry eşiği + `/downtimes` UI (sınıflandırma, 5 dk edit, split)
 5. **Yönetim UI**: Sidebar layout + izin bazlı guard’lar, kullanıcı/rol/izin yönetimi ve domain CRUD ekranları

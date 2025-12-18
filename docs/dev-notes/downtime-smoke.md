@@ -43,6 +43,7 @@ Not
 
 - Aşağıdaki senaryoların çoğu `data-gen` env değişkenleriyle sinyal davranışını kontrol ettiği için varsayılan olarak `data-gen` üstünden anlatılır.
 - `shift-sim` ile test yapacaksan, senaryolardaki “probability” adımlarını atlayıp vardiya desenine göre duruşların oluştuğunu gözlemleyebilirsin.
+- `shift-sim` koşusu tamamlandığında sistem `shift_end` uygular: `in_progress` job `paused` olur (reason: `shift_end`) ve makine `idle` durumuna çekilir. Üretimin devamı için operatörün job’u manuel `resume` etmesi gerekir.
 
 Üretim simülatörü (opsiyonel)
 

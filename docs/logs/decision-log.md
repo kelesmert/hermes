@@ -73,6 +73,13 @@ Bu dosya, projede alınan mimarî ve teknolojik kararları, gerekçelerini ve be
 - **Gerekçe:** Gerçek makine erişimi olmadığı için deterministik test verisi gerekli; hızlandırılmış vardiyada üretim/telemetry sıralamasını bozmadan hızlı smoke test yapılabilmeli ve aşırı hızlı üretim (çok düşük cycle time) kontrol edilebilmeli.
 - **Etki:** `backend/scripts/shift-simulator.js`, `backend/scripts/job-simulator.js`, `backend/scripts/seed.js`, `backend/src/domains/machines/models/machine-telemetry-model.js`, `backend/src/domains/oee/services/oee-dashboard-service.js`, `backend/.env.example`, `backend/README.md`, `frontend/src/features/monitoring/pages/monitoring.jsx` ve ilgili dokümanlar güncellendi.
 
+### Shift End Semantiği (shift_end)
+
+- **Domain:** Backend - simulations/production/machines/oee
+- **Karar:** `shift-sim` koşusu tamamlanınca sistem `shift_end` uygular: `in_progress` job’lar `paused` yapılır (reason: `shift_end`), açık `machine_events` vardiya bitişinde kapanır ve makine `idle` durumuna çekilir. `currentJobOrder` korunur ve üretimin devamı için operatörün job’u manuel `resume` etmesi gerekir.
+- **Gerekçe:** Simülasyon bittiğinde makine/job state’in “running” kalmasını ve downtime sürelerinin vardiya dışına taşmasını engellemek; üretimin operatör onayıyla devam etmesini sağlamak.
+- **Etki:** `backend/scripts/shift-simulator.js`, `backend/src/domains/oee/services/oee-processor.js`, `backend/.env.example`, `backend/README.md` ve ilgili dokümanlar.
+
 ## Frontend Kararları
 
 ### Vite + React (JavaScript) SPA

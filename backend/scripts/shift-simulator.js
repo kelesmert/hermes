@@ -15,6 +15,8 @@ const JobOrder = require('../src/domains/production/models/job-order-model');
 const OeeMachineState = require('../src/domains/oee/models/oee-machine-state-model');
 const machineStatuses = require('../src/constants/machine-statuses');
 const jobOrderStatuses = require('../src/constants/job-order-statuses');
+const jobOrderService = require('../src/domains/production/services/job-order-service');
+const { createEvent: createMachineEvent } = require('../src/domains/machines/services/machine-event-service');
 
 const ISTANBUL_OFFSET_MINUTES = 180;
 
@@ -69,7 +71,14 @@ const METRIC_PROFILES = {
 const TRANSITION_WINDOW_MS = Math.max(0, Number(process.env.SHIFT_SIM_TRANSITION_MS) || 10000);
 const TRANSITION_TICKS = Math.max(1, Math.round(TRANSITION_WINDOW_MS / SAMPLE_INTERVAL_MS));
 
-const ACTIVE_JOB_STATUSES = [jobOrderStatuses.IN_PROGRESS, jobOrderStatuses.PAUSED];
+const ASSIGNED_JOB_STATUSES = [jobOrderStatuses.IN_PROGRESS, jobOrderStatuses.PAUSED];
+const RUNNING_JOB_STATUSES = [jobOrderStatuses.IN_PROGRESS];
+
+const SHIFT_END_PAUSE_REASON = 'shift_end';
+const WAIT_FOR_PROCESSING_MS = Math.max(
+  0,
+  Number(process.env.SHIFT_SIM_WAIT_FOR_PROCESSING_MS) || 5 * 60 * 1000,
+);
 
 const machineStates = new Map();
 let machines = [];
@@ -177,7 +186,8 @@ const ensureMachineState = (machine) => {
       energy: initializeMetric(rng, profile.energy),
       mode: 'idle',
       transitionTicks: TRANSITION_TICKS,
-      hasActiveJob: false,
+      hasAssignedJob: false,
+      hasRunningJob: false,
     });
   }
   return machineStates.get(key);
@@ -209,10 +219,12 @@ const loadMachines = async () => {
     const job = jobId ? jobById.get(jobId) : undefined;
     const jobMachineId = job?.machine?.toString?.();
     const jobBelongsToMachine = Boolean(jobMachineId && jobMachineId === machine._id.toString());
-    const hasActiveJob = Boolean(job && jobBelongsToMachine && ACTIVE_JOB_STATUSES.includes(job.status));
-    state.hasActiveJob = hasActiveJob;
+    const hasAssignedJob = Boolean(job && jobBelongsToMachine && ASSIGNED_JOB_STATUSES.includes(job.status));
+    const hasRunningJob = Boolean(job && jobBelongsToMachine && RUNNING_JOB_STATUSES.includes(job.status));
+    state.hasAssignedJob = hasAssignedJob;
+    state.hasRunningJob = hasRunningJob;
 
-    if (jobId && !hasActiveJob) {
+    if (jobId && !hasAssignedJob) {
       staleMachineIds.push(machine._id);
     }
   });
@@ -319,12 +331,12 @@ const generateTelemetryPayload = (machine, timestamp, runId) => {
   const state = ensureMachineState(machine);
   const machineKey = machine.id || machine._id.toString();
   const isPlannedStopped = plannedDowntimeMachines.has(machineKey);
-  const hasActiveJob = Boolean(state.hasActiveJob);
-  const mode = isPlannedStopped ? 'planned' : hasActiveJob ? 'active' : 'idle';
+  const hasRunningJob = Boolean(state.hasRunningJob);
+  const mode = isPlannedStopped ? 'planned' : hasRunningJob ? 'active' : 'idle';
 
   const offsetMs = Math.max(0, timestamp.getTime() - currentShiftWindow.startAt.getTime());
   const scheduleSignal = getSignalForOffsetMs(offsetMs);
-  const signalValue = isPlannedStopped ? 0 : hasActiveJob ? scheduleSignal : 0;
+  const signalValue = isPlannedStopped ? 0 : hasRunningJob ? scheduleSignal : 0;
 
   const metrics =
     isPlannedStopped || signalValue === 0
@@ -378,6 +390,99 @@ const clearShiftSimData = async () => {
       $unset: { openEvent: 1, zeroSequenceStart: 1, lastSignalValue: 1, lastSignalAt: 1 },
     },
   );
+};
+
+const waitForProcessing = async (runId, { timeoutMs = WAIT_FOR_PROCESSING_MS } = {}) => {
+  if (!timeoutMs) {
+    return { ok: true, skipped: true };
+  }
+
+  const deadline = Date.now() + timeoutMs;
+  let lastLogAt = 0;
+
+  while (Date.now() < deadline) {
+    const remaining = await MachineTelemetry.findOne({
+      source: SOURCE,
+      simulationRunId: runId,
+      processedAt: { $exists: false },
+    })
+      .select({ _id: 1 })
+      .lean();
+
+    if (!remaining) {
+      return { ok: true };
+    }
+
+    const now = Date.now();
+    if (now - lastLogAt >= 5000) {
+      console.log('[shift-sim] Telemetry işlenmesi bekleniyor...');
+      lastLogAt = now;
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 500));
+  }
+
+  return { ok: false, timeoutMs };
+};
+
+const applyShiftEndPolicy = async ({ shiftEndAt, runId }) => {
+  await loadMachines();
+
+  const machineIdsWithJob = machines
+    .filter((machine) => machine.currentJobOrder)
+    .map((machine) => machine._id);
+
+  if (!machineIdsWithJob.length) {
+    return;
+  }
+
+  const jobIds = machines
+    .map((machine) => machine.currentJobOrder)
+    .filter(Boolean);
+
+  const jobs = await JobOrder.find({ _id: { $in: jobIds } })
+    .select({ _id: 1, status: 1, machine: 1, orderNo: 1 })
+    .lean();
+
+  const jobById = new Map(jobs.map((job) => [job._id.toString(), job]));
+
+  for (const machine of machines) {
+    if (!machine.currentJobOrder) continue;
+
+    const jobId = machine.currentJobOrder?.toString?.();
+    const job = jobId ? jobById.get(jobId) : undefined;
+    const jobBelongsToMachine = Boolean(job?.machine?.toString?.() === machine._id.toString());
+
+    if (jobBelongsToMachine && job?.status === jobOrderStatuses.IN_PROGRESS) {
+      try {
+        await jobOrderService.pauseJobOrder(job._id.toString(), {
+          source: 'system',
+          reason: SHIFT_END_PAUSE_REASON,
+          skipMachineEvent: true,
+          now: shiftEndAt,
+        });
+      } catch (error) {
+        console.error('[shift-sim] Job shift_end pause başarısız:', job.orderNo || jobId, error.message);
+      }
+    }
+
+    try {
+      await createMachineEvent(machine._id, {
+        state: machineStatuses.IDLE,
+        startedAt: shiftEndAt,
+        source: 'system',
+        ...(machine.currentJobOrder && { jobOrder: machine.currentJobOrder }),
+        description: 'Vardiya bitti (shift_end)',
+        metadata: {
+          simulationRunId: runId,
+          simulationSource: SOURCE,
+          type: 'shift_end',
+        },
+      });
+    } catch (error) {
+      console.error('[shift-sim] Makine shift_end idle başarısız:', machine._id.toString(), error.message);
+    }
+  }
 };
 
 const startSimulator = async () => {
@@ -462,6 +567,14 @@ const startSimulator = async () => {
 
       if (simCursorMs >= simEndMs) {
         clearInterval(intervalRef);
+        const waitResult = await waitForProcessing(runId);
+        if (!waitResult.ok) {
+          console.log(
+            `[shift-sim] Uyarı: Telemetry işleme ${waitResult.timeoutMs}ms içinde bitmedi; shift_end uygulanması tutarsız olabilir.`,
+          );
+        }
+
+        await applyShiftEndPolicy({ shiftEndAt: currentShiftWindow.endAt, runId });
         console.log(`[shift-sim] --- DONE run=${runId} ---`);
         process.exit(0);
       }

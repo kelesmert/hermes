@@ -66,6 +66,7 @@
 - [x] Simülasyon kontrol API'si: `/api/simulations` (başlat/durdur/log) + permission guard + env flag
 - [x] JobOrder orderNo duplicate index warning'ini temizle (tek index tanımı)
 - [x] Shift-sim: hızlandırılmış vardiya telemetry simülatörü (`npm run shift:sim`) + `simulationRunId` tagging + data-gen ile aynı anda çalıştırmama kuralı
+- [x] Shift end policy: shift-sim bitince `in_progress` job `paused` olur (reason: `shift_end`), açık event’ler vardiya bitişinde kapanır ve makine `idle` durumuna çekilir
 - [ ] (Opsiyonel) Monitoring periyot/bucket endpoint'i (vardiya görünümü için ayrı endpoint ve UI)
 - [ ] Event zamanlarının lokal timezone desteği (UTC+3 gibi) için helper/formatlama katmanı
 - [ ] Raporlama endpointleri (verimlilik, duruş süreleri vb.)

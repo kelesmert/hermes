@@ -45,7 +45,8 @@ Seed sonrası örnek hesaplar:
     ```bash
     npm run shift:sim
     ```
-    Bu script 07:00–18:00 vardiyası için deterministik telemetry üretir ve birkaç dakika içinde tüm vardiya verisini adım adım yazar.
+    Bu script 07:00–18:00 vardiyası için deterministik telemetry üretir ve birkaç dakika içinde tüm vardiya verisini adım adım yazar. Sinyal 1 yalnızca makinede `in_progress` bir job varken üretilir; job `paused` ise sinyal 0 kalır.
+    - Koşu bittiğinde, OEE processor bu telemetry’yi işledikten sonra (maksimum `SHIFT_SIM_WAIT_FOR_PROCESSING_MS`) sistem “shift_end” uygular: `in_progress` job’ları `paused` yapar (reason: `shift_end`) ve makineyi `idle` state’e çeker. Sonraki vardiyada operatör job’u manuel `resume` eder.
   - Sürekli simülasyon (legacy): `data-gen`
   ```bash
   npm run data:gen

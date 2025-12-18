@@ -45,9 +45,10 @@ const signalTimeoutMs =
 const pollIntervalMs = aggregationRules.pollIntervalMs || 2000;
 const batchSize = aggregationRules.batchSize || 200;
 
-const ACTIVE_JOB_STATUSES = [jobOrderStatuses.IN_PROGRESS, jobOrderStatuses.PAUSED];
+const ASSIGNED_JOB_STATUSES = [jobOrderStatuses.IN_PROGRESS, jobOrderStatuses.PAUSED];
+const RUNNING_JOB_STATUSES = [jobOrderStatuses.IN_PROGRESS];
 
-const buildActiveJobMap = async (machines) => {
+const buildJobFlagsByMachineId = async (machines) => {
   const jobIds = machines
     .map((machine) => machine.currentJobOrder)
     .filter(Boolean);
@@ -61,7 +62,7 @@ const buildActiveJobMap = async (machines) => {
     .lean();
 
   const jobById = new Map(jobs.map((job) => [job._id.toString(), job]));
-  const activeByMachineId = new Map();
+  const flagsByMachineId = new Map();
 
   machines.forEach((machine) => {
     const machineId = machine._id.toString();
@@ -69,13 +70,19 @@ const buildActiveJobMap = async (machines) => {
     const job = jobId ? jobById.get(jobId) : undefined;
     const jobMachineId = job?.machine?.toString?.();
     const jobBelongsToMachine = Boolean(jobMachineId && jobMachineId === machineId);
-    activeByMachineId.set(
-      machineId,
-      Boolean(job && jobBelongsToMachine && ACTIVE_JOB_STATUSES.includes(job.status)),
+    const hasAssignedJob = Boolean(
+      job && jobBelongsToMachine && ASSIGNED_JOB_STATUSES.includes(job.status),
     );
+    const hasRunningJob = Boolean(
+      job && jobBelongsToMachine && RUNNING_JOB_STATUSES.includes(job.status),
+    );
+    flagsByMachineId.set(machineId, {
+      hasAssignedJob,
+      hasRunningJob,
+    });
   });
 
-  return activeByMachineId;
+  return flagsByMachineId;
 };
 
 const openDowntimeEvent = async (state, startedAt, machine, { eventSource, eventMetadata } = {}) => {
@@ -98,14 +105,14 @@ const closeDowntimeEvent = async (
   state,
   endedAt,
   machine,
-  hasAssignedJob,
+  hasRunningJob,
   { eventSource, eventMetadata } = {},
 ) => {
   if (machine) {
     await downtimeOrchestrator.closeDowntimeFromTelemetry({
       machine,
       endedAt,
-      hasAssignedJob,
+      hasAssignedJob: hasRunningJob,
       eventSource,
       eventMetadata,
     });
@@ -185,7 +192,7 @@ const processTelemetryBatch = async () => {
     lastEventAt: 1,
   });
   const machineMap = new Map(machines.map((machine) => [machine._id.toString(), machine]));
-  const activeJobByMachineId = await buildActiveJobMap(machines);
+  const jobFlagsByMachineId = await buildJobFlagsByMachineId(machines);
 
   const existingStates = await OeeMachineState.find({ machine: { $in: machineIdList } });
   const stateMap = new Map(existingStates.map((state) => [state.machine.toString(), state]));
@@ -206,8 +213,9 @@ const processTelemetryBatch = async () => {
     const machineId = machine._id.toString();
     if (!machine.currentJobOrder) continue;
 
-    const hasActiveJob = activeJobByMachineId.get(machineId) === true;
-    if (hasActiveJob) continue;
+    const jobFlags = jobFlagsByMachineId.get(machineId);
+    const hasAssignedJob = jobFlags?.hasAssignedJob === true;
+    if (hasAssignedJob) continue;
 
     machine.currentJobOrder = null;
     if (machine.status !== machineStatuses.IDLE) {
@@ -238,9 +246,11 @@ const processTelemetryBatch = async () => {
       }
 
       const timestamp = telemetry.timestamp || telemetry.createdAt;
-      const hasAssignedJob = activeJobByMachineId.get(machineId) === true;
+      const jobFlags = jobFlagsByMachineId.get(machineId);
+      const hasAssignedJob = jobFlags?.hasAssignedJob === true;
+      const hasRunningJob = jobFlags?.hasRunningJob === true;
       const shouldDetectDowntime =
-        hasAssignedJob &&
+        hasRunningJob &&
         ![machineStatuses.DOWNTIME, machineStatuses.MAINTENANCE].includes(machine.status);
       const { eventSource, eventMetadata } = buildEventContext(telemetry);
 
@@ -254,6 +264,8 @@ const processTelemetryBatch = async () => {
             machine.lastEventAt = timestamp;
             touchedMachines.add(machineId);
           }
+        } else if (!hasRunningJob) {
+          state.zeroSequenceStart = undefined;
         } else {
           if (!state.zeroSequenceStart) {
             state.zeroSequenceStart = timestamp;
@@ -272,8 +284,8 @@ const processTelemetryBatch = async () => {
         }
       } else if (telemetry.signalValue === (defaultSignalRule.recoverySignal ?? 1)) {
         if (state.currentState === 'downtime') {
-          await closeDowntimeEvent(state, timestamp, machine, hasAssignedJob, { eventSource, eventMetadata });
-          machine.status = hasAssignedJob ? machineStatuses.RUNNING : machineStatuses.IDLE;
+          await closeDowntimeEvent(state, timestamp, machine, hasRunningJob, { eventSource, eventMetadata });
+          machine.status = hasRunningJob ? machineStatuses.RUNNING : machineStatuses.IDLE;
           machine.lastEventAt = timestamp;
           touchedMachines.add(machineId);
         } else {
@@ -368,7 +380,7 @@ const handleSignalTimeouts = async () => {
     lastEventAt: 1,
   });
   const machineMap = new Map(machines.map((machine) => [machine._id.toString(), machine]));
-  const activeJobByMachineId = await buildActiveJobMap(machines);
+  const jobFlagsByMachineId = await buildJobFlagsByMachineId(machines);
 
   for (const state of staleStates) {
     try {
@@ -381,9 +393,11 @@ const handleSignalTimeouts = async () => {
       if (!machine) {
         continue;
       }
-      const hasAssignedJob = activeJobByMachineId.get(machineId) === true;
+      const jobFlags = jobFlagsByMachineId.get(machineId);
+      const hasAssignedJob = jobFlags?.hasAssignedJob === true;
+      const hasRunningJob = jobFlags?.hasRunningJob === true;
       const shouldDetectDowntime =
-        hasAssignedJob &&
+        hasRunningJob &&
         ![machineStatuses.DOWNTIME, machineStatuses.MAINTENANCE].includes(machine.status);
       if (!shouldDetectDowntime) {
         await ensureMachineStatusForSignal(state, new Date(), machine, { hasAssignedJob });
