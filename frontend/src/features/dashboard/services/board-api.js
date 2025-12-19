@@ -5,8 +5,10 @@ export const fetchBoardMetrics = async () => {
   return data;
 };
 
-export const fetchMachineBoardMetrics = async (machineId) => {
-  const { data } = await apiClient.get(`/board/machines/${machineId}/metrics`);
+export const fetchMachineBoardMetrics = async (machineId, { source } = {}) => {
+  const { data } = await apiClient.get(`/board/machines/${machineId}/metrics`, {
+    params: { source },
+  });
   return data;
 };
 
@@ -16,9 +18,10 @@ export const fetchMachineTelemetrySeries = async ({
   since,
   view,
   bucketMinutes,
+  source,
 }) => {
   const { data } = await apiClient.get(`/board/machines/${machineId}/telemetry`, {
-    params: { limit, since, view, bucketMinutes },
+    params: { limit, since, view, bucketMinutes, source },
   });
   return data;
 };

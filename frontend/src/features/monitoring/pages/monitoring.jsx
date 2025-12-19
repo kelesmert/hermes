@@ -40,6 +40,11 @@ const TELEMETRY_POLL_INTERVAL_MS = 2000;
 const TELEMETRY_POLL_INTERVAL_SECONDS = TELEMETRY_POLL_INTERVAL_MS / 1000;
 const SHIFT_BUCKET_MINUTES = 15;
 const SHIFT_TICK_HOURS = 1;
+const TELEMETRY_SOURCES = [
+  { id: "auto", label: "Auto" },
+  { id: "shift-sim", label: "Shift Sim" },
+  { id: "data-gen", label: "Data Gen" },
+];
 
 const normalizeTrendPoint = (point) => {
   const timestampMs = point?.timestamp
@@ -59,6 +64,7 @@ const formatNumber = (value) => {
 const MonitoringPage = () => {
   const [selectedMachineId, setSelectedMachineId] = useState("");
   const [selectedLineId, setSelectedLineId] = useState(LINES[0]?.id || "");
+  const [telemetrySource, setTelemetrySource] = useState("auto");
 
   const machinesQuery = useQuery({
     queryKey: ["machines", "monitoring"],
@@ -75,19 +81,33 @@ const MonitoringPage = () => {
   }, [machinesQuery.data, selectedMachineId]);
 
   const machineMetricsQuery = useQuery({
-    queryKey: ["monitoringMachineMetrics", selectedMachineId],
-    queryFn: () => fetchMachineBoardMetrics(selectedMachineId),
+    queryKey: ["monitoringMachineMetrics", selectedMachineId, telemetrySource],
+    queryFn: () => fetchMachineBoardMetrics(selectedMachineId, { source: telemetrySource }),
     enabled: Boolean(selectedMachineId),
     refetchInterval: METRICS_POLL_INTERVAL_MS,
   });
 
+  const telemetryView = useMemo(() => {
+    if (telemetrySource === "shift-sim") return "shift";
+    if (telemetrySource === "data-gen") return "live";
+    return "auto";
+  }, [telemetrySource]);
+
   const telemetryQuery = useQuery({
-    queryKey: ["monitoringMachineTelemetry", selectedMachineId, SHIFT_BUCKET_MINUTES],
+    queryKey: [
+      "monitoringMachineTelemetry",
+      selectedMachineId,
+      SHIFT_BUCKET_MINUTES,
+      telemetrySource,
+      telemetryView,
+    ],
     queryFn: () =>
       fetchMachineTelemetrySeries({
         machineId: selectedMachineId,
-        view: "shift",
+        view: telemetryView,
+        source: telemetrySource,
         bucketMinutes: SHIFT_BUCKET_MINUTES,
+        limit: telemetryView === "live" ? 200 : undefined,
       }),
     enabled: Boolean(selectedMachineId),
     refetchInterval: TELEMETRY_POLL_INTERVAL_MS,
@@ -118,7 +138,10 @@ const MonitoringPage = () => {
 
   const chartTicks = useMemo(() => {
     if (!shiftWindowStartMs || !shiftWindowEndMs) return undefined;
-    const stepMs = SHIFT_TICK_HOURS * 60 * 60 * 1000;
+    const stepMs =
+      telemetryQuery.data?.view === "live"
+        ? 5 * 60 * 1000
+        : SHIFT_TICK_HOURS * 60 * 60 * 1000;
     if (!stepMs) return undefined;
 
     const ticks = [];
@@ -140,6 +163,21 @@ const MonitoringPage = () => {
           >
             <Typography variant="h6">Monitoring</Typography>
             <Stack direction={{ xs: "column", md: "row" }} spacing={2}>
+              <FormControl size="small" fullWidth>
+                <InputLabel id="source-select-label">Kaynak</InputLabel>
+                <Select
+                  labelId="source-select-label"
+                  label="Kaynak"
+                  value={telemetrySource}
+                  onChange={(event) => setTelemetrySource(event.target.value)}
+                >
+                  {TELEMETRY_SOURCES.map((option) => (
+                    <MenuItem key={option.id} value={option.id}>
+                      {option.label}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
               <FormControl size="small" fullWidth>
                 <InputLabel id="line-select-label">Hat</InputLabel>
                 <Select
@@ -254,14 +292,17 @@ const MonitoringPage = () => {
               <Stack spacing={3}>
                 <Typography variant="caption" color="text.secondary">
                   Grafikler {TELEMETRY_POLL_INTERVAL_SECONDS} sn aralıkla sorgulanan
-                  telemetri verisine göre güncellenir. X ekseni sabit vardiya aralığıdır
-                  (07:00–18:00, {SHIFT_BUCKET_MINUTES} dk bucket).
+                  telemetri verisine göre güncellenir.{" "}
+                  {telemetryQuery.data?.view === "live"
+                    ? "X ekseni canlı pencere (son birkaç dakika) şeklindedir."
+                    : `X ekseni sabit vardiya aralığıdır (07:00–18:00, ${SHIFT_BUCKET_MINUTES} dk bucket).`}
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
                   Kaynak: {telemetryQuery.data?.source || "-"}
                   {telemetryQuery.data?.simulationRunId
                     ? ` (run ${telemetryQuery.data.simulationRunId})`
                     : ""}
+                  {telemetryQuery.data?.virtualDay ? `, day ${telemetryQuery.data.virtualDay}` : ""}
                   {telemetryQuery.data?.latestAt
                     ? `, latest ${format(
                         new Date(telemetryQuery.data.latestAt),

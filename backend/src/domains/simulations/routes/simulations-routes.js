@@ -12,8 +12,8 @@ router.use(requirePermissions(permissions.PRODUCTION_MANAGE));
 router.get('/', simulationsController.listSimulations);
 router.post('/:name/start', simulationsController.startSimulation);
 router.post('/:name/stop', simulationsController.stopSimulation);
+router.post('/:name/reset', simulationsController.resetSimulationData);
 router.get('/:name/logs', simulationsController.getLogs);
 router.post('/:name/logs/clear', simulationsController.clearLogs);
 
 module.exports = router;
-

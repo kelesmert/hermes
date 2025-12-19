@@ -158,6 +158,7 @@ Bu rehber, backend ve frontend'i MVP hedefiyle nasıl kurduğumuzu öğretici ş
 - Telemetry kayıtları `backend/src/domains/machines/models/machine-telemetry-model.js` ile `machine_telemetry` koleksiyonunda tutulur; her kayıt makine id’si, sinyal (0/1), timestamp, metrikler ve `source` içerir. Hızlandırılmış simülasyon koşuları için kayıtlar `simulationRunId` ile etiketlenir.
   - `backend/scripts/data-gen.js`: Sürekli telemetry üretir; `currentJobOrder` + `status` bilgisine göre aktif/idle profilleri üretir ve `DATA_GEN_TRANSITION_MS` (varsayılan 10 sn) boyunca sıcaklık/tork/enerji ramp-up/down yapar.
   - `backend/scripts/shift-simulator.js`: 07:00–18:00 vardiyası için deterministik telemetry üretir ve birkaç dakika içinde “vardiya boyunca” veriyi adım adım yazar (`npm run shift:sim`). Sinyal 1 yalnızca `in_progress` job varken üretilir; koşu bitince sistem `shift_end` uygular (job `paused`, makine `idle`, açık event’ler vardiya bitişinde kapanır).
+  - Shift-sim tarih/saat tutarlılığı için “Simulation Clock” state’i kullanır; restart sonrası kaldığı yerden devam eder ve shift bitince ertesi güne geçer (tasarım: `docs/specs/sim-clock.md`).
 - `backend/src/domains/parts/models/part-model.js` parça tanımlarını ve hangi makinelerde üretilebileceğini tutar; production/job order akışı başlamadan önce bu domain’in geçerliliği kontrol edilmelidir.
 - `backend/src/domains/oee/services/oee-processor.js` telemetry verilerini JSON konfigine göre işler; yalnızca makine `in_progress` bir iş emri yürütürken sinyal 0 serileri için plansız duruş timing’ini tespit eder. Event yazımı doğrudan model üzerinden yapılmaz, downtime domain orchestrator üzerinden orkestre edilir. Job yoksa status `idle` korunur; job `paused` iken telemetry 0 serileri plansız duruş açmaz. `backend/src/jobs/oee-processor-job.js` belirli aralıklarla bu servisi tetikler.
 - **Processor vs Job ayrımı:** `oee-processor.js` iş mantığını (telemetry → OEE state → machine events) barındırır. `oee-processor-job.js` ise bu mantığı periyodik olarak çalıştıran tetikleyicidir. Örneğin telemetry’de MCH-001 için yeni kayıt olduğunda cron job 2 saniyede bir `processTelemetryBatch()` çağırır; processor makinenin aktif job yürütüp yürütmediğine bakar, gerekiyorsa `machine_events` koleksiyonunda duruş açar/kapatır. Böylece domain kodu (kurallar) ve scheduler (setInterval) birbirinden bağımsız yönetilir.
@@ -211,5 +212,13 @@ Frontend
 - Sayfa: `frontend/src/features/simulations/pages/simulations.jsx` → `/simulations` (izin: `production.manage`)
 - Backend API: `GET /api/simulations` ve `POST /api/simulations/:name/start|stop` ile process yönetilir; loglar `GET /api/simulations/:name/logs` ile çekilir.
 - Not: `data-gen` ile `shift-sim` aynı anda çalıştırılmaz; telemetry kaynağı olarak birini seçip onunla beraber `job-sim` çalıştırılır.
+- Shift-sim reset: `POST /api/simulations/shift-sim/reset` çağrısı shift-sim telemetry’sini, sim kaynaklı event’leri ve Simulation Clock state’ini temizler; data-gen verisine dokunmaz.
 - Prod güvenliği: `NODE_ENV=production` iken `ENABLE_SIMULATION_CONTROL=true` değilse simülasyon kontrolü kapalıdır.
 - Log davranışı: Loglar backend process’inde in-memory buffer olarak tutulur; sunucu restart olursa loglar sıfırlanır.
+
+## 20) Monitoring Kaynak Seçimi
+
+- Monitoring sayfasında `Kaynak` seçimi vardır: `Auto`, `Shift Sim`, `Data Gen`.
+- `Auto` modunda backend, seçili makinede en son yazılan telemetry kaynağını baz alır (shift-sim koşusu bittiyse bile “en yeni” kaynak shift-sim olabilir).
+- `Shift Sim` modu 07:00–18:00 vardiya penceresini (Simulation Clock) gösterir; `Data Gen` modu ise canlı izleme için kayan pencereyi gösterir.
+- Bu ayrım, shift-sim verisi DB’de dursa bile data-gen’i çalıştırdıktan sonra Monitoring’de “temiz” bir live akış görmeyi sağlar.

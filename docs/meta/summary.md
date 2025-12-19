@@ -38,16 +38,17 @@ Bu doküman, yeni bir geliştiricinin projeyi en kısa sürede kavraması için 
 - Repo haritası: `docs/meta/file-overview.md`, `docs/meta/learning-guide.md`
 - Kapsam ve plan: `docs/specs/requirements.md`, `docs/specs/project-roadmap.md`, `docs/tasks/project-checklist.md`
 - Downtime tasarım kaynağı: `docs/specs/downtime-design-v2.md`
+- Simülasyon zamanı tasarımı: `docs/specs/sim-clock.md`
 - Süreç ve standartlar: `docs/project-guidelines.md`, `docs/meta/doc-maintenance.md`, `docs/standart/*.md`
 
 ## 4. Öne Çıkan Özellikler
 
 1. **RBAC ve Auth**: `permissions → roles → users`, username login, JWT access + refresh token rotation
-2. **Telemetry Pipeline**: `shift-sim`/`data-gen` + `machine_telemetry` + OEE processor + Board metrikleri + Monitoring grafikleri. Shift-sim koşusu bitince `shift_end` uygulanır (job `paused`, makine `idle`)
+2. **Telemetry Pipeline**: `shift-sim` (Simulation Clock) / `data-gen` + `machine_telemetry` + OEE processor (varsayılan shift-sim) + Board metrikleri + Monitoring grafikleri (Kaynak seçimi: shift vs live). Shift-sim koşusu bitince `shift_end` uygulanır (job `paused`, makine `idle`)
 3. **Production**: JobOrder akışı (start/pause/resume/produce/complete) + telemetry tabanlı job simülatörü
 4. **Downtime v2**: Planlı duruş scheduler (rule/run) + plansız duruş telemetry eşiği + `/downtimes` UI (sınıflandırma, 5 dk edit, split)
 5. **Yönetim UI**: Sidebar layout + izin bazlı guard’lar, kullanıcı/rol/izin yönetimi ve domain CRUD ekranları
-6. **Simülasyon Yönetimi**: `/simulations` sayfası ile `shift-sim`/`data-gen` ve `job-sim` başlat/durdur + log konsolu
+6. **Simülasyon Yönetimi**: `/simulations` sayfası ile `shift-sim`/`data-gen` ve `job-sim` başlat/durdur + log konsolu + shift-sim reset
 
 ## 5. Roadmap ve Eksikler
 

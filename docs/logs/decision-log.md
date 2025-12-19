@@ -80,6 +80,13 @@ Bu dosya, projede alınan mimarî ve teknolojik kararları, gerekçelerini ve be
 - **Gerekçe:** Simülasyon bittiğinde makine/job state’in “running” kalmasını ve downtime sürelerinin vardiya dışına taşmasını engellemek; üretimin operatör onayıyla devam etmesini sağlamak.
 - **Etki:** `backend/scripts/shift-simulator.js`, `backend/src/domains/oee/services/oee-processor.js`, `backend/.env.example`, `backend/README.md` ve ilgili dokümanlar.
 
+### Simulation Clock ile Sanal Takvim (shift sim)
+
+- **Domain:** Backend - simulations/oee, Frontend - monitoring
+- **Karar:** Shift sim için DB’de kalıcı Simulation Clock state tutulacak; `SHIFT_SIM_EPOCH_DATE` ile deterministik başlangıç yapılacak. Resume aynı gün içinde `cursorAt < shiftEndAt` koşuluyla aynı `simulationRunId` ile devam eder, shift bitince bir sonraki start ertesi gün 07:00’den yeni run ile başlar. State ile DB çelişirse DB’deki maksimum shift sim telemetry timestamp’i baz alınır ve state düzeltilir. Monitoring kaynak seçimi `source` bazlı yapılır, shift sim shift view, data gen live view kullanır. OEE downtime processor şimdilik sadece `source=shift-sim` telemetry’sini işler.
+- **Gerekçe:** Üretilen verilerin tarih saatlerinin tutarlı olması, restart sonrası kaldığı yerden devam, duplicate veri üretimini engellemek ve sunumda hem canlı data gen hissi hem de tutarlı OEE tarih filtreleri sağlayabilmek.
+- **Etki:** Yeni simulation state modeli ve servisleri, `backend/scripts/shift-simulator.js`, `backend/src/domains/oee/services/oee-dashboard-service.js`, `backend/src/domains/oee/services/oee-processor.js`, `frontend/src/features/monitoring/pages/monitoring.jsx` ve dokümanlar.
+
 ## Frontend Kararları
 
 ### Vite + React (JavaScript) SPA

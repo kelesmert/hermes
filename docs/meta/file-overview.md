@@ -43,18 +43,20 @@ Yeni geliştirici projeyi anlamak için bu dosyaya bakmalıdır.
 - `backend/src/domains/production/`: JobOrder ve ProductionEvent modelleri, servisler ve rotalar; iş emirleri için CRUD + start/pause/resume/produce/complete aksiyonları içerir ve makine/part/operatör ilişkilerini doğrular.
 - `backend/src/domains/downtime/`: Duruş domain’i; planlı duruş rule/run modelleri, scheduler ve downtime listesi ile reason düzeltme/split API’lerini içerir.
 - `backend/src/domains/simulations/`: Simülasyon kontrol domain’i; `data-gen`, `shift-sim` ve `job-sim` script’lerini UI’dan başlat/durdurmak için process yönetimi ve log buffer API’lerini içerir; `data-gen` ile `shift-sim` aynı anda çalıştırılmaz.
-- `backend/src/domains/simulations/routes/simulations-routes.js`: Simülasyon kontrol endpoint’leri (`/api/simulations/*`); `production.manage` ile korunur ve prod ortamında env flag ile kapatılabilir.
+- `backend/src/domains/simulations/routes/simulations-routes.js`: Simülasyon kontrol endpoint’leri (`/api/simulations/*`); başlat/durdur/log akışlarına ek olarak `shift-sim` için reset endpoint’ini içerir; `production.manage` ile korunur ve prod ortamında env flag ile kapatılabilir.
 - `backend/src/domains/simulations/services/simulations-service.js`: Child process spawn/stop (SIGTERM/SIGKILL), in-memory ring buffer log toplama ve status raporlama.
+- `backend/src/domains/simulations/models/simulation-state-model.js`: Kalıcı simülasyon state’i; özellikle shift-sim “Simulation Clock” (virtual day, cursorAt, runId) bilgisini saklar.
+- `backend/src/domains/simulations/services/simulation-clock-service.js`: Shift-sim sanal takvimini yönetir (epoch date, resume, next-day) ve `shift-sim` reset işlemini uygular.
 - `backend/src/domains/oee/config/oee-rules.json`: OEE/sinyal işleme domaini için downtime eşikleri, reason kod haritaları ve aggregation ayarlarının tutulduğu JSON konfigurasyonu.
 - `backend/src/domains/oee/models/oee-machine-state-model.js`: Her makine için son sinyal değerini, aktif duruş event’ini ve sıfır (0) serisinin başlangıcını tutar; OEE job’u bu tabloyu kullanır.
-- `backend/src/domains/oee/services/oee-processor.js`: Telemetry kayıtlarını batch halinde okuyup kuralları uygulayan servis; plansız duruş timing’ini üretir ve event yazımını downtime domain üzerinden orkestre eder.
+- `backend/src/domains/oee/services/oee-processor.js`: Telemetry kayıtlarını batch halinde okuyup kuralları uygulayan servis; `OEE_PROCESSOR_TELEMETRY_SOURCE` ile kaynak bazlı çalıştırılabilir (tez demosunda varsayılan `shift-sim`), plansız duruş timing’ini üretir ve event yazımını downtime domain üzerinden orkestre eder.
 - `backend/src/domains/oee/services/oee-dashboard-service.js`: Telemetry/OEE verilerinden dashboard için gerekli ortalama, toplam ve trend verilerini üretir; board domain’i bu servis üzerinden API cevaplarını oluşturur.
 - `backend/src/jobs/oee-processor-job.js`: Sunucu açıldığında çalışan cron benzeri job; belirlenen aralıklarla OEE processor servisini tetikler.
 - `backend/src/jobs/planned-downtime-scheduler-job.js`: Planlı duruş scheduler runner; rule/run modeline göre planlı duruş başlatır/bitirir (feature-flag ile).
 - `backend/src/domains/board/`: Dashboard’a yönelik metrikleri toplayan domain; `services/board-service.js` telemetry/OEE sonuçlarını birleştirir, `routes/board-routes.js` `/api/board/metrics`, `/api/board/machines/:id/metrics` ve `/api/board/machines/:id/telemetry` endpointlerini sunar.
 - `backend/src/middleware/auth-guard.js`: JWT doğrulaması yaparak isteğe `req.auth` bilgisi ekler.
 - `backend/src/middleware/permission-guard.js`: İstenen izinlere göre erişim kontrolü yapan middleware.
-- `backend/src/models/index.js`: Domain modellerini preload eder (auth, machines, oee, production, downtime).
+- `backend/src/models/index.js`: Domain modellerini preload eder (auth, machines, oee, production, downtime, simulations state).
 - `backend/src/utils/password.js`: Şifre hash’leme ve doğrulama yardımcıları (bcrypt).
 - `backend/src/utils/jwt.js`: JWT access token üretimi ve doğrulama işlevleri.
 - `backend/src/utils/token.js`: Rastgele refresh token değeri üretme ve hash’leme yardımcıları.
@@ -65,8 +67,8 @@ Yeni geliştirici projeyi anlamak için bu dosyaya bakmalıdır.
 - `backend/src/constants/permissions.js`: Sistem genelinde kullanılacak izin anahtarlarını listeler (örn. `machines.read`).
 - `backend/src/constants/machine-statuses.js`: Makine durum enum değerlerini (`running`, `idle`, `downtime`, `maintenance`, `unknown`) merkezi olarak paylaşır.
 - `backend/scripts/seed.js`: Varsayılan rol kayıtlarını ve `.env` üzerinden verilen admin hesabını oluşturan script (`npm run seed`).
-- `backend/scripts/data-gen.js`: Simülasyon amaçlı telemetry/sinyal üretir; `npm run data:gen` ile çalıştırıldığında periyodik olarak `machine_telemetry` koleksiyonuna veri yazar, makinenin `currentJobOrder` + `status` bilgisine göre aktif (yüksek sıcaklık/tork/enerji) ile idle (düşük) profilleri arasında `DATA_GEN_TRANSITION_MS` süresince ramp-up/ramp-down uygular ve aktif makine listesini en geç `DATA_GEN_MACHINE_REFRESH_MS` süresinde yeniden sorgular. Planlı duruş açıkken `DATA_GEN_PLANNED_STOPPED_MODE` ile signal/metrikleri 0’a kilitleyebilir.
-- `backend/scripts/shift-simulator.js`: Hızlandırılmış vardiya telemetry simülatörü; 07:00–18:00 aralığı için deterministik sinyal/telemetry üretir ve `simulationRunId` ile işaretler (`npm run shift:sim`). Sinyal 1 yalnızca `in_progress` job varken üretilir; job `paused` ise sinyal 0 kalır. Koşu bitince OEE processor telemetry’yi işledikten sonra (maksimum `SHIFT_SIM_WAIT_FOR_PROCESSING_MS`) `shift_end` uygular: `in_progress` job’u `paused` yapar, açık event’leri vardiya bitişinde kapatır ve makineyi `idle` durumuna çeker (`currentJobOrder` korunur). Planlı duruş açıkken `SHIFT_SIM_PLANNED_STOPPED_MODE` ile signal/metrikleri 0’a kilitleyebilir.
+- `backend/scripts/data-gen.js`: Simülasyon amaçlı telemetry/sinyal üretir; `npm run data:gen` ile çalıştırıldığında periyodik olarak `machine_telemetry` koleksiyonuna veri yazar (`source=data-gen`), makinenin `currentJobOrder` + `status` bilgisine göre aktif (yüksek sıcaklık/tork/enerji) ile idle (düşük) profilleri arasında `DATA_GEN_TRANSITION_MS` süresince ramp-up/ramp-down uygular ve aktif makine listesini en geç `DATA_GEN_MACHINE_REFRESH_MS` süresinde yeniden sorgular. Planlı duruş açıkken `DATA_GEN_PLANNED_STOPPED_MODE` ile signal/metrikleri 0’a kilitleyebilir.
+- `backend/scripts/shift-simulator.js`: Hızlandırılmış vardiya telemetry simülatörü; 07:00–18:00 aralığı için deterministik sinyal/telemetry üretir ve `simulationRunId` ile işaretler (`npm run shift:sim`). Sanal takvim `SHIFT_SIM_EPOCH_DATE` + kalıcı Simulation Clock state üzerinden ilerler; yarıda durursa kaldığı yerden devam eder, shift bitince ertesi güne geçer. Sinyal 1 yalnızca `in_progress` job varken üretilir; job `paused` ise sinyal 0 kalır. Koşu bitince OEE processor telemetry’yi işledikten sonra (maksimum `SHIFT_SIM_WAIT_FOR_PROCESSING_MS`) `shift_end` uygular: `in_progress` job’u `paused` yapar, açık event’leri vardiya bitişinde kapatır ve makineyi `idle` durumuna çeker (`currentJobOrder` korunur). Planlı duruş açıkken `SHIFT_SIM_PLANNED_STOPPED_MODE` ile signal/metrikleri 0’a kilitleyebilir.
 - `backend/scripts/job-simulator.js`: Aktif JobOrder kayıtları için telemetry’ye bağlı üretim verisi üretir; son telemetry timestamp’lerine göre ideal çevrim süresini hesaplayıp `production_events` yazar ve shift-sim koşularında simülasyon timestamp’lerini korur (`npm run job:sim`).
 
 ## Docs
@@ -93,6 +95,7 @@ Yeni geliştirici projeyi anlamak için bu dosyaya bakmalıdır.
 - `docs/specs/project-roadmap.md`: Geliştirme fazları ve kilometre taşları.
 - `docs/specs/oee-downtime-design.md`: OEE ve downtime tasarımı v1; tarihsel kayıt ve OEE notları için korunur, downtime implementasyonu için kaynak değildir.
 - `docs/specs/downtime-design-v2.md`: Downtime implementasyonu için ana tasarım; planlı scheduler, plansız telemetry + operatör manuel başlatma semantiği, API ve UI akışları.
+- `docs/specs/sim-clock.md`: Shift sim için sanal takvim Simulation Clock tasarımı; deterministik tarih saat, resume ve kaynak seçimi kuralları.
 
 ### docs/roadmaps
 
@@ -134,7 +137,7 @@ Yeni geliştirici projeyi anlamak için bu dosyaya bakmalıdır.
 - `frontend/src/features/simulations/`: Simülasyonlar sayfası; `data-gen` ve `job-sim` script’lerini UI’dan başlat/durdurur, durum kartları ve log konsolu sunar.
 - `frontend/src/features/simulations/pages/simulations.jsx`: Simülasyonlar sayfasının UI’ı (kartlar + log konsolu, start/stop/clear aksiyonları).
 - `frontend/src/features/simulations/services/simulations-api.js`: `/api/simulations` endpoint’leri için axios client wrapper’ları.
-- `frontend/src/features/monitoring/pages/monitoring.jsx`: Makine/hat seçimi yaparak anlık telemetry ve sinyal trendini gösteren canlı izleme sayfası.
+- `frontend/src/features/monitoring/pages/monitoring.jsx`: Makine/hat seçimi yaparak telemetry ve sinyal trendini gösteren izleme sayfası; `Kaynak` seçimi ile `shift-sim` için 07:00–18:00 vardiya görünümü, `data-gen` için live (kayan pencere) görünümü sunar.
 - `frontend/src/features/users/components/`: Kullanıcı tablosu, kullanıcı formu, rol/permission yönetimi gibi modüler bileşenler.
 - `frontend/src/lib/api/client.js`: Tüm frontend HTTP çağrılarını yapan axios instance; `baseURL` her zaman `VITE_API_URL`'dir.
 - `frontend/src/lib/query-client.js`: TanStack Query client konfigürasyonu.

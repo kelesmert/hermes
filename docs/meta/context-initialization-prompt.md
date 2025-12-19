@@ -157,6 +157,7 @@ docs/logs/tech-decision-logs.md
 ```text
 docs/roadmaps/production-roadmap.md
 docs/specs/downtime-design-v2.md
+docs/specs/sim-clock.md
 docs/dev-notes/downtime-smoke.md
 docs/dev-notes/dashboard-next-steps.md
 docs/meta/file-overview.md (TÜM dosya)
@@ -348,10 +349,10 @@ docs/dev-notes/dashboard-next-steps.md
 
 ---
 
-**Son Güncelleme:** 17 Kasım 2025
-**Versiyon:** 1.1
-**Proje Durumu:** MVP Faz 2 (Auth, Users, Machines, Parts, OEE, Board, Production, Dashboard, Monitoring tamamlandı)
+**Son Güncelleme:** 19 Aralık 2025
+**Versiyon:** 1.2
+**Proje Durumu:** MVP Faz 2 (Auth, Users, Machines, Parts, Production, Downtime, Simulations, OEE/Board, Dashboard, Monitoring tamamlandı)
 
 ---
 
-**STRATEJİ ÖZET:** Temel yükle (5 dosya) → Task gelince detay oku → Verimli context kullanımı
+**STRATEJİ ÖZET:** Temel yükle (7 dosya) → Task gelince detay oku → Verimli context kullanımı

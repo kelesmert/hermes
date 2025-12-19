@@ -6,6 +6,7 @@ const MachineEvent = require('../../machines/models/machine-event-model');
 const OeeMachineState = require('../models/oee-machine-state-model');
 const machineStatuses = require('../../../constants/machine-statuses');
 const AppError = require('../../../utils/app-error');
+const simulationClockService = require('../../simulations/services/simulation-clock-service');
 
 const CONFIG_PATH = path.join(__dirname, '../config/oee-rules.json');
 
@@ -28,6 +29,45 @@ const ISTANBUL_OFFSET_MINUTES = 180;
 
 const SHIFT_START_HHMM = process.env.SHIFT_SIM_SHIFT_START || '07:00';
 const SHIFT_END_HHMM = process.env.SHIFT_SIM_SHIFT_END || '18:00';
+
+const TELEMETRY_SOURCES = {
+  SHIFT_SIM: 'shift-sim',
+  DATA_GEN: 'data-gen',
+};
+
+const LEGACY_DATA_GEN_SOURCES = ['data-gen', 'simulator'];
+
+const normalizeTelemetrySource = (value) => {
+  const raw = String(value || '').trim().toLowerCase();
+  if (!raw || raw === 'auto') return 'auto';
+  if (raw === TELEMETRY_SOURCES.SHIFT_SIM) return TELEMETRY_SOURCES.SHIFT_SIM;
+  if (raw === TELEMETRY_SOURCES.DATA_GEN) return TELEMETRY_SOURCES.DATA_GEN;
+  if (raw === 'simulator') return TELEMETRY_SOURCES.DATA_GEN; // legacy data-gen
+  return 'auto';
+};
+
+const normalizeView = (value) => {
+  const raw = String(value || '').trim().toLowerCase();
+  if (!raw || raw === 'auto') return 'auto';
+  if (raw === 'shift') return 'shift';
+  if (raw === 'live') return 'live';
+  return 'auto';
+};
+
+const resolveAutoSource = async (machineId) => {
+  const latest = await MachineTelemetry.findOne({
+    machine: machineId,
+    source: { $ne: 'seed' },
+  })
+    .sort({ _id: -1 })
+    .select({ source: 1 })
+    .lean();
+
+  if (latest?.source === TELEMETRY_SOURCES.SHIFT_SIM) {
+    return TELEMETRY_SOURCES.SHIFT_SIM;
+  }
+  return TELEMETRY_SOURCES.DATA_GEN;
+};
 
 const parseTime = (hhmm) => {
   const [hh, mm] = String(hhmm || '').split(':').map((item) => Number(item));
@@ -84,59 +124,80 @@ const resolveEffectiveNow = async (filter = {}) => {
   return now;
 };
 
-const getMachineShiftTelemetrySeries = async (machine, { bucketMinutes } = {}) => {
+const getMachineShiftTelemetrySeries = async (
+  machine,
+  { bucketMinutes, source, simulationRunId, shiftStartAt, shiftEndAt } = {},
+) => {
   const effectiveBucketMinutes = normalizeBucketMinutes(bucketMinutes, 15);
   const bucketMs = effectiveBucketMinutes * 60 * 1000;
   const signalLongStopThresholdMs = 5 * 60 * 1000;
 
-  const latestShiftSimTelemetry = await MachineTelemetry.findOne({
-    machine: machine._id,
-    source: 'shift-sim',
-    simulationRunId: { $exists: true, $ne: null },
-  })
-    .sort({ timestamp: -1 })
-    .select({ timestamp: 1, source: 1, simulationRunId: 1 })
-    .lean();
+  const normalizedSource = normalizeTelemetrySource(source);
+  let effectiveSource = normalizedSource;
+  let effectiveRunId = simulationRunId || null;
+  let effectiveShiftStartAt = shiftStartAt || null;
+  let effectiveShiftEndAt = shiftEndAt || null;
 
-  const latestTelemetry =
-    latestShiftSimTelemetry ||
-    (await MachineTelemetry.findOne({
+  if (!effectiveShiftStartAt || !effectiveShiftEndAt) {
+    const shiftSimReference = await MachineTelemetry.findOne({
       machine: machine._id,
-      source: { $ne: 'seed' },
+      source: TELEMETRY_SOURCES.SHIFT_SIM,
+      ...(effectiveRunId && { simulationRunId: effectiveRunId }),
     })
       .sort({ timestamp: -1 })
       .select({ timestamp: 1, source: 1, simulationRunId: 1 })
-      .lean());
+      .lean();
 
-  const referenceDate = latestTelemetry?.timestamp || new Date();
-  const ymd = getIstanbulYmd(referenceDate);
-  const { startAt: shiftStartAt, endAt: shiftEndAt } = computeDayWindowUtc(
-    ymd,
-    SHIFT_START_HHMM,
-    SHIFT_END_HHMM,
-  );
+    const latestTelemetry =
+      shiftSimReference ||
+      (await MachineTelemetry.findOne({
+        machine: machine._id,
+        source: { $ne: 'seed' },
+      })
+        .sort({ timestamp: -1 })
+        .select({ timestamp: 1, source: 1, simulationRunId: 1 })
+        .lean());
+
+    const referenceDate = latestTelemetry?.timestamp || new Date();
+    const ymd = getIstanbulYmd(referenceDate);
+    const window = computeDayWindowUtc(ymd, SHIFT_START_HHMM, SHIFT_END_HHMM);
+    effectiveShiftStartAt = window.startAt;
+    effectiveShiftEndAt = window.endAt;
+
+    if (latestTelemetry?.source === TELEMETRY_SOURCES.SHIFT_SIM) {
+      effectiveSource = TELEMETRY_SOURCES.SHIFT_SIM;
+      effectiveRunId = latestTelemetry.simulationRunId || effectiveRunId;
+    } else if (effectiveSource === 'auto') {
+      effectiveSource = TELEMETRY_SOURCES.DATA_GEN;
+    }
+  }
 
   const match = {
     machine: machine._id,
-    timestamp: { $gte: shiftStartAt, $lt: shiftEndAt },
+    timestamp: { $gte: effectiveShiftStartAt, $lt: effectiveShiftEndAt },
     source: { $ne: 'seed' },
   };
 
-  if (latestShiftSimTelemetry?.simulationRunId) {
-    match.source = 'shift-sim';
-    match.simulationRunId = latestShiftSimTelemetry.simulationRunId;
+  if (effectiveSource === TELEMETRY_SOURCES.SHIFT_SIM) {
+    match.source = TELEMETRY_SOURCES.SHIFT_SIM;
+    if (effectiveRunId) {
+      match.simulationRunId = effectiveRunId;
+    }
+  } else if (effectiveSource === TELEMETRY_SOURCES.DATA_GEN) {
+    match.source = { $in: LEGACY_DATA_GEN_SOURCES };
   }
 
-  const bucketAgg = await MachineTelemetry.aggregate([
-    { $match: match },
-    { $sort: { timestamp: 1 } },
-    {
-      $project: {
-        timestamp: 1,
+  const [bucketAgg, latestInWindow] = await Promise.all([
+    MachineTelemetry.aggregate([
+      { $match: match },
+      { $sort: { timestamp: 1 } },
+      {
+        $project: {
+          timestamp: 1,
         signalValue: 1,
         metrics: 1,
         intervalMs: { $ifNull: ['$intervalMs', 2000] },
-        offsetMs: { $subtract: ['$timestamp', shiftStartAt] },
+        offsetMs: { $subtract: ['$timestamp', effectiveShiftStartAt] },
       },
     },
     {
@@ -201,15 +262,20 @@ const getMachineShiftTelemetrySeries = async (machine, { bucketMinutes } = {}) =
     },
     { $project: { signalSamples: 0 } },
     { $sort: { _id: 1 } },
+    ]),
+    MachineTelemetry.findOne(match)
+      .sort({ timestamp: -1 })
+      .select({ timestamp: 1, source: 1, simulationRunId: 1 })
+      .lean(),
   ]);
 
-  const shiftDurationMs = shiftEndAt.getTime() - shiftStartAt.getTime();
+  const shiftDurationMs = effectiveShiftEndAt.getTime() - effectiveShiftStartAt.getTime();
   const bucketCount = Math.ceil(shiftDurationMs / bucketMs);
   const bucketMap = new Map(bucketAgg.map((row) => [Number(row._id), row]));
 
   const series = [];
   for (let bucketIndex = 0; bucketIndex < bucketCount; bucketIndex += 1) {
-    const bucketStart = new Date(shiftStartAt.getTime() + bucketIndex * bucketMs);
+    const bucketStart = new Date(effectiveShiftStartAt.getTime() + bucketIndex * bucketMs);
     const row = bucketMap.get(bucketIndex);
     if (!row) {
       series.push({
@@ -247,14 +313,14 @@ const getMachineShiftTelemetrySeries = async (machine, { bucketMinutes } = {}) =
   return {
     view: 'shift',
     bucketMinutes: effectiveBucketMinutes,
-    shiftStartAt,
-    shiftEndAt,
+    shiftStartAt: effectiveShiftStartAt,
+    shiftEndAt: effectiveShiftEndAt,
     series,
-    windowStart: shiftStartAt,
-    windowEnd: shiftEndAt,
-    latestAt: latestTelemetry?.timestamp || null,
-    simulationRunId: latestShiftSimTelemetry?.simulationRunId || latestTelemetry?.simulationRunId || null,
-    source: latestShiftSimTelemetry?.source || latestTelemetry?.source || null,
+    windowStart: effectiveShiftStartAt,
+    windowEnd: effectiveShiftEndAt,
+    latestAt: latestInWindow?.timestamp || null,
+    simulationRunId: effectiveRunId || latestInWindow?.simulationRunId || null,
+    source: effectiveSource === 'auto' ? null : effectiveSource,
   };
 };
 
@@ -381,19 +447,38 @@ const getGlobalMetrics = async () => {
   };
 };
 
-const getMachineTelemetrySummary = async (machineId) => {
+const getMachineTelemetrySummary = async (machineId, { source } = {}) => {
   const machine = await Machine.findById(machineId);
   if (!machine) {
     throw new AppError('Makine bulunamadı.', 404);
   }
 
-  const effectiveNow = await resolveEffectiveNow({ machine: machine._id });
+  const requestedSource = normalizeTelemetrySource(source);
+  const effectiveSource =
+    requestedSource === 'auto' ? await resolveAutoSource(machine._id) : requestedSource;
+
+  const sourceFilter =
+    effectiveSource === TELEMETRY_SOURCES.SHIFT_SIM
+      ? { source: TELEMETRY_SOURCES.SHIFT_SIM }
+      : { source: { $in: LEGACY_DATA_GEN_SOURCES } };
+
+  const latestTelemetry = await MachineTelemetry.findOne({
+    machine: machine._id,
+    ...sourceFilter,
+  })
+    .sort({ timestamp: -1 })
+    .select({ timestamp: 1, signalValue: 1, simulationRunId: 1 })
+    .lean();
+
+  const effectiveNow =
+    effectiveSource === TELEMETRY_SOURCES.DATA_GEN ? new Date() : latestTelemetry?.timestamp || new Date();
   const windowStart = new Date(effectiveNow.getTime() - telemetryWindowMs);
   const telemetryAgg = await MachineTelemetry.aggregate([
     {
       $match: {
         machine: machine._id,
         timestamp: { $gte: windowStart, $lte: effectiveNow },
+        ...sourceFilter,
       },
     },
     {
@@ -424,7 +509,10 @@ const getMachineTelemetrySummary = async (machineId) => {
         dataPoints: 0,
       };
 
-  const machineState = await OeeMachineState.findOne({ machine: machine._id });
+  const machineState =
+    effectiveSource === TELEMETRY_SOURCES.SHIFT_SIM
+      ? await OeeMachineState.findOne({ machine: machine._id })
+      : null;
 
   return {
     machine: {
@@ -434,38 +522,79 @@ const getMachineTelemetrySummary = async (machineId) => {
     },
     telemetry: telemetrySummary,
     signal: {
-      lastValue: machineState?.lastSignalValue ?? null,
-      lastAt: machineState?.lastSignalAt ?? null,
+      lastValue: latestTelemetry?.signalValue ?? null,
+      lastAt: latestTelemetry?.timestamp ?? null,
       currentState: machineState?.currentState ?? 'unknown',
     },
+    source: effectiveSource,
+    simulationRunId: latestTelemetry?.simulationRunId || null,
     windowStart,
   };
 };
 
 const getMachineTelemetrySeries = async (
   machineId,
-  { limit = 20, since, view, bucketMinutes } = {},
+  { limit = 20, since, view, bucketMinutes, source } = {},
 ) => {
   const machine = await Machine.findById(machineId);
   if (!machine) {
     throw new AppError('Makine bulunamadı.', 404);
   }
 
-  const resolvedView = String(view || '').toLowerCase();
-  if (resolvedView === 'shift') {
-    const payload = await getMachineShiftTelemetrySeries(machine, { bucketMinutes });
+  const requestedSource = normalizeTelemetrySource(source);
+  const effectiveSource =
+    requestedSource === 'auto' ? await resolveAutoSource(machine._id) : requestedSource;
+
+  const requestedView = normalizeView(view);
+  const effectiveView =
+    requestedView === 'auto'
+      ? effectiveSource === TELEMETRY_SOURCES.SHIFT_SIM
+        ? 'shift'
+        : 'live'
+      : requestedView;
+
+  if (effectiveView === 'shift') {
+    let clockState;
+    if (effectiveSource === TELEMETRY_SOURCES.SHIFT_SIM) {
+      clockState = await simulationClockService.getShiftSimClockState({ syncWithDb: true });
+    }
+
+    const payload = await getMachineShiftTelemetrySeries(machine, {
+      bucketMinutes,
+      source: effectiveSource,
+      simulationRunId: clockState?.simulationRunId,
+      shiftStartAt: clockState?.shiftStartAt,
+      shiftEndAt: clockState?.shiftEndAt,
+    });
     return {
       machine: {
         id: machine.id,
         code: machine.code,
         name: machine.name,
       },
+      ...(clockState?.virtualDay && { virtualDay: clockState.virtualDay }),
       ...payload,
     };
   }
 
   const cappedLimit = Math.min(Math.max(Number(limit) || 20, 5), 200);
-  const effectiveNow = await resolveEffectiveNow({ machine: machine._id });
+  const sourceFilter =
+    effectiveSource === TELEMETRY_SOURCES.SHIFT_SIM
+      ? { source: TELEMETRY_SOURCES.SHIFT_SIM }
+      : { source: { $in: LEGACY_DATA_GEN_SOURCES } };
+
+  const latestTelemetry = await MachineTelemetry.findOne({
+    machine: machine._id,
+    source: { $ne: 'seed' },
+    ...sourceFilter,
+  })
+    .sort({ timestamp: -1 })
+    .select({ timestamp: 1, simulationRunId: 1 })
+    .lean();
+
+  const effectiveNow =
+    effectiveSource === TELEMETRY_SOURCES.DATA_GEN ? new Date() : latestTelemetry?.timestamp || new Date();
+
   const windowStart = new Date(effectiveNow.getTime() - telemetryWindowMs);
   let effectiveStart = windowStart.getTime();
   let sinceDate;
@@ -480,6 +609,7 @@ const getMachineTelemetrySeries = async (
   const filter = {
     machine: machine._id,
     timestamp: { $gte: new Date(effectiveStart), $lte: effectiveNow },
+    ...sourceFilter,
   };
 
   let query = MachineTelemetry.find(filter).select({
@@ -488,6 +618,8 @@ const getMachineTelemetrySeries = async (
     'metrics.torqueNm': 1,
     'metrics.energyKwh': 1,
     signalValue: 1,
+    source: 1,
+    simulationRunId: 1,
   });
 
   if (sinceDate) {
@@ -505,6 +637,9 @@ const getMachineTelemetrySeries = async (
       code: machine.code,
       name: machine.name,
     },
+    view: 'live',
+    source: effectiveSource,
+    simulationRunId: latestTelemetry?.simulationRunId || null,
     series,
     windowStart,
     windowEnd: effectiveNow,

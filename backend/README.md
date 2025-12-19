@@ -45,19 +45,20 @@ Seed sonrası örnek hesaplar:
     ```bash
     npm run shift:sim
     ```
-    Bu script 07:00–18:00 vardiyası için deterministik telemetry üretir ve birkaç dakika içinde tüm vardiya verisini adım adım yazar. Sinyal 1 yalnızca makinede `in_progress` bir job varken üretilir; job `paused` ise sinyal 0 kalır.
+    Bu script 07:00–18:00 vardiyası için deterministik telemetry üretir ve birkaç dakika içinde tüm vardiya verisini adım adım yazar. Shift-sim sanal takvim (Simulation Clock) kullanır: ilk gün `SHIFT_SIM_EPOCH_DATE` ile başlar, vardiya bitince ertesi güne geçer, yarıda durursa kaldığı yerden devam eder. Sinyal 1 yalnızca makinede `in_progress` bir job varken üretilir; job `paused` ise sinyal 0 kalır.
     - Koşu bittiğinde, OEE processor bu telemetry’yi işledikten sonra (maksimum `SHIFT_SIM_WAIT_FOR_PROCESSING_MS`) sistem “shift_end” uygular: `in_progress` job’ları `paused` yapar (reason: `shift_end`) ve makineyi `idle` state’e çeker. Sonraki vardiyada operatör job’u manuel `resume` eder.
+    - Tez demosunda OEE job’u varsayılan olarak sadece shift-sim telemetry’sini işler (`OEE_PROCESSOR_TELEMETRY_SOURCE=shift-sim`); data-gen canlı monitoring için kullanılabilir.
   - Sürekli simülasyon (legacy): `data-gen`
   ```bash
   npm run data:gen
   ```
-  Bu script veri tabanına düzenli aralıklarla sinyal/telemetri yazar, OEE job’unu ve dashboard’u canlı tutar.
+  Bu script veri tabanına düzenli aralıklarla sinyal/telemetri yazar ve dashboard/monitoring’i canlı tutar (OEE job’unun işlemesi `OEE_PROCESSOR_TELEMETRY_SOURCE` ayarına bağlıdır).
   - Interval değerleri ve sensör oynaklığı `.env` dosyasındaki `DATA_GEN_INTERVAL_MS`, `DATA_GEN_MACHINE_REFRESH_MS`, `DATA_GEN_TEMP_DELTA`, `DATA_GEN_TORQUE_DELTA`, `DATA_GEN_ENERGY_DELTA` değişkenleriyle ayarlanabilir; varsayılan `DATA_GEN_INTERVAL_MS=2000`, `DATA_GEN_MACHINE_REFRESH_MS=5000` olup job başlat/bitir olaylarının telemetry’ye birkaç saniye içinde yansımasını sağlar.
   - Planlı duruş simülasyonu için `DATA_GEN_PLANNED_STOPPED_MODE=true` iken, makinede açık planlı duruş event’i varsa sinyal ve metrikler 0 üretilir; planlı duruş bitince normal profile geri dönülür.
   - Sinyal davranışı için `DATA_GEN_RUNNING_SIGNAL_DROP_PROB`, `DATA_GEN_RUNNING_SIGNAL_RECOVERY_PROB`, `DATA_GEN_IDLE_SIGNAL_DROP_PROB`, `DATA_GEN_IDLE_SIGNAL_RISE_PROB` değişkenleri kullanılabilir; aktif işlerde sinyalin 1’de kalmasını, idle durumda ise daha sık 0 üretmesini sağlar.
   - Isınma/soğuma anındaki metrik geçişi `DATA_GEN_TRANSITION_MS` değişkeniyle kontrol edilir; varsayılan 10 sn boyunca sıcaklık/tork/enerji değerleri hızlıca yeni profile yaklaşır ve monitoring grafikleri gerçekçi ramp-up/ramp-down davranışı sergiler.
   - Üretim simülatörü (`npm run job:sim`) telemetry verisine bağımlıdır; önce shift-sim veya data-gen’i başlat, ardından job-sim’i çalıştır. Telemetry yoksa job-sim üretim yapmaz ve logda uyarı verir.
-  - UI üzerinden simülasyon yönetimi için `/simulations` sayfası kullanılabilir (backend API: `GET/POST /api/simulations/*`, izin: `production.manage`). Prod ortamında kapatmak için `ENABLE_SIMULATION_CONTROL=false` bırakın.
+  - UI üzerinden simülasyon yönetimi için `/simulations` sayfası kullanılabilir (backend API: `GET/POST /api/simulations/*`, izin: `production.manage`). `shift-sim` için reset aksiyonu, sim kaynaklı telemetry ve event’leri temizler. Prod ortamında kapatmak için `ENABLE_SIMULATION_CONTROL=false` bırakın.
 
 ## Dizin Yapısı
 

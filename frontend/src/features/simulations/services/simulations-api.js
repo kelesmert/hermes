@@ -15,6 +15,11 @@ export const stopSimulation = async (name) => {
   return data;
 };
 
+export const resetSimulationData = async (name) => {
+  const { data } = await apiClient.post(`/simulations/${name}/reset`);
+  return data;
+};
+
 export const fetchSimulationLogs = async (name, params = {}) => {
   const { data } = await apiClient.get(`/simulations/${name}/logs`, { params });
   return data;
@@ -24,4 +29,3 @@ export const clearSimulationLogs = async (name) => {
   const { data } = await apiClient.post(`/simulations/${name}/logs/clear`);
   return data;
 };
-

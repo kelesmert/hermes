@@ -45,6 +45,10 @@ const signalTimeoutMs =
 const pollIntervalMs = aggregationRules.pollIntervalMs || 2000;
 const batchSize = aggregationRules.batchSize || 200;
 
+const PROCESSOR_TELEMETRY_SOURCE = String(process.env.OEE_PROCESSOR_TELEMETRY_SOURCE || 'shift-sim').trim();
+const PROCESSOR_PROCESSES_ALL = PROCESSOR_TELEMETRY_SOURCE === 'all';
+const PROCESSOR_DISABLE_SIGNAL_TIMEOUTS = PROCESSOR_TELEMETRY_SOURCE === 'shift-sim';
+
 const ASSIGNED_JOB_STATUSES = [jobOrderStatuses.IN_PROGRESS, jobOrderStatuses.PAUSED];
 const RUNNING_JOB_STATUSES = [jobOrderStatuses.IN_PROGRESS];
 
@@ -172,7 +176,12 @@ const buildEventContext = (telemetry) => {
 };
 
 const processTelemetryBatch = async () => {
-  const records = await MachineTelemetry.find({ processedAt: { $exists: false } })
+  const filter = {
+    processedAt: { $exists: false },
+    ...(PROCESSOR_PROCESSES_ALL ? {} : { source: PROCESSOR_TELEMETRY_SOURCE }),
+  };
+
+  const records = await MachineTelemetry.find(filter)
     .sort({ timestamp: 1 })
     .limit(batchSize)
     .lean();
@@ -359,7 +368,7 @@ const processTelemetryBatch = async () => {
 };
 
 const handleSignalTimeouts = async () => {
-  if (!signalTimeoutMs) return;
+  if (!signalTimeoutMs || PROCESSOR_DISABLE_SIGNAL_TIMEOUTS) return;
   const threshold = new Date(Date.now() - signalTimeoutMs);
   const staleStates = await OeeMachineState.find({
     lastSignalAt: { $lt: threshold },

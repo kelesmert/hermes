@@ -67,6 +67,9 @@
 - [x] JobOrder orderNo duplicate index warning'ini temizle (tek index tanımı)
 - [x] Shift-sim: hızlandırılmış vardiya telemetry simülatörü (`npm run shift:sim`) + `simulationRunId` tagging + data-gen ile aynı anda çalıştırmama kuralı
 - [x] Shift end policy: shift-sim bitince `in_progress` job `paused` olur (reason: `shift_end`), açık event’ler vardiya bitişinde kapanır ve makine `idle` durumuna çekilir
+- [x] Simulation Clock: shift-sim sanal takvim state’i (epoch date, resume, next-day) + reset desteği
+- [x] Board telemetry source seçimi: `source` paramı + shift-sim için shift view, data-gen için live view
+- [x] OEE processor telemetry source izolasyonu: `OEE_PROCESSOR_TELEMETRY_SOURCE` ile shift-sim odaklı işleme
 - [ ] (Opsiyonel) Monitoring periyot/bucket endpoint'i (vardiya görünümü için ayrı endpoint ve UI)
 - [ ] Event zamanlarının lokal timezone desteği (UTC+3 gibi) için helper/formatlama katmanı
 - [ ] Raporlama endpointleri (verimlilik, duruş süreleri vb.)
@@ -91,6 +94,7 @@
 - [x] Dashboard layout ve genel metrik kartları (Board domain endpoint'leri, polling)
 - [x] Makine kartları (durum renkleri, polling/React Query refetchInterval)
 - [x] Monitoring sayfası: Seçili makine için canlı telemetry grafikler (2sn polling, kayan pencere, Recharts)
+- [x] Monitoring source seçimi: Auto/shift-sim/data-gen toggle + shift view (07:00–18:00) ve live view ayrımı
 - [ ] (Opsiyonel) Monitoring vardiya/periyot görünümü (15/30 dk bucket veya downsample)
 - [x] Parça yönetimi sayfası (liste + ekle/düzenle/sil formları, kategori/birim/makine uyumluluğu)
 - [x] Production/İş Emirleri sayfası (liste, form dialog ve start/pause/resume/produce/complete aksiyon butonları)
@@ -99,6 +103,7 @@
 - [x] Sidebar'a `Duruşlar` menüsü ve any-of permission guard (`work_orders.execute` veya `production.manage`)
 - [x] Production pause UX'i downtime yazmaz, Duruşlar sayfasına yönlendirir
 - [x] Simülasyonlar sayfası (`/simulations`): shift-sim/data-gen/job-sim başlat-durdur + log konsolu
+- [x] Simülasyonlar: shift-sim reset aksiyonu (sim kaynaklı telemetry ve event temizliği)
 - [ ] Raporlama sayfası + filtreler
 - [x] Roller/izinler için yönetim ekranı; permission set düzenleme ve kullanıcıya rol atama modalları
 - [x] Dashboard/rapor placeholder’larını gerçek makine/event verileriyle besleyip React Query polling/WebSocket desteği ekle _(dashboard kısmı tamamlandı, rapor ekranı beklemede)_

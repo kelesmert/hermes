@@ -24,6 +24,7 @@ import {
   clearSimulationLogs,
   fetchSimulationLogs,
   fetchSimulations,
+  resetSimulationData,
   startSimulation,
   stopSimulation,
 } from '@/features/simulations/services/simulations-api.js';
@@ -97,6 +98,17 @@ const SimulationsPage = () => {
     },
     onError: (error) => {
       toast.error(error?.response?.data?.message || 'Simülasyon durdurulamadı.');
+    },
+  });
+
+  const resetMutation = useMutation({
+    mutationFn: (name) => resetSimulationData(name),
+    onSuccess: (_data, name) => {
+      queryClient.invalidateQueries({ queryKey: ['simulations'] });
+      toast.success(`${name} resetlendi.`);
+    },
+    onError: (error) => {
+      toast.error(error?.response?.data?.message || 'Reset işlemi başarısız.');
     },
   });
 
@@ -263,10 +275,11 @@ const SimulationsPage = () => {
                 </Stack>
 
                 {simulation.name === 'job-sim' &&
-                  !stableSimulations.find((s) => s.name === 'data-gen')?.running && (
+                  !stableSimulations.find((s) => s.name === 'data-gen')?.running &&
+                  !stableSimulations.find((s) => s.name === 'shift-sim')?.running && (
                   <Alert severity="info" variant="outlined" sx={{ mt: 2 }}>
                     `job-sim` üretim yazabilmek için telemetry sinyaline ihtiyaç duyar. Genelde önce `data-gen`
-                    başlatılır.
+                    veya `shift-sim` başlatılır.
                   </Alert>
                 )}
 
@@ -288,6 +301,23 @@ const SimulationsPage = () => {
                   >
                     Durdur
                   </Button>
+                  {simulation.name === 'shift-sim' && (
+                    <Button
+                      variant="outlined"
+                      color="warning"
+                      startIcon={<DeleteSweepIcon />}
+                      disabled={!controlEnabled || simulation.running || resetMutation.isPending}
+                      onClick={() => {
+                        const ok = window.confirm(
+                          'shift-sim resetlenecek: telemetry + sim kaynaklı event verileri silinecek. Devam edilsin mi?',
+                        );
+                        if (!ok) return;
+                        resetMutation.mutate(simulation.name);
+                      }}
+                    >
+                      Reset
+                    </Button>
+                  )}
                   <Button
                     variant="text"
                     startIcon={<DeleteSweepIcon />}

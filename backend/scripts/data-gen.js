@@ -59,6 +59,7 @@ const METRIC_PROFILES = {
 
 const TRANSITION_WINDOW_MS = Number(process.env.DATA_GEN_TRANSITION_MS) || 10000;
 const TRANSITION_TICKS = Math.max(1, Math.round(TRANSITION_WINDOW_MS / INTERVAL_MS));
+const SOURCE = 'data-gen';
 
 const machineStates = new Map();
 let machines = [];
@@ -174,7 +175,7 @@ const generateTelemetryPayload = (machine, { plannedDowntimeMachines } = {}) => 
         energyKwh: 0,
       },
       intervalMs: INTERVAL_MS,
-      source: 'simulator',
+      source: SOURCE,
     };
   }
 
@@ -218,7 +219,7 @@ const generateTelemetryPayload = (machine, { plannedDowntimeMachines } = {}) => 
       energyKwh: Number(state.energy.toFixed(2)),
     },
     intervalMs: INTERVAL_MS,
-    source: 'simulator',
+    source: SOURCE,
   };
 };
 

@@ -10,18 +10,12 @@ require('../src/models');
 const Machine = require('../src/domains/machines/models/machine-model');
 const MachineEvent = require('../src/domains/machines/models/machine-event-model');
 const MachineTelemetry = require('../src/domains/machines/models/machine-telemetry-model');
-const ProductionEvent = require('../src/domains/production/models/production-event-model');
 const JobOrder = require('../src/domains/production/models/job-order-model');
-const OeeMachineState = require('../src/domains/oee/models/oee-machine-state-model');
 const machineStatuses = require('../src/constants/machine-statuses');
 const jobOrderStatuses = require('../src/constants/job-order-statuses');
 const jobOrderService = require('../src/domains/production/services/job-order-service');
 const { createEvent: createMachineEvent } = require('../src/domains/machines/services/machine-event-service');
-
-const ISTANBUL_OFFSET_MINUTES = 180;
-
-const SHIFT_START_HHMM = process.env.SHIFT_SIM_SHIFT_START || '07:00';
-const SHIFT_END_HHMM = process.env.SHIFT_SIM_SHIFT_END || '18:00';
+const simulationClockService = require('../src/domains/simulations/services/simulation-clock-service');
 
 const REAL_TICK_MS = Math.max(50, Number(process.env.SHIFT_SIM_TICK_MS) || 250);
 const REAL_DURATION_SECONDS = Math.max(
@@ -37,7 +31,7 @@ const MACHINE_REFRESH_MS = Math.max(
 const SOURCE = 'shift-sim';
 const CLEAR_BEFORE_START =
   process.env.SHIFT_SIM_CLEAR_BEFORE_START === undefined
-    ? true
+    ? false
     : String(process.env.SHIFT_SIM_CLEAR_BEFORE_START).toLowerCase() === 'true';
 const PLANNED_STOPPED_MODE =
   process.env.SHIFT_SIM_PLANNED_STOPPED_MODE === undefined
@@ -86,53 +80,6 @@ let lastMachineRefresh = 0;
 let plannedDowntimeMachines = new Set();
 let lastPlannedDowntimeRefresh = 0;
 let stopRequested = false;
-
-const parseTime = (hhmm) => {
-  const [hh, mm] = String(hhmm || '').split(':').map((item) => Number(item));
-  return { hh, mm };
-};
-
-const getIstanbulYmd = (date) => {
-  const formatted = new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'Europe/Istanbul',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  }).format(date);
-  const [year, month, day] = formatted.split('-').map((item) => Number(item));
-  return { year, month, day };
-};
-
-const computeDayWindowUtc = (ymd, startTime, endTime) => {
-  const { hh: startH, mm: startM } = parseTime(startTime);
-  const { hh: endH, mm: endM } = parseTime(endTime);
-
-  const startAt = new Date(
-    Date.UTC(ymd.year, ymd.month - 1, ymd.day, startH, startM, 0) -
-      ISTANBUL_OFFSET_MINUTES * 60 * 1000,
-  );
-  const endAt = new Date(
-    Date.UTC(ymd.year, ymd.month - 1, ymd.day, endH, endM, 0) -
-      ISTANBUL_OFFSET_MINUTES * 60 * 1000,
-  );
-  if (endAt.getTime() <= startAt.getTime()) {
-    endAt.setUTCDate(endAt.getUTCDate() + 1);
-  }
-  return { startAt, endAt };
-};
-
-const computeLastCompletedShiftWindowUtc = (now) => {
-  const today = getIstanbulYmd(now);
-  const todayWindow = computeDayWindowUtc(today, SHIFT_START_HHMM, SHIFT_END_HHMM);
-
-  if (now.getTime() >= todayWindow.endAt.getTime()) {
-    return todayWindow;
-  }
-
-  const previousDayBase = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-  const previousDay = getIstanbulYmd(previousDayBase);
-  return computeDayWindowUtc(previousDay, SHIFT_START_HHMM, SHIFT_END_HHMM);
-};
 
 const hashToInt = (value) => {
   const text = String(value || '');
@@ -370,28 +317,6 @@ let currentShiftWindow = null;
 
 const formatIso = (date) => (date ? new Date(date).toISOString() : '');
 
-const buildRunId = (shiftStartAt) => {
-  const ymd = getIstanbulYmd(shiftStartAt);
-  const y = `${ymd.year}`.padStart(4, '0');
-  const m = `${ymd.month}`.padStart(2, '0');
-  const d = `${ymd.day}`.padStart(2, '0');
-  const suffix = Math.random().toString(16).slice(2, 8);
-  return `SS-${y}${m}${d}-${suffix}`;
-};
-
-const clearShiftSimData = async () => {
-  await MachineTelemetry.deleteMany({ source: SOURCE });
-  await MachineEvent.deleteMany({ 'metadata.simulationRunId': { $exists: true } });
-  await ProductionEvent.deleteMany({ 'metadata.simulationRunId': { $exists: true } });
-  await OeeMachineState.updateMany(
-    {},
-    {
-      $set: { currentState: 'running' },
-      $unset: { openEvent: 1, zeroSequenceStart: 1, lastSignalValue: 1, lastSignalAt: 1 },
-    },
-  );
-};
-
 const waitForProcessing = async (runId, { timeoutMs = WAIT_FOR_PROCESSING_MS } = {}) => {
   if (!timeoutMs) {
     return { ok: true, skipped: true };
@@ -488,14 +413,28 @@ const applyShiftEndPolicy = async ({ shiftEndAt, runId }) => {
 const startSimulator = async () => {
   await connectDatabase();
 
-  currentShiftWindow = computeLastCompletedShiftWindowUtc(new Date());
+  if (CLEAR_BEFORE_START) {
+    console.log('[shift-sim] Reset: önceki shift-sim verileri ve clock state temizleniyor...');
+    await simulationClockService.resetShiftSimData();
+  }
+
+  const runContext = await simulationClockService.prepareShiftSimRun({
+    sampleIntervalMs: SAMPLE_INTERVAL_MS,
+  });
+
+  currentShiftWindow = {
+    startAt: runContext.shiftStartAt,
+    endAt: runContext.shiftEndAt,
+  };
+
   const shiftDurationMs = currentShiftWindow.endAt.getTime() - currentShiftWindow.startAt.getTime();
   if (!Number.isFinite(shiftDurationMs) || shiftDurationMs <= 0) {
     throw new Error('Shift penceresi hesaplanamadı (start/end geçersiz).');
   }
 
   const speed = shiftDurationMs / (REAL_DURATION_SECONDS * 1000);
-  const runId = buildRunId(currentShiftWindow.startAt);
+  const runId = runContext.simulationRunId;
+  const resumeAt = runContext.nextCursorAt;
 
   console.log(`[shift-sim] --- START ${new Date().toISOString()} run=${runId} ---`);
   console.log(
@@ -503,14 +442,13 @@ const startSimulator = async () => {
       currentShiftWindow.endAt,
     )} (${Math.round(shiftDurationMs / 60000)} dk)`,
   );
+  console.log(`[shift-sim] Virtual day: ${runContext.virtualDay}`);
+  if (resumeAt && resumeAt.getTime() > currentShiftWindow.startAt.getTime()) {
+    console.log(`[shift-sim] Resume at: ${formatIso(resumeAt)}`);
+  }
   console.log(
     `[shift-sim] Speed: ${speed.toFixed(2)}x (real ${REAL_DURATION_SECONDS}s, tick ${REAL_TICK_MS}ms, sample ${SAMPLE_INTERVAL_MS}ms)`,
   );
-
-  if (CLEAR_BEFORE_START) {
-    console.log('[shift-sim] Önceki shift-sim telemetry verileri temizleniyor...');
-    await clearShiftSimData();
-  }
 
   await loadMachines();
   await ensurePlannedDowntimeUpToDate();
@@ -518,13 +456,25 @@ const startSimulator = async () => {
   const simStartMs = currentShiftWindow.startAt.getTime();
   const simEndMs = currentShiftWindow.endAt.getTime();
 
-  let simCursorMs = simStartMs;
+  let simCursorMs = Math.max(simStartMs, resumeAt?.getTime?.() || simStartMs);
+  let lastWrittenAt = null;
   let remainderMs = 0;
   let lastProgressLogMs = simCursorMs;
 
   const intervalRef = setInterval(async () => {
     if (stopRequested) {
       clearInterval(intervalRef);
+      if (lastWrittenAt) {
+        try {
+          await simulationClockService.updateShiftSimProgress({
+            simulationRunId: runId,
+            cursorAt: lastWrittenAt,
+            status: 'paused',
+          });
+        } catch (error) {
+          console.error('[shift-sim] Clock pause update başarısız:', error.message);
+        }
+      }
       console.log('[shift-sim] Stop requested, çıkılıyor.');
       process.exit(0);
     }
@@ -555,6 +505,7 @@ const startSimulator = async () => {
 
       if (docs.length) {
         await MachineTelemetry.insertMany(docs, { ordered: false });
+        lastWrittenAt = new Date(simCursorMs - SAMPLE_INTERVAL_MS);
       }
 
       if (simCursorMs - lastProgressLogMs >= 15 * 60 * 1000 || simCursorMs >= simEndMs) {
@@ -562,6 +513,13 @@ const startSimulator = async () => {
         console.log(
           `[shift-sim] Progress: ${progress.toFixed(1)}% sim=${new Date(simCursorMs).toISOString()} docs+${docs.length}`,
         );
+        if (lastWrittenAt) {
+          await simulationClockService.updateShiftSimProgress({
+            simulationRunId: runId,
+            cursorAt: lastWrittenAt,
+            status: 'running',
+          });
+        }
         lastProgressLogMs = simCursorMs;
       }
 
@@ -575,6 +533,11 @@ const startSimulator = async () => {
         }
 
         await applyShiftEndPolicy({ shiftEndAt: currentShiftWindow.endAt, runId });
+        await simulationClockService.updateShiftSimProgress({
+          simulationRunId: runId,
+          cursorAt: currentShiftWindow.endAt,
+          status: 'completed',
+        });
         console.log(`[shift-sim] --- DONE run=${runId} ---`);
         process.exit(0);
       }

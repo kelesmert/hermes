@@ -2,6 +2,7 @@ const { spawn } = require('child_process');
 const path = require('path');
 const config = require('../../../config');
 const AppError = require('../../../utils/app-error');
+const simulationClockService = require('./simulation-clock-service');
 
 const MAX_LOG_LINES = Math.max(200, Number(process.env.SIMULATION_LOG_MAX_LINES) || 2000);
 const STOP_TIMEOUT_MS = Math.max(1000, Number(process.env.SIMULATION_STOP_TIMEOUT_MS) || 8000);
@@ -286,6 +287,41 @@ const clearLogs = (name) => {
   return { ok: true };
 };
 
+const resetSimulationData = async (name, { requestedBy } = {}) => {
+  requireEnabled();
+  const state = getState(name);
+
+  if (name !== 'shift-sim') {
+    throw new AppError('Sadece shift-sim için reset destekleniyor.', 400);
+  }
+
+  if (state.running || state.process) {
+    throw new AppError('Reset için önce shift-sim durdurulmalı.', 409);
+  }
+
+  if (states.get('job-sim')?.running) {
+    throw new AppError('Reset için önce job-sim durdurulmalı.', 409);
+  }
+
+  pushLog(state, {
+    stream: 'system',
+    message: `--- RESET requested (${state.name}) ${new Date().toISOString()}${
+      requestedBy?.username ? ` by ${requestedBy.username}` : ''
+    } ---`,
+  });
+
+  const result = await simulationClockService.resetShiftSimData();
+
+  pushLog(state, {
+    stream: 'system',
+    message: `--- RESET done (${state.name}) telemetry=${result.deleted?.telemetry ?? 0} machineEvents=${
+      result.deleted?.machineEvents ?? 0
+    } productionEvents=${result.deleted?.productionEvents ?? 0} ---`,
+  });
+
+  return result;
+};
+
 const getLogs = (name, { afterId, limit } = {}) => {
   const state = getState(name);
   const safeLimit = Math.min(2000, Math.max(1, Number(limit) || 500));
@@ -323,4 +359,5 @@ module.exports = {
   stopSimulation,
   getLogs,
   clearLogs,
+  resetSimulationData,
 };
