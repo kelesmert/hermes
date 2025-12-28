@@ -14,5 +14,10 @@ router.get(
   oeeController.getReasonCatalog,
 );
 
-module.exports = router;
+router.get(
+  '/stats',
+  requireAnyPermission(permissions.DASHBOARD_READ),
+  oeeController.getOeeStats,
+);
 
+module.exports = router;

@@ -50,6 +50,16 @@ ve acik kalan sorularin tek kaynagi olacak. Her yeni karar bu dosyaya eklenecek.
 - UI daha sonra tasarlanacak; mimari bu ikisini kapsayacak.
 - Hedef UI: makine secimi + haftalik/aylik OEE gorunumu.
 
+### 6.1) OEE API pencere modeli (karar)
+- `mode=shift|range`
+- Default: `shift`
+- `shiftDate=YYYY-MM-DD` (verilmezse son telemetry gunu)
+- `from` + `to` (ISO tarih, range modu icin)
+- `source=shift-sim|data-gen|auto` (default: shift-sim)
+- `machineId` MVP icin zorunlu
+- Yanit formatinda tek obje: `availability`, `performance`, `quality`, `oee`,
+  `plannedTime`, `operatingTime`, `totalCount`, `goodCount`, `defectCount`
+
 ### 7) Job-sim cycle time olasilik dagilimi
 Ideal cycle time icin hedeflenen dagilim:
 - Min = 0.8 * ideal
@@ -83,11 +93,14 @@ Bu dagilimda beklenen oran:
   degerlendirilecek.
 
 ## Acik Sorular (Netlesecek)
+- Su anda acik soru kalmadi.
 
-### A) OEE API pencere modeli
-- Shift bazli ve tarih araligi bazli hesap icin API parametreleri netlesmeli.
+## Tamamlananlar
+- Job-sim rastgele cycle time (asimetrik triangular) uygulanacak karar gerceklestirildi.
+- Job-sim defect rastgeleligi (env kontrollu oran) uygulandi.
+- Uretim adedi targetQuantity ile sinirli; good + defect toplam hedefi asmaz.
+- Reason catalog'a `affectsOee` alani eklendi.
+- OEE hesaplama servisi ve `/api/oee/stats` endpoint'i olusturuldu.
 
 ## Sonraki Adimlar
-- Job-sim defect uretimi (env kontrollu oran) implement edilecek.
-- OEE hesap servisi (A/P/Q) icin veri akisi ve pencere modeli tanimlanacak.
-- OEE API icin shift + tarih araligi parametreleri tasarlanacak.
+- OEE hesap servisi icin UI tarafi ve raporlama akisi tasarlanacak.

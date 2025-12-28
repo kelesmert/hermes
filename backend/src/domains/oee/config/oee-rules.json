@@ -18,52 +18,62 @@
     {
       "code": "unplanned_stop",
       "label": "Plansız Duruş",
-      "category": "unplanned"
+      "category": "unplanned",
+      "affectsOee": true
     },
     {
       "code": "planned_break",
       "label": "Planlı Mola",
-      "category": "planned"
+      "category": "planned",
+      "affectsOee": false
     },
     {
       "code": "maintenance",
       "label": "Bakım",
-      "category": "planned"
+      "category": "planned",
+      "affectsOee": false
     },
     {
       "code": "cleaning",
       "label": "Temizlik",
-      "category": "planned"
+      "category": "planned",
+      "affectsOee": false
     },
     {
       "code": "quality_check",
       "label": "Kalite Kontrol",
-      "category": "planned"
+      "category": "planned",
+      "affectsOee": false
     },
     {
       "code": "other_planned",
       "label": "Diğer Planlı",
-      "category": "planned"
+      "category": "planned",
+      "affectsOee": true
     },
     {
       "code": "material_shortage",
       "label": "Malzeme Bitti",
-      "category": "unplanned"
+      "category": "unplanned",
+      "affectsOee": true
     },
     {
       "code": "breakdown",
       "label": "Arıza",
-      "category": "unplanned"
+      "category": "unplanned",
+      "affectsOee": true
     },
     {
       "code": "tooling_change",
       "label": "Takım Değişimi",
-      "category": "unplanned"
+      "category": "unplanned",
+      "affectsOee": true
     },
     {
       "code": "other_unplanned",
       "label": "Diğer Plansız",
-      "category": "unplanned"
+      "category": "unplanned",
+      "affectsOee": true
     }
   ],
   "aggregation": {

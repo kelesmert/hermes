@@ -10,13 +10,20 @@ require('../src/models');
 const JobOrder = require('../src/domains/production/models/job-order-model');
 const jobOrderService = require('../src/domains/production/services/job-order-service');
 const MachineTelemetry = require('../src/domains/machines/models/machine-telemetry-model');
+const ProductionEvent = require('../src/domains/production/models/production-event-model');
 const jobOrderStatuses = require('../src/constants/job-order-statuses');
 const defectTypes = require('../src/constants/defect-types');
+const productionEventTypes = require('../src/constants/production-event-types');
 
 const INTERVAL_MS = Math.max(100, Number(process.env.JOB_SIM_INTERVAL_MS) || 2000);
 const DEFECT_RATE = Math.max(0, Number(process.env.JOB_SIM_DEFECT_RATE) || 0.05);
 const IDLE_PROBABILITY = Math.max(0, Number(process.env.JOB_SIM_IDLE_PROBABILITY) || 0.15);
 const MAX_TELEMETRY_RECORDS = Math.max(200, Number(process.env.JOB_SIM_MAX_TELEMETRY_RECORDS) || 5000);
+const CYCLE_TIME_MIN_FACTOR = Math.max(0.1, Number(process.env.JOB_SIM_CYCLE_TIME_MIN_FACTOR) || 0.8);
+const CYCLE_TIME_MAX_FACTOR = Math.max(
+  CYCLE_TIME_MIN_FACTOR,
+  Number(process.env.JOB_SIM_CYCLE_TIME_MAX_FACTOR) || 1.4,
+);
 
 const JOB_STATUS = jobOrderStatuses;
 
@@ -75,6 +82,21 @@ const fetchEarliestTelemetryTimestampForRun = async (machineId, simulationRunId)
     simulationRunId,
   })
     .sort({ timestamp: 1 })
+    .select({ timestamp: 1 })
+    .lean();
+  return doc?.timestamp || null;
+};
+
+const fetchLatestProductionTimestamp = async (jobOrderId, simulationRunId) => {
+  const filter = {
+    jobOrder: jobOrderId,
+    eventType: { $in: [productionEventTypes.PRODUCE, productionEventTypes.DEFECT] },
+  };
+  if (simulationRunId) {
+    filter['metadata.simulationRunId'] = simulationRunId;
+  }
+  const doc = await ProductionEvent.findOne(filter)
+    .sort({ timestamp: -1 })
     .select({ timestamp: 1 })
     .lean();
   return doc?.timestamp || null;
@@ -194,8 +216,37 @@ const fetchTelemetrySince = async (machineId, after, latestTimestamp, simulation
 
 const shouldSkipInterval = (probability) => probability > 0 && Math.random() < probability;
 
-const computeQuantityForInterval = (idealCycleTimeSeconds, intervalMs, jobId) => {
-  const cyclesPerMinute = 60 / idealCycleTimeSeconds;
+const sampleTriangular = (min, mode, max) => {
+  if (max <= min) return min;
+  const safeMode = Math.min(Math.max(mode, min), max);
+  const u = Math.random();
+  const c = (safeMode - min) / (max - min);
+  if (u < c) {
+    return min + Math.sqrt(u * (max - min) * (safeMode - min));
+  }
+  return max - Math.sqrt((1 - u) * (max - min) * (max - safeMode));
+};
+
+const sampleCycleTimeSeconds = (idealCycleTimeSeconds) => {
+  const min = idealCycleTimeSeconds * CYCLE_TIME_MIN_FACTOR;
+  const max = idealCycleTimeSeconds * CYCLE_TIME_MAX_FACTOR;
+  return sampleTriangular(min, idealCycleTimeSeconds, max);
+};
+
+const sampleDefectiveCount = (totalQuantity, defectRate) => {
+  if (defectRate <= 0) return 0;
+  if (defectRate >= 1) return totalQuantity;
+  let defective = 0;
+  for (let i = 0; i < totalQuantity; i += 1) {
+    if (Math.random() < defectRate) {
+      defective += 1;
+    }
+  }
+  return defective;
+};
+
+const computeQuantityForInterval = (cycleTimeSeconds, intervalMs, jobId) => {
+  const cyclesPerMinute = 60 / cycleTimeSeconds;
   const expectedForInterval = cyclesPerMinute * (intervalMs / 60000);
   const carry = getRemainder(jobId);
   const quantity = Math.floor(expectedForInterval + carry);
@@ -225,10 +276,15 @@ const processJobOrder = async (jobOrder, latestTelemetry) => {
       return;
     }
 
-    const earliestTimestamp = await fetchEarliestTelemetryTimestampForRun(jobOrder.machine._id, latestRunId);
-    const startAt = earliestTimestamp
-      ? new Date(earliestTimestamp.getTime() - 1)
-      : new Date(latest.timestamp.getTime() - 1);
+    const [earliestTimestamp, lastProducedAt] = await Promise.all([
+      fetchEarliestTelemetryTimestampForRun(jobOrder.machine._id, latestRunId),
+      fetchLatestProductionTimestamp(jobOrder._id, latestRunId),
+    ]);
+    const baseTimestamp =
+      lastProducedAt && lastProducedAt.getTime() < latest.timestamp.getTime()
+        ? lastProducedAt
+        : earliestTimestamp || latest.timestamp;
+    const startAt = new Date(baseTimestamp.getTime() - 1);
 
     cursorEntry = { timestamp: startAt, simulationRunId: latestRunId };
     telemetryCursorByMachine.set(machineId, cursorEntry);
@@ -248,7 +304,7 @@ const processJobOrder = async (jobOrder, latestTelemetry) => {
 
   const simulationRunId = latestRunId;
   const isShiftSim = Boolean(simulationRunId);
-  const effectiveDefectRate = isShiftSim ? 0 : DEFECT_RATE;
+  const effectiveDefectRate = DEFECT_RATE;
   const effectiveIdleProbability = isShiftSim ? 0 : IDLE_PROBABILITY;
 
   const effectiveIdealCycleTimeSeconds =
@@ -257,6 +313,14 @@ const processJobOrder = async (jobOrder, latestTelemetry) => {
       : jobOrder.part.idealCycleTime;
 
   const jobId = getJobId(jobOrder);
+  const remainingQuantity = Math.max(
+    Number(jobOrder.targetQuantity || 0) - Number(jobOrder.producedQuantity || 0),
+    0,
+  );
+  if (remainingQuantity <= 0) {
+    return;
+  }
+
   let totalQuantity = 0;
   let lastTimestamp = cursor;
   for (const sample of telemetry) {
@@ -272,7 +336,8 @@ const processJobOrder = async (jobOrder, latestTelemetry) => {
     }
 
     const intervalMs = Math.max(100, Number(sample.intervalMs) || INTERVAL_MS);
-    totalQuantity += computeQuantityForInterval(effectiveIdealCycleTimeSeconds, intervalMs, jobId);
+    const cycleTimeSeconds = sampleCycleTimeSeconds(effectiveIdealCycleTimeSeconds);
+    totalQuantity += computeQuantityForInterval(cycleTimeSeconds, intervalMs, jobId);
   }
 
   telemetryCursorByMachine.set(machineId, { timestamp: lastTimestamp, simulationRunId: latestRunId });
@@ -281,11 +346,12 @@ const processJobOrder = async (jobOrder, latestTelemetry) => {
     return;
   }
 
-  let defective = 0;
-  if (effectiveDefectRate > 0) {
-    defective = Math.floor(totalQuantity * effectiveDefectRate * Math.random());
-    if (defective > totalQuantity) defective = totalQuantity;
+  if (totalQuantity > remainingQuantity) {
+    totalQuantity = remainingQuantity;
   }
+
+  let defective = sampleDefectiveCount(totalQuantity, effectiveDefectRate);
+  if (defective > totalQuantity) defective = totalQuantity;
   const good = totalQuantity - defective;
 
   const baseMetadata = simulationRunId ? { simulationRunId, simulationSource: 'shift-sim' } : undefined;
