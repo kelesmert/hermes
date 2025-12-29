@@ -4,7 +4,6 @@ const dotenv = require('dotenv');
 
 dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 
-const mongoose = require('mongoose');
 const { connectDatabase } = require('../src/config/database');
 require('../src/models');
 const JobOrder = require('../src/domains/production/models/job-order-model');
@@ -24,6 +23,31 @@ const CYCLE_TIME_MAX_FACTOR = Math.max(
   CYCLE_TIME_MIN_FACTOR,
   Number(process.env.JOB_SIM_CYCLE_TIME_MAX_FACTOR) || 1.4,
 );
+const RAW_TELEMETRY_SOURCE = String(process.env.JOB_SIM_TELEMETRY_SOURCE || 'shift-sim')
+  .trim()
+  .toLowerCase();
+
+const normalizeTelemetrySource = (value) => {
+  if (value === 'data-gen') return 'data-gen';
+  if (value === 'shift-sim') return 'shift-sim';
+  if (value === 'auto') return 'auto';
+  return 'shift-sim';
+};
+
+const TELEMETRY_SOURCE = normalizeTelemetrySource(RAW_TELEMETRY_SOURCE);
+
+const buildTelemetrySourceFilter = (source) => {
+  if (source === 'shift-sim') {
+    return { source: 'shift-sim' };
+  }
+  if (source === 'data-gen') {
+    return { source: { $in: ['data-gen', 'simulator'] } };
+  }
+  return { source: { $ne: 'seed' } };
+};
+
+const TELEMETRY_SOURCE_FILTER = buildTelemetrySourceFilter(TELEMETRY_SOURCE);
+const USE_SHIFT_SIM = TELEMETRY_SOURCE === 'shift-sim';
 
 const JOB_STATUS = jobOrderStatuses;
 
@@ -34,7 +58,7 @@ const PART_MB_001_CYCLE_TIME_SECONDS = Math.max(
 );
 
 const fractionalRemainders = new Map();
-const telemetryCursorByMachine = new Map();
+const telemetryCursorByJob = new Map();
 
 const getJobId = (jobOrder) => jobOrder.id || jobOrder._id.toString();
 
@@ -52,10 +76,10 @@ const cleanupRemainders = (activeJobIds) => {
   });
 };
 
-const cleanupTelemetryCursors = (activeMachineIds) => {
-  telemetryCursorByMachine.forEach((_, key) => {
-    if (!activeMachineIds.has(key)) {
-      telemetryCursorByMachine.delete(key);
+const cleanupTelemetryCursors = (activeJobIds) => {
+  telemetryCursorByJob.forEach((_, key) => {
+    if (!activeJobIds.has(key)) {
+      telemetryCursorByJob.delete(key);
     }
   });
 };
@@ -66,25 +90,36 @@ const pickDefectType = () => {
   return values[Math.floor(Math.random() * values.length)];
 };
 
-const normalizeObjectId = (id) => {
-  if (!id) return null;
-  if (mongoose.Types.ObjectId.isValid(id)) {
-    return typeof id === 'string' ? new mongoose.Types.ObjectId(id) : id;
-  }
-  return null;
-};
-
-const fetchEarliestTelemetryTimestampForRun = async (machineId, simulationRunId) => {
-  if (!simulationRunId) return null;
-  const doc = await MachineTelemetry.findOne({
+const fetchEarliestTelemetryForJob = async (jobOrderId, machineId, simulationRunId) => {
+  const filter = {
     machine: machineId,
-    source: 'shift-sim',
-    simulationRunId,
-  })
+    jobOrder: jobOrderId,
+    ...TELEMETRY_SOURCE_FILTER,
+  };
+  if (USE_SHIFT_SIM && simulationRunId) {
+    filter.simulationRunId = simulationRunId;
+  }
+  const doc = await MachineTelemetry.findOne(filter)
     .sort({ timestamp: 1 })
     .select({ timestamp: 1 })
     .lean();
   return doc?.timestamp || null;
+};
+
+const fetchLatestTelemetryForJob = async (jobOrderId, machineId, simulationRunId) => {
+  const filter = {
+    machine: machineId,
+    jobOrder: jobOrderId,
+    ...TELEMETRY_SOURCE_FILTER,
+  };
+  if (USE_SHIFT_SIM && simulationRunId) {
+    filter.simulationRunId = simulationRunId;
+  }
+  const doc = await MachineTelemetry.findOne(filter)
+    .sort({ timestamp: -1 })
+    .select({ timestamp: 1, simulationRunId: 1 })
+    .lean();
+  return doc || null;
 };
 
 const fetchLatestProductionTimestamp = async (jobOrderId, simulationRunId) => {
@@ -102,89 +137,13 @@ const fetchLatestProductionTimestamp = async (jobOrderId, simulationRunId) => {
   return doc?.timestamp || null;
 };
 
-const fetchLatestShiftSimTelemetry = async (machineIds) => {
-  if (!machineIds.length) {
-    return new Map();
-  }
-
-  const results = await MachineTelemetry.aggregate([
-    {
-      $match: {
-        machine: { $in: machineIds },
-        source: 'shift-sim',
-        simulationRunId: { $exists: true, $ne: null },
-      },
-    },
-    { $sort: { timestamp: -1 } },
-    {
-      $group: {
-        _id: '$machine',
-        timestamp: { $first: '$timestamp' },
-        simulationRunId: { $first: '$simulationRunId' },
-      },
-    },
-  ]);
-
-  const map = new Map();
-  results.forEach((item) => {
-    map.set(item._id.toString(), {
-      timestamp: item.timestamp,
-      simulationRunId: item.simulationRunId || null,
-    });
-  });
-  return map;
-};
-
-const fetchLatestTelemetry = async (machineIds) => {
-  const normalizedIds = machineIds
-    .map((id) => normalizeObjectId(id))
-    .filter((id) => id);
-
-  if (!normalizedIds.length) {
-    return new Map();
-  }
-
-  const [shiftSimLatest, results] = await Promise.all([
-    fetchLatestShiftSimTelemetry(normalizedIds),
-    MachineTelemetry.aggregate([
-      { $match: { machine: { $in: normalizedIds } } },
-      { $sort: { timestamp: -1 } },
-      {
-        $group: {
-          _id: '$machine',
-          timestamp: { $first: '$timestamp' },
-          simulationRunId: { $first: '$simulationRunId' },
-        },
-      },
-    ]),
-  ]);
-
-  const fallback = new Map();
-  results.forEach((item) => {
-    fallback.set(item._id.toString(), {
-      timestamp: item.timestamp,
-      simulationRunId: item.simulationRunId || null,
-    });
-  });
-
-  const map = new Map();
-  normalizedIds.forEach((id) => {
-    const key = id.toString();
-    if (shiftSimLatest.has(key)) {
-      map.set(key, shiftSimLatest.get(key));
-      return;
-    }
-    if (fallback.has(key)) {
-      map.set(key, fallback.get(key));
-    }
-  });
-
-  return map;
-};
-
-const buildTelemetryQuery = (machineId, after, latestTimestamp, simulationRunId) => {
-  const filter = { machine: machineId };
-  if (simulationRunId) {
+const buildTelemetryQuery = (jobOrderId, machineId, after, latestTimestamp, simulationRunId) => {
+  const filter = {
+    machine: machineId,
+    jobOrder: jobOrderId,
+    ...TELEMETRY_SOURCE_FILTER,
+  };
+  if (USE_SHIFT_SIM && simulationRunId) {
     filter.simulationRunId = simulationRunId;
   }
   if (after) {
@@ -198,8 +157,8 @@ const buildTelemetryQuery = (machineId, after, latestTimestamp, simulationRunId)
   return filter;
 };
 
-const fetchTelemetrySince = async (machineId, after, latestTimestamp, simulationRunId) => {
-  const filter = buildTelemetryQuery(machineId, after, latestTimestamp, simulationRunId);
+const fetchTelemetrySince = async (jobOrderId, machineId, after, latestTimestamp, simulationRunId) => {
+  const filter = buildTelemetryQuery(jobOrderId, machineId, after, latestTimestamp, simulationRunId);
 
   return MachineTelemetry.find(filter)
     .sort({ timestamp: 1 })
@@ -254,7 +213,7 @@ const computeQuantityForInterval = (cycleTimeSeconds, intervalMs, jobId) => {
   return quantity;
 };
 
-const processJobOrder = async (jobOrder, latestTelemetry) => {
+const processJobOrder = async (jobOrder) => {
   if (!jobOrder.part?.idealCycleTime || jobOrder.part.idealCycleTime <= 0) {
     return;
   }
@@ -263,21 +222,22 @@ const processJobOrder = async (jobOrder, latestTelemetry) => {
     return;
   }
 
-  const latest = latestTelemetry.get(machineId);
+  const jobId = getJobId(jobOrder);
+  const jobSimulationSource = String(jobOrder.metadata?.simulationSource || '').trim().toLowerCase();
+  if (jobSimulationSource && jobSimulationSource !== TELEMETRY_SOURCE && jobSimulationSource !== 'auto') {
+    return;
+  }
+
+  const latest = await fetchLatestTelemetryForJob(jobOrder._id, jobOrder.machine._id);
   if (!latest?.timestamp) {
     return;
   }
 
-  const latestRunId = latest.simulationRunId || null;
-  let cursorEntry = telemetryCursorByMachine.get(machineId);
+  const latestRunId = USE_SHIFT_SIM ? latest.simulationRunId || null : null;
+  let cursorEntry = telemetryCursorByJob.get(jobId);
   if (!cursorEntry || cursorEntry.simulationRunId !== latestRunId) {
-    if (!latestRunId) {
-      telemetryCursorByMachine.set(machineId, { timestamp: latest.timestamp, simulationRunId: null });
-      return;
-    }
-
     const [earliestTimestamp, lastProducedAt] = await Promise.all([
-      fetchEarliestTelemetryTimestampForRun(jobOrder.machine._id, latestRunId),
+      fetchEarliestTelemetryForJob(jobOrder._id, jobOrder.machine._id, latestRunId),
       fetchLatestProductionTimestamp(jobOrder._id, latestRunId),
     ]);
     const baseTimestamp =
@@ -287,7 +247,7 @@ const processJobOrder = async (jobOrder, latestTelemetry) => {
     const startAt = new Date(baseTimestamp.getTime() - 1);
 
     cursorEntry = { timestamp: startAt, simulationRunId: latestRunId };
-    telemetryCursorByMachine.set(machineId, cursorEntry);
+    telemetryCursorByJob.set(jobId, cursorEntry);
   }
 
   const cursor = cursorEntry.timestamp;
@@ -296,14 +256,20 @@ const processJobOrder = async (jobOrder, latestTelemetry) => {
     return;
   }
 
-  const telemetry = await fetchTelemetrySince(jobOrder.machine._id, cursor, latest.timestamp, latestRunId);
+  const telemetry = await fetchTelemetrySince(
+    jobOrder._id,
+    jobOrder.machine._id,
+    cursor,
+    latest.timestamp,
+    latestRunId,
+  );
   if (!telemetry.length) {
-    telemetryCursorByMachine.set(machineId, latest.timestamp);
+    telemetryCursorByJob.set(jobId, { timestamp: latest.timestamp, simulationRunId: latestRunId });
     return;
   }
 
   const simulationRunId = latestRunId;
-  const isShiftSim = Boolean(simulationRunId);
+  const isShiftSim = USE_SHIFT_SIM;
   const effectiveDefectRate = DEFECT_RATE;
   const effectiveIdleProbability = isShiftSim ? 0 : IDLE_PROBABILITY;
 
@@ -312,7 +278,6 @@ const processJobOrder = async (jobOrder, latestTelemetry) => {
       ? PART_MB_001_CYCLE_TIME_SECONDS
       : jobOrder.part.idealCycleTime;
 
-  const jobId = getJobId(jobOrder);
   const remainingQuantity = Math.max(
     Number(jobOrder.targetQuantity || 0) - Number(jobOrder.producedQuantity || 0),
     0,
@@ -340,7 +305,7 @@ const processJobOrder = async (jobOrder, latestTelemetry) => {
     totalQuantity += computeQuantityForInterval(cycleTimeSeconds, intervalMs, jobId);
   }
 
-  telemetryCursorByMachine.set(machineId, { timestamp: lastTimestamp, simulationRunId: latestRunId });
+  telemetryCursorByJob.set(jobId, { timestamp: lastTimestamp, simulationRunId: latestRunId });
 
   if (totalQuantity <= 0) {
     return;
@@ -354,7 +319,12 @@ const processJobOrder = async (jobOrder, latestTelemetry) => {
   if (defective > totalQuantity) defective = totalQuantity;
   const good = totalQuantity - defective;
 
-  const baseMetadata = simulationRunId ? { simulationRunId, simulationSource: 'shift-sim' } : undefined;
+  const resolvedSimulationSource =
+    TELEMETRY_SOURCE === 'auto' ? telemetry[0]?.source || 'auto' : TELEMETRY_SOURCE;
+  const baseMetadata = {
+    simulationSource: resolvedSimulationSource,
+    ...(simulationRunId ? { simulationRunId } : {}),
+  };
   const eventTime = lastTimestamp;
 
   if (good > 0) {
@@ -392,20 +362,11 @@ const runSimulatorTick = async () => {
 
     const activeJobIds = new Set(activeJobs.map((job) => getJobId(job)));
     cleanupRemainders(activeJobIds);
-
-    const machineIds = activeJobs.map((job) => job.machine?._id).filter(Boolean);
-    const activeMachineIds = new Set(machineIds.map((id) => id.toString()));
-    cleanupTelemetryCursors(activeMachineIds);
-
-    if (!machineIds.length) {
-      return;
-    }
-
-    const latestTelemetry = await fetchLatestTelemetry(machineIds);
+    cleanupTelemetryCursors(activeJobIds);
 
     for (const job of activeJobs) {
       try {
-        await processJobOrder(job, latestTelemetry);
+        await processJobOrder(job);
       } catch (jobError) {
         console.error('[job-sim] Job işlenemedi:', job.orderNo || job.id, jobError.message);
       }

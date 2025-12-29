@@ -303,6 +303,25 @@ const getShiftSimClockState = async ({ syncWithDb = true } = {}) => {
   return state;
 };
 
+const getShiftSimNow = async ({ machineId } = {}) => {
+  const filter = { source: 'shift-sim' };
+  if (machineId) {
+    filter.machine = machineId;
+  }
+
+  const latest = await MachineTelemetry.findOne(filter)
+    .sort({ timestamp: -1 })
+    .select({ timestamp: 1 })
+    .lean();
+
+  if (latest?.timestamp) {
+    return latest.timestamp;
+  }
+
+  const state = await getShiftSimClockState({ syncWithDb: true });
+  return state.cursorAt || state.shiftStartAt || new Date();
+};
+
 module.exports = {
   SHIFT_SIM_KEY,
   ISTANBUL_TIMEZONE,
@@ -313,4 +332,5 @@ module.exports = {
   resetShiftSimClock,
   resetShiftSimData,
   getShiftSimClockState,
+  getShiftSimNow,
 };

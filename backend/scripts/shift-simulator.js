@@ -38,11 +38,18 @@ const PLANNED_STOPPED_MODE =
     ? true
     : String(process.env.SHIFT_SIM_PLANNED_STOPPED_MODE).toLowerCase() === 'true';
 
-const SCHEDULE_MINUTES = [
-  { minutes: 60, signal: 1 }, // 07:00 - 08:00 running
-  { minutes: 30, signal: 0 }, // 08:00 - 08:30 unplanned downtime (test)
-  { minutes: 570, signal: 1 }, // 08:30 - 18:00 running
-];
+const TEST_DOWNTIME_ENABLED =
+  process.env.SHIFT_SIM_TEST_DOWNTIME_ENABLED === undefined
+    ? true
+    : String(process.env.SHIFT_SIM_TEST_DOWNTIME_ENABLED).toLowerCase() === 'true';
+const TEST_DOWNTIME_AFTER_MINUTES = Math.max(
+  0,
+  Number(process.env.SHIFT_SIM_TEST_DOWNTIME_AFTER_MINUTES) || 60,
+);
+const TEST_DOWNTIME_MINUTES = Math.max(
+  0,
+  Number(process.env.SHIFT_SIM_TEST_DOWNTIME_MINUTES) || 30,
+);
 
 const METRIC_PROFILES = {
   active: {
@@ -229,10 +236,27 @@ const ensurePlannedDowntimeUpToDate = async () => {
   }
 };
 
-const buildScheduleSegments = () => {
+const buildScheduleMinutes = (totalMinutes) => {
+  const normalizedTotal = Math.max(0, Math.round(totalMinutes));
+  if (!TEST_DOWNTIME_ENABLED || TEST_DOWNTIME_MINUTES <= 0) {
+    return [{ minutes: normalizedTotal, signal: 1 }];
+  }
+
+  const before = Math.min(TEST_DOWNTIME_AFTER_MINUTES, normalizedTotal);
+  const downtime = Math.min(TEST_DOWNTIME_MINUTES, Math.max(0, normalizedTotal - before));
+  const after = Math.max(0, normalizedTotal - before - downtime);
+  const schedule = [];
+  if (before > 0) schedule.push({ minutes: before, signal: 1 });
+  if (downtime > 0) schedule.push({ minutes: downtime, signal: 0 });
+  if (after > 0) schedule.push({ minutes: after, signal: 1 });
+  return schedule.length ? schedule : [{ minutes: normalizedTotal, signal: 1 }];
+};
+
+const buildScheduleSegments = (totalMinutes) => {
   let cursorMs = 0;
   const segments = [];
-  for (const item of SCHEDULE_MINUTES) {
+  const minutesPlan = buildScheduleMinutes(totalMinutes);
+  for (const item of minutesPlan) {
     const durationMs = item.minutes * 60 * 1000;
     segments.push({ startOffsetMs: cursorMs, endOffsetMs: cursorMs + durationMs, signal: item.signal });
     cursorMs += durationMs;
@@ -240,7 +264,7 @@ const buildScheduleSegments = () => {
   return segments;
 };
 
-const scheduleSegments = buildScheduleSegments();
+let scheduleSegments = [];
 
 const getSignalForOffsetMs = (offsetMs) => {
   for (const segment of scheduleSegments) {
@@ -293,6 +317,7 @@ const generateTelemetryPayload = (machine, timestamp, runId) => {
   if (isPlannedStopped) {
     return {
       machine: machine._id,
+      ...(machine.currentJobOrder && { jobOrder: machine.currentJobOrder }),
       timestamp,
       signalValue: 0,
       metrics,
@@ -304,6 +329,7 @@ const generateTelemetryPayload = (machine, timestamp, runId) => {
 
   return {
     machine: machine._id,
+    ...(machine.currentJobOrder && { jobOrder: machine.currentJobOrder }),
     timestamp,
     signalValue,
     metrics,
@@ -385,6 +411,7 @@ const applyShiftEndPolicy = async ({ shiftEndAt, runId }) => {
           reason: SHIFT_END_PAUSE_REASON,
           skipMachineEvent: true,
           now: shiftEndAt,
+          timeSource: 'shift-sim',
         });
       } catch (error) {
         console.error('[shift-sim] Job shift_end pause başarısız:', job.orderNo || jobId, error.message);
@@ -431,6 +458,8 @@ const startSimulator = async () => {
   if (!Number.isFinite(shiftDurationMs) || shiftDurationMs <= 0) {
     throw new Error('Shift penceresi hesaplanamadı (start/end geçersiz).');
   }
+
+  scheduleSegments = buildScheduleSegments(shiftDurationMs / 60000);
 
   const speed = shiftDurationMs / (REAL_DURATION_SECONDS * 1000);
   const runId = runContext.simulationRunId;

@@ -9,6 +9,11 @@ const telemetrySchema = new mongoose.Schema(
       required: true,
       index: true,
     },
+    jobOrder: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'JobOrder',
+      index: true,
+    },
     timestamp: {
       type: Date,
       required: true,
@@ -43,6 +48,7 @@ const telemetrySchema = new mongoose.Schema(
 );
 
 telemetrySchema.index({ machine: 1, timestamp: -1 });
+telemetrySchema.index({ jobOrder: 1, timestamp: -1 });
 telemetrySchema.index({ processedAt: 1, timestamp: 1 });
 telemetrySchema.index({ source: 1, simulationRunId: 1, timestamp: 1 });
 

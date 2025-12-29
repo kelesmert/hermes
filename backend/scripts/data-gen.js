@@ -167,6 +167,7 @@ const generateTelemetryPayload = (machine, { plannedDowntimeMachines } = {}) => 
     state.transitionTicks = TRANSITION_TICKS;
     return {
       machine: machine._id,
+      ...(machine.currentJobOrder && { jobOrder: machine.currentJobOrder }),
       timestamp: new Date(),
       signalValue: 0,
       metrics: {
@@ -211,6 +212,7 @@ const generateTelemetryPayload = (machine, { plannedDowntimeMachines } = {}) => 
 
   return {
     machine: machine._id,
+    ...(machine.currentJobOrder && { jobOrder: machine.currentJobOrder }),
     timestamp: new Date(),
     signalValue: state.signal,
     metrics: {

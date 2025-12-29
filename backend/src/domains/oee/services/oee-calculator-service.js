@@ -151,12 +151,17 @@ const resolveRangeWindow = (from, to) => {
   return { windowStart: start, windowEnd: end };
 };
 
-const collectJobActiveIntervals = async (machineId, windowStart, windowEnd) => {
-  const events = await ProductionEvent.find({
+const collectJobActiveIntervals = async (machineId, windowStart, windowEnd, source) => {
+  const eventFilter = {
     machine: machineId,
     eventType: { $in: Array.from(new Set([...ACTIVE_JOB_EVENTS, ...INACTIVE_JOB_EVENTS])) },
     timestamp: { $lte: windowEnd },
-  })
+  };
+  if (source === TELEMETRY_SOURCES.SHIFT_SIM || source === TELEMETRY_SOURCES.DATA_GEN) {
+    eventFilter['metadata.simulationSource'] = source;
+  }
+
+  const events = await ProductionEvent.find(eventFilter)
     .sort({ timestamp: 1 })
     .select({ eventType: 1, timestamp: 1 })
     .lean();
@@ -278,7 +283,7 @@ const calculateOeeForMachine = async ({
       ? resolveRangeWindow(from, to)
       : await resolveShiftWindow(machine._id, shiftDate, effectiveSource);
 
-  const activeIntervals = await collectJobActiveIntervals(machine._id, windowStart, windowEnd);
+  const activeIntervals = await collectJobActiveIntervals(machine._id, windowStart, windowEnd, effectiveSource);
   const basePlannedMs = sumIntervals(activeIntervals);
 
   const reasonCatalog = oeeRulesService.getReasonCatalog();
@@ -330,6 +335,8 @@ const calculateOeeForMachine = async ({
   if (effectiveSource === TELEMETRY_SOURCES.SHIFT_SIM) {
     eventFilter['metadata.simulationSource'] = 'shift-sim';
     eventFilter.source = 'simulator';
+  } else if (effectiveSource === TELEMETRY_SOURCES.DATA_GEN) {
+    eventFilter['metadata.simulationSource'] = 'data-gen';
   }
 
   const productionEvents = await ProductionEvent.find(eventFilter)

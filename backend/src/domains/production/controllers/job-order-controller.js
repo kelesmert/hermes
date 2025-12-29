@@ -41,6 +41,7 @@ const startJobOrder = asyncHandler(async (req, res) => {
   const jobOrder = await jobOrderService.startJobOrder(req.params.id, {
     operatorId: req.auth?.userId,
     source: 'operator',
+    timeSource: req.body?.timeSource || req.body?.simulationSource,
   });
   res.json({ jobOrder });
 });
@@ -51,6 +52,7 @@ const pauseJobOrder = asyncHandler(async (req, res) => {
     source: req.body?.source || 'operator',
     reason: req.body?.reason,
     skipMachineEvent: true,
+    timeSource: req.body?.timeSource || req.body?.simulationSource,
   });
   res.json({ jobOrder });
 });
@@ -60,6 +62,7 @@ const resumeJobOrder = asyncHandler(async (req, res) => {
     operatorId: req.auth?.userId,
     source: 'operator',
     skipMachineEvent: true,
+    timeSource: req.body?.timeSource || req.body?.simulationSource,
   });
   res.json({ jobOrder });
 });
@@ -68,6 +71,7 @@ const completeJobOrder = asyncHandler(async (req, res) => {
   const jobOrder = await jobOrderService.completeJobOrder(req.params.id, {
     operatorId: req.auth?.userId,
     source: 'operator',
+    timeSource: req.body?.timeSource || req.body?.simulationSource,
   });
   res.json({ jobOrder });
 });
@@ -77,6 +81,7 @@ const cancelJobOrder = asyncHandler(async (req, res) => {
     operatorId: req.auth?.userId,
     source: 'operator',
     reason: req.body?.reason,
+    timeSource: req.body?.timeSource || req.body?.simulationSource,
   });
   res.json({ jobOrder });
 });
