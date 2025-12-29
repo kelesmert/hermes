@@ -16,6 +16,8 @@ Birinci script olan data-gen.js, gerçek zamanlı telemetri üretimi için kulla
 
 Üçüncü script olan job-simulator.js, üretim event'i üretimi için kullanılır. Kendisi telemetri üretmez, bunun yerine data-gen veya shift-sim tarafından üretilen telemetri verilerini okur ve bu verileri ProductionEvent kayıtlarına dönüştürür. Bu script, diğer iki scriptten birine bağımlıdır çünkü işleyeceği telemetri verisi olmadan çalışamaz.
 
+**Not (test schedule):** Shift-sim içinde test amaçlı sabit bir zaman çizelgesi bulunmaktadır (07:00–08:00 çalışır, 08:00–08:30 durur, 08:30–18:00 tekrar çalışır). Bu davranış test odaklıdır ve üretim davranışı gibi algılanmamalıdır; env ile kontrol edilmesi önerilir.
+
 ### Temel Veri Modelleri
 
 Sistemde kullanılan temel veri modelleri şunlardır:
@@ -62,41 +64,43 @@ Bu hata sistemdeki en kritik ve kullanıcı tarafından doğrudan gözlemlenen h
 
 Hatanın ortaya çıkış senaryosu şu şekildedir: Kullanıcı shift-sim simülasyonunu başlatır. Simülasyon çalışırken yüzlerce veya binlerce telemetri kaydı oluşturulur. Kullanıcı simülasyonu durdurur. Ardından yeni bir iş emri oluşturur ve bu iş emrini başlatır. Son olarak simülasyonu tekrar başlatır. Bu noktada iş emri anında veya birkaç saniye içinde tamamlanır.
 
-Hatanın kök nedeni job-simulator.js dosyasında bulunan cursor yönetim mantığındadır. İlgili kod şu şekildedir:
+Hatanın kök nedeni job-simulator.js dosyasında bulunan cursor yönetim mantığının iş emrinin başlangıç zamanını dikkate almamasıdır. İlgili kod şu şekildedir:
 
 ```javascript
-if (!cursorEntry || cursorEntry.simulationRunId !== latestRunId) {
-  const [earliestTimestamp, lastProducedAt] = await Promise.all([
-    MachineTelemetry.findOne({
-      machine: job.machine,
-      source: TELEMETRY_SOURCE,
-      simulationRunId: latestRunId,
-    })
-      .sort({ timestamp: 1 })
-      .select({ timestamp: 1 })
-      .lean()
-      .then((doc) => doc?.timestamp),
-    ProductionEvent.findOne({
-      jobOrder: job._id,
-      source: 'simulator',
-    })
-      .sort({ timestamp: -1 })
-      .select({ timestamp: 1 })
-      .lean()
-      .then((doc) => doc?.timestamp),
-  ]);
-
-  const effectiveStart =
-    lastProducedAt || earliestTimestamp || latest.timestamp;
+const [earliestTimestamp, lastProducedAt] = await Promise.all([
+  fetchEarliestTelemetryTimestampForRun(jobOrder.machine._id, latestRunId),
+  fetchLatestProductionTimestamp(jobOrder._id, latestRunId),
+]);
+const baseTimestamp =
+  lastProducedAt && lastProducedAt.getTime() < latest.timestamp.getTime()
+    ? lastProducedAt
+    : earliestTimestamp || latest.timestamp;
 ```
 
-Bu kodda kritik bir mantık hatası vardır. Yeni bir simulationRunId tespit edildiğinde cursor sıfırlanır. earliestTimestamp sorgusu yeni run için telemetri arar ama henüz yeni run'da telemetri olmayabilir. lastProducedAt sorgusu bu iş emri için üretim kaydı arar ama yeni iş emri için üretim kaydı yoktur. Her ikisi de null döndüğünde, latest.timestamp kullanılır ki bu eski run'dan kalan son telemetrinin timestamp'idir.
+Bu kodda kritik bir mantık hatası vardır. fetchEarliestTelemetryTimestampForRun fonksiyonu simülasyon run'ının en erken telemetrisini arar, iş emrinin startTime değerini değil. Bu nedenle aynı run içinde bile, iş emri örneğin saat 10:00'da başlatılmış olsa dahi, sistem saat 07:00'dan itibaren vardiya başından beri biriken tüm telemetriyi işler.
 
-Sonuç olarak sistem, tarihsel olarak eski run'a ait tüm telemetriyi yeni iş emri için işler. Bu telemetriler zaten veritabanında mevcuttur ve anında okunup işlenebilir. Bu nedenle iş emri saniyeler içinde tamamlanır.
+Örnek senaryo olarak: Simülasyon saat 07:00'da başlar ve telemetri üretir. Kullanıcı saat 10:00'da yeni bir iş emri başlatır. job-sim, iş emrinin startTime değerini kontrol etmeden, run'ın başlangıcından yani saat 07:00'dan itibaren tüm telemetriyi işler. 3 saatlik telemetri backlog'u anında işlendiğinden iş emri saniyeler içinde tamamlanır.
 
-Çözüm önerisi olarak, telemetri kayıtlarına jobOrder referansı eklenmeli ve job-sim sadece kendi iş emrine ait telemetriyi işlemelidir.
+Çözüm önerisi olarak, cursor başlangıcı hesaplanırken iş emrinin startTime değeri dikkate alınmalıdır. En minimal çözüm şu şekildedir:
 
-### Hata İki: SimulationState Global Olarak Tasarlanmış
+```javascript
+const jobStartTime =
+  jobOrder.startTime || earliestTimestamp || latest.timestamp;
+const baseTimestamp = lastProducedAt
+  ? lastProducedAt
+  : new Date(
+      Math.max(
+        jobStartTime.getTime(),
+        (earliestTimestamp || latest.timestamp).getTime()
+      )
+    );
+```
+
+Bu değişiklik ile job-sim sadece iş emri başladıktan sonraki telemetriyi işleyecek ve anında tamamlanma sorunu çözülecektir.
+
+### Tasarım Notu İki: SimulationState Global Olarak Tasarlanmış
+
+Not: Bu bir hata değil, bilinçli bir tasarım kararıdır. Mevcut kullanım senaryosu için uygundur.
 
 SimulationState modeli tüm sistem için tek bir kayıt tutacak şekilde tasarlanmıştır.
 
@@ -112,9 +116,11 @@ key: {
 
 key alanı unique constraint'e sahiptir ve sistemde sadece "shift-sim" anahtarıyla tek bir kayıt bulunmaktadır. Bu tasarım kararının sonuçları şunlardır:
 
-Birincisi, tüm makineler aynı sanal günü paylaşır. virtualDay değeri tek bir kayıtta tutulduğu için, bir makine için simülasyon ilerletildiğinde tüm makineler etkilenir. İkincisi, farklı iş emirleri için farklı simülasyon tarihleri kullanılamaz. Üçüncüsü, paralel simülasyon çalıştırma imkanı yoktur.
+Birincisi, tüm makineler aynı sanal günü paylaşır. virtualDay değeri tek bir kayıtta tutulduğu için tüm makineler aynı vardiyayı simüle eder. İkincisi, farklı iş emirleri için farklı simülasyon tarihleri kullanılamaz. Üçüncüsü, paralel simülasyon çalıştırma imkanı yoktur.
 
-Çözüm önerisi olarak, SimulationState yerine JobSimulationSession adında yeni bir model oluşturulmalıdır. Bu model her iş emri için ayrı bir kayıt tutmalı ve iş emrine özel simülasyon durumunu saklamalıdır.
+Bu tasarım "tek fabrika, tek vardiya, tüm makineler aynı anda çalışıyor" senaryosu için uygundur ve çoğu MES kullanım durumunu karşılar. Eğer gelecekte farklı vardiya profilleri veya per-job simülasyon gerekirse, mevcut yapı üzerine machine bazlı offset veya shift profile eklenebilir.
+
+JobSimulationSession gibi tamamen yeni bir model oluşturmak büyük bir mimari değişiklik gerektirir ve mevcut ihtiyaçlar için gereksiz kompleksite ekler. Bu nedenle global SimulationState yapısı korunmalı, gerekirse kademeli olarak genişletilmelidir.
 
 ### Hata Üç: Job-Sim Cursor Bellekte Tutuluyor
 
@@ -185,17 +191,23 @@ Bu durumun sonuçları performans metriklerini doğrudan etkiler. OEE performanc
 
 Çözüm önerisi olarak, pause ve resume işlemlerinde süre takibi yapılmalıdır. totalPauseDurationMinutes gibi bir alan eklenmeli ve actualDurationMinutes hesaplanırken bu değer çıkarılmalıdır.
 
-### Hata Yedi: Planned Downtime affectsOee Mantığı Belirsiz
+### Dokümantasyon Notu Yedi: Planned Downtime affectsOee Mantığı Kodda Mevcut
 
-OEE hesaplamalarında planned downtime'ların nasıl işlendiği belirsizdir. oee-calculator-service.js dosyasında bu konuda net bir mantık görülmemektedir.
+Not: Bu bir kod hatası değil, dokümantasyon eksikliğidir. affectsOee mantığı kodda doğru şekilde implement edilmiştir.
 
-affectsOee alanı true olan planned downtime'lar teoride availability hesaplamasını etkilemelidir. Ancak mevcut kodda bu durumun nasıl ele alındığı açık değildir. Planned time'dan çıkarılıp çıkarılmadığı, availability loss olarak sayılıp sayılmadığı belirsizdir.
+oee-calculator-service.js dosyasında affectsOee mantığı, reason catalog + MachineEvent sorgusu ile uygulanmaktadır:
 
-Bu belirsizliğin sonucu olarak OEE değerleri tutarsız olabilir. Aynı durum için farklı hesaplamalar yapılabilir. Kullanıcılar OEE değerlerinin ne anlama geldiğini anlayamaz.
+- Reason catalog içinden `category=planned` ve `affectsOee=false` reasonCode’lar seçilir.
+- Bu reasonCode’lara sahip planned downtime event’leri `MachineEvent` üzerinden bulunur.
+- Bulunan event’lerin aktif job interval’larıyla çakışan süreleri plannedTime’dan düşülür.
 
-Çözüm önerisi olarak, affectsOee mantığı açıkça dokümante edilmeli ve kod içinde tutarlı şekilde uygulanmalıdır. Planned downtime'ların availability hesaplamasına etkisi netleştirilmelidir.
+Özet davranış: `affectsOee: false` olan planned duruşlar availability’yi düşürmez; plannedTime’dan çıkarılır.
 
-### Hata Sekiz: Vardiya Sonu Politikası Manuel Müdahale Gerektiriyor
+Eksik olan sadece bu davranışın dokümante edilmesidir. Downtime oluştururken hangi durumlarda `affectsOee: false` kullanılacağı açıklanmalıdır. Örneğin: planlı bakım OEE'yi etkiler (`affectsOee: true`), öğle arası OEE'yi etkilemez (`affectsOee: false`).
+
+### Tasarım Kararı Sekiz: Vardiya Sonu Politikası - Manuel Resume
+
+Not: Bu bir hata değil, bilinçli bir operasyonel karardır. Manuel müdahale gereksinimi güvenlik amacıyla tercih edilmiştir.
 
 shift-simulator.js dosyasındaki applyShiftEndPolicy fonksiyonu vardiya sonunda çalışan tüm iş emirlerini duraklatır.
 
@@ -210,11 +222,14 @@ const applyShiftEndPolicy = async () => {
 };
 ```
 
-Bu fonksiyon çalıştığında tüm in_progress iş emirleri paused durumuna geçer. Ancak ertesi gün simülasyon yeniden başlatıldığında bu iş emirleri hala paused durumundadır. Kullanıcının manuel olarak her iş emrini resume etmesi gerekir.
+Bu tasarım kararının arkasındaki mantık şudur:
 
-Bu durumun sonuçları kullanıcı deneyimini olumsuz etkiler. Her simülasyon başlangıcında manuel işlem gerekir. Çok sayıda iş emri varsa bu işlem zahmetli olur. Unutulan iş emirleri paused kalır ve simülasyon beklendiği gibi çalışmaz.
+1. **Güvenlik**: Gerçek üretim ortamında vardiya sonu otomatik pause güvenli bir yaklaşımdır
+2. **Kontrol**: Operatör ertesi gün hangi işlerin devam edeceğine karar verebilir
+3. **Esneklik**: Bazı işler iptal edilebilir, bazıları farklı öncelikle devam edebilir
 
-Çözüm önerisi olarak, simülasyon başlatıldığında otomatik resume mekanizması eklenmelidir. Alternatif olarak, vardiya başı politikası tanımlanmalı ve bu politikaya göre iş emirleri otomatik olarak devam ettirilmelidir.
+simulation-clock-service.js zaten resume mantığı sağlar; `SimulationState.cursorAt` üzerinden kaldığı yerden devam edilir ve `prepareShiftSimRun` bir `nextCursorAt` değeri döndürür.  
+Eğer otomatik resume istenirse, simülasyon başlangıcına ek bir adım konulabilir. Ancak mevcut davranış bir bug değil, operasyonel tercihtir.
 
 ---
 
@@ -232,7 +247,7 @@ Birincisi shift-sim'in kullandığı virtualDay kavramıdır. Bu değer YYYY-MM-
 
 Dördüncüsü job-order-service'in new Date() kullanmasıdır. İş emri başlatma, duraklatma, tamamlama gibi işlemlerde gerçek sistem zamanı kullanılır.
 
-Beşincisi oee-calculator'ın parseEventTime fonksiyonunu kullanmasıdır. Bu fonksiyon UTC+3 offset'i uygular.
+Beşincisi oee-calculator'ın vardiya penceresini İstanbul zaman ofseti ile hesaplamasıdır (computeDayWindowUtc). Bu hesaplama job-order-service'in wall-clock zamanlarıyla karışınca tarih tutarsızlığına yol açar.
 
 Bu farklı zaman konseptlerinin bir arada kullanılması ciddi tutarsızlıklara yol açmaktadır. Bir iş emrinin startTime değeri 2025-01-10 iken, o iş emri için üretilen telemetrilerin timestamp değeri 2024-01-15 olabilir. Bu durum tarih bazlı filtreleme ve raporlamada sorunlara neden olur.
 
@@ -252,13 +267,51 @@ const LEGACY_DATA_GEN_SOURCES = ["data-gen", "simulator"];
 
 Bu array data-gen için yapılan sorgularda hem "data-gen" hem de "simulator" değerlerini kabul etmek amacıyla kullanılmaktadır. Ancak "simulator" değerinin nereden geldiği ve hala kullanılıp kullanılmadığı belirsizdir.
 
-Bu karmaşanın sonuçları sorguların karmaşıklaşmasına neden olur. Yeni geliştirici hangi source değerini kullanacağını bilemez. Veri tutarlılığı sağlanamaz.
+#### Kritik Bug: job-sim Source Seçimi (Gerçek Davranış)
 
-Çözüm önerisi olarak, source değerleri bir constants dosyasında merkezi olarak tanımlanmalıdır. Eski değerler için migration yapılmalı ve tek tip kullanıma geçilmelidir. Legacy desteği kaldırılmalıdır.
+job-simulator.js içinde telemetry kaynağı makine alanlarından seçilmiyor. Gerçek davranış şu:
+
+- Eğer makine için **shift-sim kaynaklı telemetry** bulunuyorsa, job-sim bunu öncelikli kabul ediyor.
+- shift-sim telemetry yoksa, en son telemetry’ye düşüyor (data-gen dahil).
+
+Bu durum, eski shift-sim verileri varken data-gen çalışsa bile job-sim’in shift-sim üzerinden üretim yapmasına neden olabilir.
+
+Çözüm önerisi olarak, source değerleri bir constants dosyasında merkezi olarak tanımlanmalıdır. Eski değerler için migration yapılmalı ve tek tip kullanıma geçilmelidir. job-sim source seçim mantığı netleştirilmelidir.
 
 ### OEE Hesaplama Eksiklikleri
 
 Mevcut OEE calculator servisi temel hesaplamaları yapabilmektedir ancak endüstri standardı olan bazı önemli metrikler eksiktir.
+
+#### Kritik Bug: collectJobActiveIntervals Source Filtresi Eksik
+
+oee-calculator-service.js dosyasında collectJobActiveIntervals fonksiyonu source filtresi kullanmıyor. Bu yüzden:
+
+- shift-sim + data-gen event’leri karışabiliyor
+- aktif job interval’ları yanlış hesaplanabiliyor
+
+Mevcut sorgu (özet):
+
+```javascript
+const events = await ProductionEvent.find({
+  machine: machineId,
+  eventType: { $in: [...] },
+  timestamp: { $lte: windowEnd },
+})
+```
+
+Bu sorguya, seçilen source’a göre filtre eklenmesi gerekir. Örn:
+- shift-sim için `source: 'simulator'` + `metadata.simulationSource: 'shift-sim'`
+- data-gen için `source: 'operator'` veya farklı bir ayrım kuralı
+
+Bu eksiklik nedeniyle:
+
+- shift-sim ve data-gen verileri karıştırılabilir
+- OEE hesaplaması yanlış veri setinden yapılabilir
+- Kaynak bazlı izole test yapılamaz
+
+Çözüm: collectJobActiveIntervals sorgusuna seçilen source’a göre filtre eklenmeli.
+
+#### Diğer Eksik Metrikler
 
 Availability hesaplaması mevcuttur ve planned time ile actual running time oranını verir. Ancak availability loss yani ne kadar süre kaybedildiği ayrı olarak raporlanmamaktadır.
 
@@ -318,85 +371,123 @@ Bu eksikliğin sonuçları şunlardır: Kullanıcı geçmiş bir tarih için sim
 
 ## ALTINCI BÖLÜM: ÖNERİLEN ÇÖZÜM MİMARİSİ
 
-### JobOrder Merkezli Simülasyon Yaklaşımı
+### Pragmatik Yaklaşım: Minimal Değişiklik
 
-Mevcut sistemde simülasyon global olarak yönetilmektedir. Önerilen yaklaşımda her iş emri kendi simülasyon oturumunu yönetmelidir.
+Mevcut sistem mimarisi "tek fabrika, tek vardiya, tüm makineler aynı anda" senaryosu için yeterlidir. JobSimulationSession gibi tamamen yeni bir model eklemek yerine, mevcut yapıda küçük ama etkili düzeltmeler yapılmalıdır.
 
-Bu amaçla JobSimulationSession adında yeni bir model oluşturulmalıdır. Bu model şu alanları içermelidir: jobOrder referansı olarak iş emrine bağlantı, simulationDate olarak simüle edilen tarih, currentSimulationDay olarak çok günlük işler için gün sayacı, shiftStartAt ve shiftEndAt olarak vardiya başlangıç ve bitiş zamanları, cursorAt olarak simülasyondaki mevcut zaman, simulationRunId olarak benzersiz çalıştırma kimliği, telemetryCursor olarak son işlenen telemetri referansı, status olarak oturum durumu.
+#### Kritik Düzeltme: Cursor Başlangıç Noktası
 
-Bu model ile her iş emri bağımsız olarak simüle edilebilir. Bir iş emrinin simülasyonu diğerlerini etkilemez. Cursor bilgisi kalıcı olarak saklanır.
+job-simulator.js dosyasındaki cursor mantığı düzeltilmelidir. Mevcut kod:
 
-### Telemetri-JobOrder İlişkilendirmesi
+```javascript
+const baseTimestamp = lastProducedAt
+  ? lastProducedAt
+  : earliestTimestamp || latest.timestamp;
+```
 
-MachineTelemetry modeline jobOrder alanı eklenerek her telemetri kaydının hangi iş emrine ait olduğu belirlenmelidir.
+Düzeltilmiş kod:
 
-shift-sim telemetri üretirken, makinenin currentJobOrder değerini telemetri kaydına yazmalıdır. job-sim telemetri işlerken, sadece ilgili iş emrine ait telemetrileri filtrelemelidir.
+```javascript
+const jobStartTime =
+  jobOrder.startTime || earliestTimestamp || latest.timestamp;
+const baseTimestamp = lastProducedAt
+  ? lastProducedAt
+  : new Date(
+      Math.max(
+        jobStartTime.getTime(),
+        (earliestTimestamp || latest.timestamp).getTime()
+      )
+    );
+```
 
-Bu değişiklikle eski telemetrinin yeni iş emirlerine karışması önlenir. OEE hesaplamaları doğru telemetri setini kullanır.
+Bu değişiklik cursor'ın iş emri başlangıç zamanından önceki telemetrileri işlemesini engeller. Tek satırlık bir değişiklik ile ana sorun çözülür.
 
-### Yeni Başlatma Akışı
+#### OEE Source Filtresi Düzeltmesi
 
-Önerilen yeni başlatma akışı şu şekilde olmalıdır:
+oee-calculator-service.js dosyasındaki collectJobActiveIntervals fonksiyonuna source filtresi eklenmelidir:
 
-İlk adımda kullanıcı startJobOrder endpoint'ini çağırır ve opsiyonel olarak simulationDate parametresi gönderir.
+```javascript
+// Mevcut (özet):
+const events = await ProductionEvent.find({
+  machine: machineId,
+  timestamp: { $lte: windowEnd },
+}).sort({ timestamp: 1 });
 
-İkinci adımda backend JobSimulationSession kaydı oluşturur. Bu kayıt iş emrine bağlanır ve simülasyon tarihi kaydedilir.
+// Düzeltilmiş (öneri):
+const query = {
+  machine: machineId,
+  timestamp: { $lte: windowEnd },
+};
+if (source === "shift-sim") {
+  query.source = "simulator";
+  query["metadata.simulationSource"] = "shift-sim";
+}
+const events = await ProductionEvent.find(query).sort({ timestamp: 1 });
+```
 
-Üçüncü adımda shift-sim bu iş emri için telemetri üretmeye başlar. Telemetrilere jobOrder referansı eklenir. Tarih olarak simulationDate kullanılır.
+### Gelecekte Gerekirse: Kademeli Genişletme
 
-Dördüncü adımda job-sim sadece bu iş emrine ait telemetriyi işler. İşlenen son telemetrinin ID'si JobSimulationSession'a kaydedilir.
+Eğer ileride per-job simülasyon veya farklı vardiya profilleri gerekirse, mevcut SimulationState yapısı üzerine kademeli olarak eklemeler yapılabilir:
 
-Beşinci adımda hedef miktara ulaşıldığında iş emri tamamlanır. JobSimulationSession status'ü completed olarak güncellenir.
+1. Machine bazlı offset ekleme (machine.simulationOffset)
+2. ShiftProfile modeli ekleme (farklı vardiya tanımları)
+3. SimulationState'e machine bazlı cursor Map ekleme
 
-### Çok Günlük İş Desteği
+Bu yaklaşım "YAGNI" (You Aren't Gonna Need It) prensibine uygundur ve gereksiz kompleksite eklemez.
 
-Bazı iş emirleri birden fazla vardiyada tamamlanabilir. Bu durum için currentSimulationDay alanı kullanılmalıdır.
+### Frontend-Backend Senkronizasyonu (İsteğe Bağlı)
 
-İlk gün simülasyonu tamamlandığında ve iş emri hala tamamlanmamışsa, currentSimulationDay bir artırılır. Ertesi gün simülasyonu başlatıldığında, sistem kaldığı yerden devam eder. Her gün için ayrı telemetri seti üretilir ancak hepsi aynı iş emrine bağlıdır.
+Kullanıcı deneyimini iyileştirmek için yapılabilecek opsiyonel değişiklikler:
+
+1. Monitoring sayfasında "Auto (shift-sim kullanılıyor)" bilgisi gösterme
+2. Reset All Data butonu ekleme
+3. Job order başlatırken simulationDate seçme imkanı (gelecek ihtiyaç)
 
 ---
 
 ## YEDİNCİ BÖLÜM: REFACTOR ÖNCELİK SIRASI
 
-### Birinci Öncelik Grubu: Kritik Bug Düzeltmeleri
+### Birinci Öncelik: Kritik Bug Düzeltmeleri (Hemen)
 
-Bu gruptaki değişiklikler sistemin temel işlevselliğini sağlamak için zorunludur.
+Bu düzeltmeler minimum kod değişikliği ile maksimum etki sağlar:
 
-İlk düzeltme telemetri izolasyonudur. job-sim'in eski telemetriyi işlemesini engellemek için telemetri-job order bağlantısı kurulmalıdır.
+**1. job-sim cursor startTime düzeltmesi**
 
-İkinci düzeltme cursor persistence'dır. telemetryCursorByMachine Map yapısı yerine veritabanında kalıcı saklama uygulanmalıdır.
+- Dosya: job-simulator.js satır 268-286
+- Değişiklik: baseTimestamp hesaplamasına jobOrder.startTime kontrolü ekleme
+- Etki: Ana sorun çözülür, eski telemetri işlenmez
 
-Üçüncü düzeltme SimulationSession per JobOrder yaklaşımıdır. Global SimulationState yerine iş emri bazlı oturum yönetimine geçilmelidir.
+**2. OEE collectJobActiveIntervals source filtresi**
 
-### İkinci Öncelik Grubu: Zaman Yönetimi
+- Dosya: oee-calculator-service.js satır 168-175
+- Değişiklik: ProductionEvent sorgusuna source filtresi ekleme
+- Etki: shift-sim ve data-gen verileri karışmaz
 
-Bu gruptaki değişiklikler sistemin tutarlılığını artırmak için gereklidir.
+### İkinci Öncelik: Dokümantasyon (Kısa Vadeli)
 
-İlk değişiklik simulationDate parametresinin eklenmesidir. startJobOrder endpoint'i bu parametreyi almalıdır.
+Kodda mevcut olan ama dokümante edilmemiş davranışlar:
 
-İkinci değişiklik tüm timestamp'lerin simulationDate'e bağlanmasıdır. İş emri, telemetri ve üretim kayıtları tutarlı tarih kullanmalıdır.
+1. `affectsOee` alanının kullanımı ve anlamı
+2. `CLEAR_BEFORE_START` ve resume mekanizması
+3. Source değerlerinin anlamları ve kullanım senaryoları
+4. Vardiya sonu politikası ve manuel resume gerekliliği
 
-Üçüncü değişiklik OEE Calculator'da simülasyon zamanı kullanılmasıdır. Hesaplamalar için simülasyon tarih aralığı kullanılmalıdır.
+### Üçüncü Öncelik: UX İyileştirmeleri (Orta Vadeli)
 
-### Üçüncü Öncelik Grubu: OEE Geliştirmeleri
+Kullanıcı deneyimini artıracak opsiyonel değişiklikler:
 
-Bu gruptaki değişiklikler raporlama kalitesini artırmak için önemlidir.
+1. Monitoring sayfasında aktif source bilgisi gösterme
+2. Reset All Data butonu ekleme
+3. Source constants dosyası oluşturma ve legacy cleanup
 
-İlk geliştirme Loss Categories eklemesidir. Availability, Performance ve Quality loss breakdown'ları ayrı ayrı hesaplanmalıdır.
+### Dördüncü Öncelik: Mimari Genişletme (İhtiyaç Halinde)
 
-İkinci geliştirme Actual Cycle Time kaydıdır. Her parça için gerçek üretim süresi ProductionEvent'e kaydedilmelidir.
+Sadece yeni gereksinimler ortaya çıkarsa yapılacak değişiklikler:
 
-Üçüncü geliştirme affectsOee mantığının netleştirilmesidir. Planned downtime'ların OEE etkisi açıkça dokümante edilmeli ve tutarlı uygulanmalıdır.
-
-### Dördüncü Öncelik Grubu: UX İyileştirmeleri
-
-Bu gruptaki değişiklikler kullanıcı deneyimini iyileştirmek için faydalıdır.
-
-İlk iyileştirme tarih seçici eklemesidir. İş emri başlatırken kullanıcı simülasyon tarihi seçebilmelidir.
-
-İkinci iyileştirme Reset All Data seçeneğidir. Tüm simülasyon verilerini tek seferde temizleme imkanı sağlanmalıdır.
-
-Üçüncü iyileştirme çok günlük job desteğinin UI'da görünür olmasıdır. currentSimulationDay bilgisi kullanıcıya gösterilmelidir.
+1. Per-machine simülasyon offset desteği
+2. Çoklu shift profile desteği
+3. SimulationDate parametresi ile iş emri başlatma
+4. Çok günlük iş emri desteği
 
 ---
 
@@ -438,10 +529,29 @@ Mitigasyon için kapsamlı E2E test coverage sağlanmalıdır. Her değişiklik 
 
 ## SONUÇ
 
-Hermes MES sistemi temel MES işlevselliğini sağlayabilecek bir altyapıya sahiptir. Ancak simülasyon-iş emri senkronizasyonu kritik seviyede bozuktur. Anında tamamlanan iş emirleri, tarih tutarsızlıkları ve cursor kayıpları sistemin güvenilirliğini ciddi şekilde etkilemektedir.
+Hermes MES sistemi temel MES işlevselliğini sağlayabilecek sağlam bir altyapıya sahiptir. Yapılan analiz sonucunda tespit edilen sorunların çoğunun büyük mimari değişiklikler gerektirmediği görülmüştür.
 
-Acil aksiyon olarak job-sim'in cursor yönetimi düzeltilmeli ve telemetri-job order bağlantısı kurulmalıdır. Bu değişiklikler mevcut bug'ların büyük kısmını çözecektir.
+### Gerçek Buglar (Acil Düzeltme)
 
-Orta vadeli hedef olarak tüm zaman yönetimi merkezi bir servise taşınmalı ve JobSimulationSession modeli implement edilmelidir. Bu değişiklikler sistemin mimarisini sağlamlaştıracak ve gelecekteki geliştirmeler için temel oluşturacaktır.
+1. **job-sim cursor başlangıç noktası**: jobOrder.startTime dikkate alınmıyor - tek satır düzeltme
+2. **OEE source filtresi eksik**: collectJobActiveIntervals source filtresi yok - basit sorgu düzeltmesi
+3. **job-sim source seçimi**: shift-sim her zaman tercih ediliyor - koşul mantığı düzeltmesi
 
-Uzun vadeli hedef olarak OEE hesaplamaları endüstri standartlarına uygun hale getirilmeli ve loss kategorizasyonu eklenmelidir. Bu geliştirmeler sistemin raporlama değerini artıracaktır.
+### Tasarım Kararları (Bug Değil)
+
+1. **Global SimulationState**: "Tek vardiya, tüm makineler" senaryosu için uygundur
+2. **Vardiya sonu manuel resume**: Operasyonel güvenlik için bilinçli tercih
+3. **CLEAR_BEFORE_START default false**: Resume mekanizması zaten mevcut
+
+### Dokümantasyon Eksiklikleri
+
+1. **affectsOee kullanımı**: Kodda implement ancak dokümante değil
+2. **Source değerleri**: Hangi source ne zaman kullanılır belirsiz
+3. **Resume mekanizması**: Var ama kullanımı dokümante değil
+
+### Önerilen Yaklaşım
+
+JobSimulationSession gibi yeni modeller eklemek yerine, mevcut yapıda minimal değişikliklerle ana sorunlar çözülmelidir. İki kritik düzeltme (cursor startTime ve OEE source filtresi) sistemin güvenilirliğini önemli ölçüde artıracaktır.
+
+Gelecekte yeni gereksinimler ortaya çıkarsa (per-job simülasyon, farklı vardiya profilleri), mevcut yapı kademeli olarak genişletilebilir.
+[text](system-analysis-report.md)

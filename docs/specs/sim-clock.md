@@ -144,6 +144,24 @@ Shift sim’in bir gün içi vardiya koşusu. Aynı gün içinde resume yapılı
   - Opsiyonel: `source=auto` son gelen veriye göre seçim yapar
 - **Gerekçe:** Shift sim sabit 07:00–18:00 eksen ister, data gen wall clock ile gerçek zaman hissi verir
 
+### Job start/resume zaman ekseni (source bazlı)
+
+- **Karar:** Job start/resume zaman ekseni kaynağa göre seçilir.
+  - Shift sim kullanılırken job event timestamp’leri **virtual clock** ile hizalanır.
+  - Data gen kullanılırken job event timestamp’leri **wall clock** (gerçek zaman) ile yazılır.
+- **Gerekçe:** Shift sim verisi sanal takvimle deterministik ilerler; job event’leri aynı eksende olmalıdır. Data gen ise canlı veri hissini korur.
+
+### Job-sim telemetry kaynağı (explicit seçim)
+
+- **Karar:** Job-sim, telemetry kaynağını explicit olarak seçer; default `shift-sim` olur, data-gen opsiyonel olarak desteklenir.
+- **Gerekçe:** Eski shift-sim verisi varken data-gen’in yanlışlıkla işlenmesini önlemek, test senaryolarını deterministik yapmak.
+- **Not:** Uygulama katmanında env veya UI seçimiyle kontrol edilmesi planlanır.
+
+### Shift-sim test downtime schedule (kontrollü)
+
+- **Karar:** Shift-sim içindeki test amaçlı sabit duruşlar env ile kontrol edilir ve dokümante edilir.
+- **Gerekçe:** Test senaryoları için faydalı; ancak üretim/demo davranışıyla karışmamalıdır.
+
 ### OEE downtime processor izolasyonu
 
 - **Karar:** Şimdilik downtime tespiti ve event üretimi sadece shift sim telemetry’sinden yapılacak
