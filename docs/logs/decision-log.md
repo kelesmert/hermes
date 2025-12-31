@@ -87,6 +87,41 @@ Bu dosya, projede alınan mimarî ve teknolojik kararları, gerekçelerini ve be
 - **Gerekçe:** Üretilen verilerin tarih saatlerinin tutarlı olması, restart sonrası kaldığı yerden devam, duplicate veri üretimini engellemek ve sunumda hem canlı data gen hissi hem de tutarlı OEE tarih filtreleri sağlayabilmek.
 - **Etki:** Yeni simulation state modeli ve servisleri, `backend/scripts/shift-simulator.js`, `backend/src/domains/oee/services/oee-dashboard-service.js`, `backend/src/domains/oee/services/oee-processor.js`, `frontend/src/features/monitoring/pages/monitoring.jsx` ve dokümanlar.
 
+### Job Event Zaman Ekseni Kaynağa Göre Seçim
+
+- **Domain:** Backend - production/simulations
+- **Karar:** Job start/pause/resume/complete event timestamp’leri kaynağa göre yazılır: `shift-sim` için sim-clock, `data-gen` için wall-clock kullanılır (`JOB_TIME_SOURCE` varsayılanı `shift-sim`).
+- **Gerekçe:** Job event’lerinin telemetry timeline’ı ile aynı eksende olması; sim-clock ile üretilen veriyi wall-clock ile karıştırmamak.
+- **Etki:** `backend/src/domains/production/services/job-order-service.js`, `backend/src/domains/production/controllers/job-order-controller.js`, `backend/src/domains/simulations/services/simulation-clock-service.js`, `backend/.env.example`, `backend/README.md`.
+
+### Job-sim Telemetry Kaynağı Explicit Seçim
+
+- **Domain:** Backend - production/simulations
+- **Karar:** Job-sim yalnızca seçilen telemetry kaynağını işler (`JOB_SIM_TELEMETRY_SOURCE`, default `shift-sim`).
+- **Gerekçe:** Eski shift-sim verisi varken data-gen’in yanlışlıkla işlenmesini engellemek, test senaryolarını deterministik yapmak.
+- **Etki:** `backend/scripts/job-simulator.js`, `backend/.env.example`, `backend/README.md`.
+
+### Telemetry Kayıtlarına jobOrder Etiketi
+
+- **Domain:** Backend - machines/production/simulations
+- **Karar:** Telemetry kayıtlarında `jobOrder` alanı tutulur; job-sim üretim yaparken ilgili jobOrder’a ait telemetry’yi okur.
+- **Gerekçe:** Aynı makinede ardışık job’ların üretiminin birbirine karışmasını önlemek ve doğru üretim sayımı sağlamak.
+- **Etki:** `backend/src/domains/machines/models/machine-telemetry-model.js`, `backend/scripts/data-gen.js`, `backend/scripts/shift-simulator.js`, `backend/scripts/job-simulator.js`.
+
+### Shift-sim Test Downtime Segmentleri Env Kontrollü
+
+- **Domain:** Backend - simulations
+- **Karar:** Shift-sim içindeki test amaçlı sabit duruş segmentleri env ile aç/kapa yapılabilir (`SHIFT_SIM_TEST_DOWNTIME_*`).
+- **Gerekçe:** Test senaryosu için faydalı ama demo/üretim davranışını şaşırtmamalı.
+- **Etki:** `backend/scripts/shift-simulator.js`, `backend/.env.example`, `backend/README.md`.
+
+### OEE Aktif Job Interval Kaynağı Filtreli
+
+- **Domain:** Backend - oee/production
+- **Karar:** OEE hesaplamasında aktif job interval’ları `ProductionEvent` verisinden ve `metadata.simulationSource` filtresiyle çıkarılır.
+- **Gerekçe:** Simülasyon kaynakları ile operatör event’lerini karıştırmadan deterministik OEE hesaplamak.
+- **Etki:** `backend/src/domains/oee/services/oee-calculator-service.js`.
+
 ## Frontend Kararları
 
 ### Vite + React (JavaScript) SPA

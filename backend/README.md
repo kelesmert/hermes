@@ -59,6 +59,8 @@ Seed sonrası örnek hesaplar:
   - Isınma/soğuma anındaki metrik geçişi `DATA_GEN_TRANSITION_MS` değişkeniyle kontrol edilir; varsayılan 10 sn boyunca sıcaklık/tork/enerji değerleri hızlıca yeni profile yaklaşır ve monitoring grafikleri gerçekçi ramp-up/ramp-down davranışı sergiler.
   - Üretim simülatörü (`npm run job:sim`) telemetry verisine bağımlıdır; önce shift-sim veya data-gen’i başlat, ardından job-sim’i çalıştır. Telemetry yoksa job-sim üretim yapmaz ve logda uyarı verir.
   - Job-sim üretim hızı ideal cycle time’a göre hesaplanır; rastgelelik için `JOB_SIM_CYCLE_TIME_MIN_FACTOR` ve `JOB_SIM_CYCLE_TIME_MAX_FACTOR` kullanılabilir.
+  - Job-sim telemetry kaynağı `JOB_SIM_TELEMETRY_SOURCE` ile seçilir (varsayılan `shift-sim`); job event zaman ekseni `JOB_TIME_SOURCE` ile belirlenir (varsayılan `shift-sim`).
+  - Shift-sim test amaçlı sabit duruş segmentleri `SHIFT_SIM_TEST_DOWNTIME_ENABLED` ve süre parametreleri ile kontrol edilir.
   - UI üzerinden simülasyon yönetimi için `/simulations` sayfası kullanılabilir (backend API: `GET/POST /api/simulations/*`, izin: `production.manage`). `shift-sim` için reset aksiyonu, sim kaynaklı telemetry ve event’leri temizler. Prod ortamında kapatmak için `ENABLE_SIMULATION_CONTROL=false` bırakın.
 
 ## Dizin Yapısı

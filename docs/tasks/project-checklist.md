@@ -68,8 +68,13 @@
 - [x] Shift-sim: hızlandırılmış vardiya telemetry simülatörü (`npm run shift:sim`) + `simulationRunId` tagging + data-gen ile aynı anda çalıştırmama kuralı
 - [x] Shift end policy: shift-sim bitince `in_progress` job `paused` olur (reason: `shift_end`), açık event’ler vardiya bitişinde kapanır ve makine `idle` durumuna çekilir
 - [x] Simulation Clock: shift-sim sanal takvim state’i (epoch date, resume, next-day) + reset desteği
+- [x] Telemetry kayıtlarına `jobOrder` alanı ekleme (data-gen + shift-sim) ve job-sim tarafında jobOrder filtresi ile üretim
+- [x] Job-sim telemetry kaynağı explicit seçimi (`JOB_SIM_TELEMETRY_SOURCE`) ve job event zaman ekseni seçimi (`JOB_TIME_SOURCE`)
+- [x] Shift-sim test downtime schedule’ı env ile kontrol etme (on/off + süre)
 - [x] Board telemetry source seçimi: `source` paramı + shift-sim için shift view, data-gen için live view
 - [x] OEE processor telemetry source izolasyonu: `OEE_PROCESSOR_TELEMETRY_SOURCE` ile shift-sim odaklı işleme
+- [ ] (Opsiyonel) JobOrder silmede ilgili telemetry kayıtlarını da temizle (purge parametresi veya admin aksiyonu)
+- [ ] (İleride) OEE processor processedAt gecikmesi ve shift-sim wait süresi optimizasyonu (oee-rules.json `pollIntervalMs` + `batchSize`, `OEE_PROCESSOR_TELEMETRY_SOURCE` uyumu, `SHIFT_SIM_WAIT_FOR_PROCESSING_MS` düşürme/0, işlenmeyen telemetry için uyarı)
 - [ ] (Opsiyonel) Monitoring periyot/bucket endpoint'i (vardiya görünümü için ayrı endpoint ve UI)
 - [ ] Event zamanlarının lokal timezone desteği (UTC+3 gibi) için helper/formatlama katmanı
 - [ ] Raporlama endpointleri (verimlilik, duruş süreleri vb.)
