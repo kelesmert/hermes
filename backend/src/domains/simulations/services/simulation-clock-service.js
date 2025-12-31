@@ -9,6 +9,14 @@ const ISTANBUL_TIMEZONE = 'Europe/Istanbul';
 const ISTANBUL_OFFSET_MINUTES = 180;
 
 const DEFAULT_EPOCH_DATE = '2025-01-01';
+const DEFAULT_SHIFT_START = '07:00';
+const DEFAULT_SHIFT_END = '18:00';
+
+const isWeekdayYmd = (ymd) => {
+  const date = new Date(Date.UTC(ymd.year, ymd.month - 1, ymd.day, 12, 0, 0));
+  const day = date.getUTCDay();
+  return day >= 1 && day <= 5;
+};
 
 const parseTime = (hhmm) => {
   const [hh, mm] = String(hhmm || '').split(':').map((item) => Number(item));
@@ -71,6 +79,59 @@ const computeDayWindowUtc = (ymd, startTime, endTime) => {
   return { shiftStartAt, shiftEndAt };
 };
 
+const resolveShiftSchedule = async ({ shiftStart, shiftEnd, timezone } = {}) => {
+  const state = await ensureShiftSimState();
+  return {
+    shiftStart: shiftStart || state.shiftStart || process.env.SHIFT_SIM_SHIFT_START || DEFAULT_SHIFT_START,
+    shiftEnd: shiftEnd || state.shiftEnd || process.env.SHIFT_SIM_SHIFT_END || DEFAULT_SHIFT_END,
+    timezone: timezone || state.timezone || ISTANBUL_TIMEZONE,
+  };
+};
+
+const getShiftWindowForDate = async (
+  referenceDate,
+  { shiftStart, shiftEnd, includeWeekends = false } = {},
+) => {
+  if (!referenceDate) return null;
+  const schedule = await resolveShiftSchedule({ shiftStart, shiftEnd });
+  const ymd = getIstanbulYmd(referenceDate);
+  if (!includeWeekends && !isWeekdayYmd(ymd)) {
+    return null;
+  }
+  const window = computeDayWindowUtc(ymd, schedule.shiftStart, schedule.shiftEnd);
+  return { ...window, shiftStart: schedule.shiftStart, shiftEnd: schedule.shiftEnd };
+};
+
+const getShiftWindowsForRange = async (
+  rangeStart,
+  rangeEnd,
+  { shiftStart, shiftEnd, includeWeekends = false } = {},
+) => {
+  if (!rangeStart || !rangeEnd) return [];
+  const schedule = await resolveShiftSchedule({ shiftStart, shiftEnd });
+  const startYmd = getIstanbulYmd(rangeStart);
+  const endYmd = getIstanbulYmd(rangeEnd);
+  let cursor = { ...startYmd };
+  const windows = [];
+
+  const toMiddayUtc = (ymd) => new Date(Date.UTC(ymd.year, ymd.month - 1, ymd.day, 12, 0, 0));
+  const endMidday = toMiddayUtc(endYmd);
+
+  while (toMiddayUtc(cursor) <= endMidday) {
+    if (includeWeekends || isWeekdayYmd(cursor)) {
+      const window = computeDayWindowUtc(cursor, schedule.shiftStart, schedule.shiftEnd);
+      const startAt = new Date(Math.max(window.shiftStartAt.getTime(), rangeStart.getTime()));
+      const endAt = new Date(Math.min(window.shiftEndAt.getTime(), rangeEnd.getTime()));
+      if (endAt.getTime() > startAt.getTime()) {
+        windows.push({ start: startAt, end: endAt });
+      }
+    }
+    cursor = addDaysToYmd(cursor, 1);
+  }
+
+  return windows;
+};
+
 const computeWindowForVirtualDay = (virtualDay, shiftStart, shiftEnd) => {
   const ymd = parseYmd(virtualDay);
   if (!ymd) return null;
@@ -110,8 +171,8 @@ const ensureShiftSimState = async ({
   epochDate,
 } = {}) => {
   const resolvedEpoch = epochDate || getEpochDateFromEnv();
-  const resolvedShiftStart = shiftStart || process.env.SHIFT_SIM_SHIFT_START || '07:00';
-  const resolvedShiftEnd = shiftEnd || process.env.SHIFT_SIM_SHIFT_END || '18:00';
+  const resolvedShiftStart = shiftStart || process.env.SHIFT_SIM_SHIFT_START || DEFAULT_SHIFT_START;
+  const resolvedShiftEnd = shiftEnd || process.env.SHIFT_SIM_SHIFT_END || DEFAULT_SHIFT_END;
 
   let state = await SimulationState.findOne({ key: SHIFT_SIM_KEY });
   if (state) {
@@ -326,6 +387,9 @@ module.exports = {
   SHIFT_SIM_KEY,
   ISTANBUL_TIMEZONE,
   getEpochDateFromEnv,
+  resolveShiftSchedule,
+  getShiftWindowForDate,
+  getShiftWindowsForRange,
   ensureShiftSimState,
   prepareShiftSimRun,
   updateShiftSimProgress,

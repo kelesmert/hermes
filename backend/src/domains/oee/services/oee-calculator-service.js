@@ -5,13 +5,9 @@ const ProductionEvent = require('../../production/models/production-event-model'
 const JobOrder = require('../../production/models/job-order-model');
 const AppError = require('../../../utils/app-error');
 const oeeRulesService = require('./oee-rules-service');
+const simulationClockService = require('../../simulations/services/simulation-clock-service');
 const productionEventTypes = require('../../../constants/production-event-types');
 const machineStatuses = require('../../../constants/machine-statuses');
-
-const ISTANBUL_TIMEZONE = 'Europe/Istanbul';
-const ISTANBUL_OFFSET_MINUTES = 180;
-const SHIFT_START_HHMM = process.env.SHIFT_SIM_SHIFT_START || '07:00';
-const SHIFT_END_HHMM = process.env.SHIFT_SIM_SHIFT_END || '18:00';
 
 const TELEMETRY_SOURCES = {
   SHIFT_SIM: 'shift-sim',
@@ -27,47 +23,9 @@ const ACTIVE_JOB_EVENTS = new Set([
 ]);
 
 const INACTIVE_JOB_EVENTS = new Set([
-  productionEventTypes.PAUSE,
-  productionEventTypes.AUTO_PAUSE,
   productionEventTypes.COMPLETE,
   productionEventTypes.CANCEL,
 ]);
-
-const parseTime = (hhmm) => {
-  const [hh, mm] = String(hhmm || '').split(':').map((item) => Number(item));
-  return { hh, mm };
-};
-
-const getIstanbulYmd = (date) => {
-  const formatted = new Intl.DateTimeFormat('en-CA', {
-    timeZone: ISTANBUL_TIMEZONE,
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  }).format(date);
-  const [year, month, day] = formatted.split('-').map((item) => Number(item));
-  return { year, month, day };
-};
-
-const computeDayWindowUtc = (ymd, startTime, endTime) => {
-  const { hh: startH, mm: startM } = parseTime(startTime);
-  const { hh: endH, mm: endM } = parseTime(endTime);
-
-  const startAt = new Date(
-    Date.UTC(ymd.year, ymd.month - 1, ymd.day, startH, startM, 0) -
-      ISTANBUL_OFFSET_MINUTES * 60 * 1000,
-  );
-  const endAt = new Date(
-    Date.UTC(ymd.year, ymd.month - 1, ymd.day, endH, endM, 0) -
-      ISTANBUL_OFFSET_MINUTES * 60 * 1000,
-  );
-
-  if (endAt.getTime() <= startAt.getTime()) {
-    endAt.setUTCDate(endAt.getUTCDate() + 1);
-  }
-
-  return { startAt, endAt };
-};
 
 const normalizeMode = (value) => {
   const raw = String(value || '').trim().toLowerCase();
@@ -124,16 +82,29 @@ const resolveShiftWindow = async (machineId, shiftDate, source) => {
     const latest = await MachineTelemetry.findOne({
       machine: machineId,
       ...buildSourceFilter(source),
-    })
+      })
       .sort({ timestamp: -1 })
       .select({ timestamp: 1 })
       .lean();
     referenceDate = latest?.timestamp || new Date();
   }
-
-  const ymd = getIstanbulYmd(referenceDate);
-  const window = computeDayWindowUtc(ymd, SHIFT_START_HHMM, SHIFT_END_HHMM);
-  return { windowStart: window.startAt, windowEnd: window.endAt };
+  const baseWindow = await simulationClockService.getShiftWindowForDate(referenceDate, {
+    includeWeekends: true,
+  });
+  if (!baseWindow) {
+    return { windowStart: referenceDate, windowEnd: referenceDate, shiftWindows: [] };
+  }
+  const weekdayWindow = await simulationClockService.getShiftWindowForDate(referenceDate, {
+    includeWeekends: false,
+  });
+  const shiftWindows = weekdayWindow
+    ? [{ start: weekdayWindow.shiftStartAt, end: weekdayWindow.shiftEndAt }]
+    : [];
+  return {
+    windowStart: baseWindow.shiftStartAt,
+    windowEnd: baseWindow.shiftEndAt,
+    shiftWindows,
+  };
 };
 
 const resolveRangeWindow = (from, to) => {
@@ -217,6 +188,27 @@ const collectJobActiveIntervals = async (machineId, windowStart, windowEnd, sour
 const sumIntervals = (intervals) =>
   intervals.reduce((total, interval) => total + (interval.end.getTime() - interval.start.getTime()), 0);
 
+const intersectIntervals = (intervals, windows) => {
+  if (!intervals.length || !windows.length) return [];
+  const result = [];
+  intervals.forEach((interval) => {
+    windows.forEach((window) => {
+      const start = Math.max(interval.start.getTime(), window.start.getTime());
+      const end = Math.min(interval.end.getTime(), window.end.getTime());
+      if (end > start) {
+        result.push({ start: new Date(start), end: new Date(end) });
+      }
+    });
+  });
+  return result.sort((a, b) => a.start.getTime() - b.start.getTime());
+};
+
+const buildShiftWindowsForRange = async (windowStart, windowEnd) => {
+  return simulationClockService.getShiftWindowsForRange(windowStart, windowEnd, {
+    includeWeekends: false,
+  });
+};
+
 const sumOverlapMs = (intervals, rangeStart, rangeEnd) => {
   let total = 0;
   intervals.forEach((interval) => {
@@ -257,6 +249,14 @@ const computeOperatingMs = (telemetry, activeIntervals) => {
   return operatingMs;
 };
 
+const isWithinWindows = (timestamp, windows) => {
+  if (!windows.length) return false;
+  return windows.some(
+    (window) =>
+      timestamp.getTime() >= window.start.getTime() && timestamp.getTime() < window.end.getTime(),
+  );
+};
+
 const calculateOeeForMachine = async ({
   machineId,
   mode,
@@ -278,13 +278,24 @@ const calculateOeeForMachine = async ({
   const effectiveSource =
     requestedSource === 'auto' ? await resolveAutoSource(machine._id) : requestedSource;
 
-  const { windowStart, windowEnd } =
-    effectiveMode === 'range'
-      ? resolveRangeWindow(from, to)
-      : await resolveShiftWindow(machine._id, shiftDate, effectiveSource);
+  let windowStart;
+  let windowEnd;
+  let shiftWindows = [];
+  if (effectiveMode === 'range') {
+    const rangeWindow = resolveRangeWindow(from, to);
+    windowStart = rangeWindow.windowStart;
+    windowEnd = rangeWindow.windowEnd;
+    shiftWindows = await buildShiftWindowsForRange(windowStart, windowEnd);
+  } else {
+    const shiftWindow = await resolveShiftWindow(machine._id, shiftDate, effectiveSource);
+    windowStart = shiftWindow.windowStart;
+    windowEnd = shiftWindow.windowEnd;
+    shiftWindows = shiftWindow.shiftWindows || [];
+  }
 
   const activeIntervals = await collectJobActiveIntervals(machine._id, windowStart, windowEnd, effectiveSource);
-  const basePlannedMs = sumIntervals(activeIntervals);
+  const plannedIntervals = intersectIntervals(activeIntervals, shiftWindows);
+  const basePlannedMs = sumIntervals(plannedIntervals);
 
   const reasonCatalog = oeeRulesService.getReasonCatalog();
   const nonAffectingPlanned = new Set(
@@ -310,7 +321,7 @@ const calculateOeeForMachine = async ({
   plannedDowntimeEvents.forEach((event) => {
     const eventStart = event.startedAt || windowStart;
     const eventEnd = event.endedAt || windowEnd;
-    nonAffectingPlannedMs += sumOverlapMs(activeIntervals, eventStart, eventEnd);
+    nonAffectingPlannedMs += sumOverlapMs(plannedIntervals, eventStart, eventEnd);
   });
 
   const plannedTimeMs = Math.max(basePlannedMs - nonAffectingPlannedMs, 0);
@@ -324,7 +335,7 @@ const calculateOeeForMachine = async ({
     .select({ timestamp: 1, signalValue: 1, intervalMs: 1 })
     .lean();
 
-  const operatingTimeMs = computeOperatingMs(telemetry, activeIntervals);
+  const operatingTimeMs = computeOperatingMs(telemetry, plannedIntervals);
 
   const eventFilter = {
     machine: machine._id,
@@ -340,7 +351,7 @@ const calculateOeeForMachine = async ({
   }
 
   const productionEvents = await ProductionEvent.find(eventFilter)
-    .select({ jobOrder: 1, quantity: 1, qualityStatus: 1 })
+    .select({ jobOrder: 1, quantity: 1, qualityStatus: 1, timestamp: 1 })
     .lean();
 
   let totalCount = 0;
@@ -349,6 +360,9 @@ const calculateOeeForMachine = async ({
 
   const jobOrderIds = new Set();
   productionEvents.forEach((event) => {
+    if (!isWithinWindows(event.timestamp, shiftWindows)) {
+      return;
+    }
     const qty = Math.max(0, Number(event.quantity) || 0);
     totalCount += qty;
     if (event.qualityStatus === 'defective') {

@@ -28,6 +28,25 @@
 
 ---
 
+## 31 Aralık 2025 - Context Window #10
+
+### Yapılanlar
+
+- Simulation clock servisine merkezi shift schedule ve range window yardımcıları eklendi.
+- OEE hesaplaması shift-aware hale getirildi (mesai dışı ve hafta sonu hariç), job aktif semantiği paused dahil olacak şekilde güncellendi.
+- OEE dashboard servisi shift penceresini merkezi servisten alacak şekilde güncellendi.
+- OEE kararları ve durum listesi `docs/specs/oee-design.md` içinde netleştirildi, checklist ve file-overview güncellendi.
+
+### Alınan Kararlar
+
+- Shift penceresi tek merkezden (simulation-clock-service) alınacak; OEE ve raporlama aynı kaynağı kullanacak.
+- `mode=range` plannedTime hesaplaması shift-aware olacak (mesai dışı ve hafta sonu hariç).
+
+### Sonraki Adımlar
+
+- Shift calendar (vardiya şablonları) altyapısını ekle ve makineye bağla.
+- OEE rapor ekranını ve haftalık/aylık trend akışını tamamla.
+
 ## 17 Aralık 2025 - Context Window #9
 
 ### Yapılanlar

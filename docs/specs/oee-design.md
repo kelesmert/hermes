@@ -229,26 +229,22 @@ Bu dagilimda beklenen oran:
 - [x] Job-sim cycle time rastgeleligi (asimetrik triangular)
 - [x] Job-sim defect rastgeleligi (env kontrollu oran)
 - [x] Uretim adedi targetQuantity ile sinirli, job tamamlandiginda `good + defect = targetQuantity` ve asla asmaz
-
-### Kismen Tamamlandi
-
-- [ ] Planli uretim zamani shift penceresi: saat araligi var, haftaiçi (Pzt-Cuma) kuralı yok
-- [ ] OEE API pencere modeli: `mode/shiftDate/from/to/source` var; UI default `source=shift-sim` gonderiyor, API source verilmezse `auto`
-- [ ] Job aktif semantigi: hedef `in_progress + paused`; mevcut implementasyon aktif interval’i `start/resume -> pause/complete` araliklariyla cikarir (in_progress odakli)
+- [x] Job aktif semantigi `in_progress + paused` olacak sekilde interval hesaplandi
+- [x] Shift penceresi hafta ici (Pzt-Cuma) filtresi OEE tarafinda uygulandi
+- [x] Range modu shift-aware planli sure hesaplamasi uygulandi (mesai disi saatler ve hafta sonu haric)
+- [x] OEE shift penceresi tek merkezden aliniyor (simulation-clock-service)
+- [x] OEE API pencere modeli: `mode/shiftDate/from/to/source` var; UI default `source=shift-sim` gonderiyor, API source verilmezse `auto`
+- [x] Reports tarafinda OEE ekrani (makine secimi + gunluk shift gorunumu)
+- [x] Haftalik ve aylik trend (T2 toplamlar + N1 coverage) UI tarafinda uygulandi
 
 ### Yapilacaklar
 
 #### Öncelik 1 OEE semantigi ve dogruluk
 
-- [ ] `collectJobActiveIntervals` mantigini hedef semantige hizala (paused dahil) ve plannedTime operatingTime formulleriyle birebir uyumlu hale getir
-- [ ] Shift penceresine haftaiçi kuralini (Pzt-Cuma) ekle veya shift calendar yapisina gecis icin hazirlik yap
-- [ ] `mode=range` icin shift-aware planli sure hesaplamasini uygula (mesai disi saatler ve hafta sonu haric)
-- [ ] OEE shift penceresi kaynagini merkezi servisten alacak sekilde tekillestir
+- [ ] Shift calendar (vardiya sablonlari) altyapisini ekle ve makineye bagla
 
 #### Öncelik 2 OEE raporlama ve trend
 
-- [ ] Reports tarafinda OEE ekrani (makine secimi + gunluk shift gorunumu)
-- [ ] Haftalik ve aylik trend icin E1 stratejisi (UI tarafinda coklu gun cagrisi) uygula
 - [ ] Opsiyonel E2 snapshot tablosu icin tasarim notu ve gecis plani ekle
 
 #### Öncelik 3 Aciklamalilik ve analiz

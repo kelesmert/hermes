@@ -122,6 +122,13 @@ Bu dosya, projede alınan mimarî ve teknolojik kararları, gerekçelerini ve be
 - **Gerekçe:** Simülasyon kaynakları ile operatör event’lerini karıştırmadan deterministik OEE hesaplamak.
 - **Etki:** `backend/src/domains/oee/services/oee-calculator-service.js`.
 
+### OEE Range Modu Shift Aware
+
+- **Domain:** Backend - oee
+- **Karar:** `mode=range` için plannedTime sadece mesai saatleri ve hafta içi günlerle sınırlandırılır (range ∩ shift penceresi ∩ job aktif).
+- **Gerekçe:** Mesai dışı zamanların OEE hesaplarına dahil edilmemesi, shift ve range semantiklerinin tutarlı olması.
+- **Etki:** `backend/src/domains/oee/services/oee-calculator-service.js`, `backend/src/domains/simulations/services/simulation-clock-service.js`.
+
 ### Shift Penceresi Merkezi Kaynak
 
 - **Domain:** Backend - simulations/oee

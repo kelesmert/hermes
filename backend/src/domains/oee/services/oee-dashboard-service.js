@@ -24,12 +24,6 @@ const loadAggregationRules = () => {
 const aggregationRules = loadAggregationRules();
 const telemetryWindowMs = aggregationRules.telemetryWindowMs || 10 * 60 * 1000; // 10 dk varsayılan
 
-const ISTANBUL_TIMEZONE = 'Europe/Istanbul';
-const ISTANBUL_OFFSET_MINUTES = 180;
-
-const SHIFT_START_HHMM = process.env.SHIFT_SIM_SHIFT_START || '07:00';
-const SHIFT_END_HHMM = process.env.SHIFT_SIM_SHIFT_END || '18:00';
-
 const TELEMETRY_SOURCES = {
   SHIFT_SIM: 'shift-sim',
   DATA_GEN: 'data-gen',
@@ -67,41 +61,6 @@ const resolveAutoSource = async (machineId) => {
     return TELEMETRY_SOURCES.SHIFT_SIM;
   }
   return TELEMETRY_SOURCES.DATA_GEN;
-};
-
-const parseTime = (hhmm) => {
-  const [hh, mm] = String(hhmm || '').split(':').map((item) => Number(item));
-  return { hh, mm };
-};
-
-const getIstanbulYmd = (date) => {
-  const formatted = new Intl.DateTimeFormat('en-CA', {
-    timeZone: ISTANBUL_TIMEZONE,
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  }).format(date);
-  const [year, month, day] = formatted.split('-').map((item) => Number(item));
-  return { year, month, day };
-};
-
-const computeDayWindowUtc = (ymd, startTime, endTime) => {
-  const { hh: startH, mm: startM } = parseTime(startTime);
-  const { hh: endH, mm: endM } = parseTime(endTime);
-
-  const startAt = new Date(
-    Date.UTC(ymd.year, ymd.month - 1, ymd.day, startH, startM, 0) -
-      ISTANBUL_OFFSET_MINUTES * 60 * 1000,
-  );
-  const endAt = new Date(
-    Date.UTC(ymd.year, ymd.month - 1, ymd.day, endH, endM, 0) - ISTANBUL_OFFSET_MINUTES * 60 * 1000,
-  );
-
-  if (endAt.getTime() <= startAt.getTime()) {
-    endAt.setUTCDate(endAt.getUTCDate() + 1);
-  }
-
-  return { startAt, endAt };
 };
 
 const normalizeBucketMinutes = (value, fallback = 15) => {
@@ -159,10 +118,13 @@ const getMachineShiftTelemetrySeries = async (
         .lean());
 
     const referenceDate = latestTelemetry?.timestamp || new Date();
-    const ymd = getIstanbulYmd(referenceDate);
-    const window = computeDayWindowUtc(ymd, SHIFT_START_HHMM, SHIFT_END_HHMM);
-    effectiveShiftStartAt = window.startAt;
-    effectiveShiftEndAt = window.endAt;
+    const window = await simulationClockService.getShiftWindowForDate(referenceDate, {
+      includeWeekends: true,
+    });
+    if (window) {
+      effectiveShiftStartAt = window.shiftStartAt;
+      effectiveShiftEndAt = window.shiftEndAt;
+    }
 
     if (latestTelemetry?.source === TELEMETRY_SOURCES.SHIFT_SIM) {
       effectiveSource = TELEMETRY_SOURCES.SHIFT_SIM;
