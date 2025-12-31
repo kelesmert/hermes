@@ -91,7 +91,8 @@ Amaç: Job yokken OEE hesaplamamak, job varken ise durusların Availability’ye
 - Default: `shift`
 - `shiftDate=YYYY-MM-DD` (verilmezse son telemetry gunu)
 - `from` + `to` (ISO tarih, range modu icin)
-- `source=shift-sim|data-gen|auto`
+- `source=shift-sim|data-gen|mock-batch|auto`
+- UI tarafinda kaynak secimi olacak (shift-sim, data-gen, mock-batch)
 - UI default `source=shift-sim` gonderir (tutarli tarih ve deterministik hesap icin)
 - API’de `source` verilmezse backend `auto` ile son telemetry kaynagini baz alir
 - `machineId` MVP icin zorunlu

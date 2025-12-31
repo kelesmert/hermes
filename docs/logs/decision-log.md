@@ -136,6 +136,13 @@ Bu dosya, projede alınan mimarî ve teknolojik kararları, gerekçelerini ve be
 - **Gerekçe:** Mesai saatleri ve hafta içi kurallarının tek yerde tutulması; OEE ile simülasyon arasında zaman uyumsuzluğunu önlemek.
 - **Etki:** `backend/src/domains/oee/services/oee-calculator-service.js`, `backend/src/domains/oee/services/oee-dashboard-service.js`, `backend/src/domains/simulations/services/simulation-clock-service.js`, ilgili dokümanlar.
 
+### OEE Kaynak Seçimi + Mock-Batch Kaynağı
+
+- **Domain:** Ortak - oee/reporting
+- **Karar:** OEE UI'da kaynak seçimi yapılacak; kaynak listesi `shift-sim | data-gen | mock-batch`. Mock-batch tek seferlik veri üretimi için ayrı kaynak olarak kullanılacak.
+- **Gerekçe:** OEE için “tek seferlik batch veri” üretimi ile canlı simülasyon verilerini karıştırmamak; monitoringi etkilememek.
+- **Etki:** OEE API `source` filtresi genişletilecek, Reports UI kaynak seçimi eklenecek, mock-batch script kendi source'uyla yazacak.
+
 ## Frontend Kararları
 
 ### Vite + React (JavaScript) SPA

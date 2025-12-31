@@ -74,6 +74,8 @@
 - [x] Shift-sim test downtime schedule’ı env ile kontrol etme (on/off + süre)
 - [x] Board telemetry source seçimi: `source` paramı + shift-sim için shift view, data-gen için live view
 - [x] OEE processor telemetry source izolasyonu: `OEE_PROCESSOR_TELEMETRY_SOURCE` ile shift-sim odaklı işleme
+- [ ] OEE source filtresine `mock-batch` kaynagini ekle (API `source` parametresi genisletme)
+- [ ] Mock-batch tek seferlik veri uretim scripti (OEE icin)
 - [ ] (Opsiyonel) JobOrder silmede ilgili telemetry kayıtlarını da temizle (purge parametresi veya admin aksiyonu)
 - [ ] (İleride) OEE processor processedAt gecikmesi ve shift-sim wait süresi optimizasyonu (oee-rules.json `pollIntervalMs` + `batchSize`, `OEE_PROCESSOR_TELEMETRY_SOURCE` uyumu, `SHIFT_SIM_WAIT_FOR_PROCESSING_MS` düşürme/0, işlenmeyen telemetry için uyarı)
 - [ ] (Opsiyonel) Monitoring periyot/bucket endpoint'i (vardiya görünümü için ayrı endpoint ve UI)
@@ -115,6 +117,7 @@
 - [x] Simülasyonlar sayfası (`/simulations`): shift-sim/data-gen/job-sim başlat-durdur + log konsolu
 - [x] Simülasyonlar: shift-sim reset aksiyonu (sim kaynaklı telemetry ve event temizliği)
 - [x] Raporlama sayfası + filtreler
+- [ ] OEE rapor ekraninda kaynak secimi (shift-sim | data-gen | mock-batch)
 - [x] Roller/izinler için yönetim ekranı; permission set düzenleme ve kullanıcıya rol atama modalları
 - [x] Dashboard/rapor placeholder’larını gerçek makine/event verileriyle besleyip React Query polling/WebSocket desteği ekle _(dashboard ve rapor ekranı tamamlandı)_
 - [x] UI tarih formatını tek helper ile standartlaştır (`dd/MM/yyyy`, `dd/MM/yyyy HH:mm`)
