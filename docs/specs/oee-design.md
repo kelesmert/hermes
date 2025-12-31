@@ -246,6 +246,7 @@ Bu dagilimda beklenen oran:
 #### Öncelik 2 OEE raporlama ve trend
 
 - [ ] Opsiyonel E2 snapshot tablosu icin tasarim notu ve gecis plani ekle
+- [ ] (Opsiyonel) OEE trend icin tek endpoint (T2 toplam + coverage) tasarla
 
 #### Öncelik 3 Aciklamalilik ve analiz
 

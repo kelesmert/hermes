@@ -79,6 +79,9 @@
 - [ ] (Opsiyonel) Monitoring periyot/bucket endpoint'i (vardiya görünümü için ayrı endpoint ve UI)
 - [ ] Event zamanlarının lokal timezone desteği (UTC+3 gibi) için helper/formatlama katmanı
 - [ ] Raporlama endpointleri (verimlilik, duruş süreleri vb.)
+- [ ] (İleride) Job-sim cursor state’ini DB’de kalıcılaştır (restart sonrası tekrar işleme riskini azalt)
+- [ ] (İleride) JobOrder `actualDurationMinutes` hesabında pause sürelerini düş (gerçek çalışma süresi)
+- [ ] (Opsiyonel) OEE trend için tek endpoint (T2 toplam + coverage) tasarla
 - [ ] CSV/Excel export servisi
 - [ ] Audit log middleware’i ve kayıt koleksiyonu
 - [ ] AI analiz modülü (kural tabanlı veya model entegrasyonu)
