@@ -28,6 +28,7 @@ import {
   fetchMachineTelemetrySeries,
 } from '@/features/dashboard/services/board-api.js';
 import { fetchMachines } from '@/features/machines/services/machines-api.js';
+import { formatDateTime, formatTime } from '@/lib/date-format.js';
 
 const formatNumber = (value) => {
   if (value === null || value === undefined) return '-';
@@ -217,7 +218,7 @@ const DashboardPage = () => {
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
                       {machineMetricsQuery.data.signal.lastAt
-                        ? new Date(machineMetricsQuery.data.signal.lastAt).toLocaleString('tr-TR')
+                        ? formatDateTime(machineMetricsQuery.data.signal.lastAt)
                         : ''}
                     </Typography>
                   </Grid>
@@ -243,12 +244,7 @@ const DashboardPage = () => {
                           <LineChart data={machineTelemetrySeriesQuery.data.series}>
                             <XAxis
                               dataKey="timestamp"
-                              tickFormatter={(value) =>
-                                new Date(value).toLocaleTimeString('tr-TR', {
-                                  hour: '2-digit',
-                                  minute: '2-digit',
-                                })
-                              }
+                              tickFormatter={(value) => formatTime(value)}
                               stroke="#999"
                               fontSize={12}
                             />
@@ -268,9 +264,7 @@ const DashboardPage = () => {
                               tickFormatter={(value) => `${value}`}
                             />
                             <RechartsTooltip
-                              labelFormatter={(value) =>
-                                new Date(value).toLocaleString('tr-TR')
-                              }
+                              labelFormatter={(value) => formatDateTime(value)}
                             />
                             <Line
                               yAxisId="left"

@@ -206,6 +206,13 @@ Bu dosya, projede alınan mimarî ve teknolojik kararları, gerekçelerini ve be
 - **Gerekçe:** İleride yeni roller/izinler ekleneceği için konfigürasyonun tamamen UI’dan yönetilmesi gerekiyor; ayrıca kullanıcı yönetim ekranının gerçek veriye bağlanması MVP kapsamındaydı.
 - **Etkisi:** Adminler yeni roller tanımlayıp izin setlerini kategori bazlı seçebiliyor, rol silme işleminde kullanıcılar otomatik olarak viewer rolüne taşınıyor; SessionProvider backend’den gelen permission listesiyle dinamik guard uygulayabiliyor.
 
+### UI Tarih Formatı Standardı
+
+- **Domain:** Frontend - ortak UI
+- **Karar:** UI tarih/saat gösterimleri `dd/MM/yyyy` ve `dd/MM/yyyy HH:mm` formatında, tek bir helper (`frontend/src/lib/date-format.js`) üzerinden yapılır. API/DB için ISO format korunur, input alanları native ISO değerleriyle çalışır.
+- **Gerekçe:** Ekranlar arası tutarlı tarih görünümü sağlamak ve sıralama/filtre için ISO değerlerini bozmamak.
+- **Etkisi:** Reports, Monitoring, Dashboard, Machines, Production, Downtime ve Simulations ekranlarında tarih gösterimleri ortak helper’a alındı.
+
 ### Backend Domain Yapısı
 
 - **Karar:** Backend kodu domain bazlı klasörlere ayrılacak (örn. `src/domains/auth`, `src/domains/users`, ileride `src/domains/machines`); her domain kendi `models/services/controllers/routes` yapılarına sahip olacak. Ortak kod `src/shared` altında tutulacak.

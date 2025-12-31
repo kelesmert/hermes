@@ -53,9 +53,11 @@ Amaç, Node.js/Express backend, React frontend ve MongoDB veritabanı kullanarak
 
 ### Devam Eden Fazlar
 
+- **Gün 10-11 - Raporlama & Export:** Raporlar ekranında OEE özeti + haftalık/aylık trend (T2 + coverage) tamamlandı. Export ve diğer rapor filtreleri beklemede.
+
 ### Planlanan Fazlar
 
-10. **Gün 10-11 - Raporlama & Export:** Backend agregasyon endpointleri, CSV/Excel export servisleri, frontend rapor ekranı genişletmesi ve filtreler, header'daki global arama.
+10. **Gün 10-11 - Raporlama & Export:** Backend agregasyon endpointleri, CSV/Excel export servisleri, rapor filtrelerinin genişletilmesi ve header'daki global arama.
 11. **Gün 12-13 - Audit & AI:** Audit middleware ve log UI'sı, AI analiz prototipi (kural tabanlı veya hazır model entegrasyonu).
 12. **Gün 14 - Kapanış:** End-to-end testler, dokümantasyon, lokal çalışma rehberi, opsiyonel docker-compose.
 
@@ -69,6 +71,6 @@ Amaç, Node.js/Express backend, React frontend ve MongoDB veritabanı kullanarak
 ## 5. Güncel Durum
 
 - **Tamamlanan Domainler:** Auth, Users, Access-Control, Machines, Parts, OEE, Board, Production, Downtime, Simulations
-- **Frontend Sayfaları:** Login, Dashboard, Monitoring, Users, Machines, Parts, Production/Job Orders (CRUD + aksiyon ekranı), Downtimes, Simulations
+- **Frontend Sayfaları:** Login, Dashboard, Monitoring, Users, Machines, Parts, Production/Job Orders (CRUD + aksiyon ekranı), Downtimes, Simulations, Reports
 - **Telemetry/OEE Altyapısı:** Monitoring “Kaynak” seçimi ile data-gen live akışı ve shift-sim vardiya görünümü arasında geçiş yapılır. OEE job’u tez demosunda varsayılan olarak sadece shift-sim telemetry’sini işler; 0 serisi eşiği ile plansız duruşları yönetir ve planlı duruşlar scheduler ile rule/run modelinden yürütülür. Shift-sim koşusu tamamlanınca `shift_end` uygulanır: `in_progress` job `paused` olur ve makine `idle` durumuna çekilir
-- **Sıradaki:** Reports sayfası genişletmesi, export + audit log geliştirmeleri
+- **Sıradaki:** Export + audit log geliştirmeleri

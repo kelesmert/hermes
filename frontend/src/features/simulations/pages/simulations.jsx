@@ -28,17 +28,11 @@ import {
   startSimulation,
   stopSimulation,
 } from '@/features/simulations/services/simulations-api.js';
+import { formatDateTime } from '@/lib/date-format.js';
 
 const STATUS_POLL_MS = 2000;
 const LOG_POLL_MS = 1000;
 const UI_LOG_LIMIT = 2000;
-
-const formatDateTime = (value) => {
-  if (!value) return '-';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return String(value);
-  return date.toLocaleString('tr-TR', { hour12: false });
-};
 
 const buildLogLine = (entry) => {
   const ts = entry.ts ? formatDateTime(entry.ts) : '';

@@ -135,12 +135,15 @@ Yeni geliştirici projeyi anlamak için bu dosyaya bakmalıdır.
 - `frontend/src/features/parts/`: Parça tanımları için liste + CRUD modülü; backend Parts domain’i ile çalışır, makine uyumluluğu ve varsayılan ayarların girildiği form bileşenlerini içerir. `components/part-form-dialog.jsx` kategori sözlüğündeki `defaultValue` alanlarını form alanlarına placeholder olarak işler ve kullanıcı boş bırakırsa aynı değerler otomatik olarak kayda yazılır.
 - `frontend/src/features/production/`: İş emirleri (JobOrder) ekranı; liste tablosu, oluştur/düzenle dialogu ve start/resume/produce/complete/cancel aksiyon dialoglarını içerir. “Pause” aksiyonu downtime event yazmaz ve kullanıcıyı `/downtimes` sayfasına yönlendirir.
 - `frontend/src/features/downtime/`: Duruşlar sayfası; açık duruş listesi, planlı duruş kural yönetimi ve run geçmişi, geçmiş duruş filtreleri ve reason sınıflandırma akışlarını içerir. Operatör manuel plansız duruş başlatabilir (aktif job şartlı) ve 5 dk’dan uzun telemetry plansız duruşlar “Onay Bekliyor” olarak işaretlenip onaylanabilir.
+- `frontend/src/features/reports/pages/reports.jsx`: OEE rapor ekranı; makine seçimi, shift/range pencere seçimi ve haftalık/aylık trend grafiği (T2 + coverage) içerir.
+- `frontend/src/features/reports/services/oee-api.js`: `/api/oee/stats` endpoint’i için frontend client wrapper’ı.
 - `frontend/src/features/simulations/`: Simülasyonlar sayfası; `data-gen` ve `job-sim` script’lerini UI’dan başlat/durdurur, durum kartları ve log konsolu sunar.
 - `frontend/src/features/simulations/pages/simulations.jsx`: Simülasyonlar sayfasının UI’ı (kartlar + log konsolu, start/stop/clear aksiyonları).
 - `frontend/src/features/simulations/services/simulations-api.js`: `/api/simulations` endpoint’leri için axios client wrapper’ları.
 - `frontend/src/features/monitoring/pages/monitoring.jsx`: Makine/hat seçimi yaparak telemetry ve sinyal trendini gösteren izleme sayfası; `Kaynak` seçimi ile `shift-sim` için 07:00–18:00 vardiya görünümü, `data-gen` için live (kayan pencere) görünümü sunar.
 - `frontend/src/features/users/components/`: Kullanıcı tablosu, kullanıcı formu, rol/permission yönetimi gibi modüler bileşenler.
 - `frontend/src/lib/api/client.js`: Tüm frontend HTTP çağrılarını yapan axios instance; `baseURL` her zaman `VITE_API_URL`'dir.
+- `frontend/src/lib/date-format.js`: UI tarih/saat formatlarını tek noktada standartlaştıran helper (dd/MM/yyyy ve dd/MM/yyyy HH:mm).
 - `frontend/src/lib/query-client.js`: TanStack Query client konfigürasyonu.
 - `frontend/src/lib/storage.js`: LocalStorage helper ve `SESSION_STORAGE_KEY` tanımı.
 - `frontend/src/styles/global.css`: Global tema/Reset ayarları.

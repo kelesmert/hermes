@@ -26,8 +26,6 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import CheckIcon from '@mui/icons-material/Check';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { format } from 'date-fns';
-import { tr } from 'date-fns/locale';
 import { toast } from 'react-hot-toast';
 import { useSearchParams } from 'react-router-dom';
 import usePermissions from '@/hooks/use-permissions.js';
@@ -49,6 +47,7 @@ import {
 import DowntimeEditDialog from '@/features/downtime/components/downtime-edit-dialog.jsx';
 import ManualUnplannedDowntimeDialog from '@/features/downtime/components/manual-unplanned-downtime-dialog.jsx';
 import PlannedDowntimeRuleDialog from '@/features/downtime/components/planned-downtime-rule-dialog.jsx';
+import { formatDateTime } from '@/lib/date-format.js';
 
 const toDatetimeLocalValue = (value) => {
   if (!value) return '';
@@ -71,15 +70,6 @@ const isEditableWithinWindow = (downtime, windowMinutes = 5) => {
   const base = downtime.endedAt ? new Date(downtime.endedAt) : new Date(downtime.startedAt);
   const deadline = new Date(base.getTime() + windowMinutes * 60 * 1000);
   return new Date() <= deadline;
-};
-
-const formatDate = (value) => {
-  if (!value) return '-';
-  try {
-    return format(new Date(value), 'dd.MM.yyyy HH:mm', { locale: tr });
-  } catch {
-    return value;
-  }
 };
 
 const DowntimesPage = () => {
@@ -343,7 +333,7 @@ const DowntimesPage = () => {
                         {dt.machine?.code}
                       </Typography>
                     </TableCell>
-                    <TableCell>{formatDate(dt.startedAt)}</TableCell>
+                    <TableCell>{formatDateTime(dt.startedAt)}</TableCell>
                     <TableCell>
                       <Chip
                         size="small"
@@ -458,7 +448,7 @@ const DowntimesPage = () => {
                     <TableCell>
                       {rule.type === 'recurring_daily'
                         ? `Günlük ${rule.recurrence?.startTime || '-'}–${rule.recurrence?.endTime || '-'}`
-                        : `Tek Sefer ${formatDate(rule.startAt)}–${formatDate(rule.endAt)}`}
+                        : `Tek Sefer ${formatDateTime(rule.startAt)}–${formatDateTime(rule.endAt)}`}
                     </TableCell>
                     <TableCell>
                       {plannedReasons.find((r) => r.code === rule.reasonCode)?.label || rule.reasonCode}
@@ -599,7 +589,7 @@ const DowntimesPage = () => {
                       </TableCell>
                       <TableCell>
                         <Typography variant="body2">
-                          {formatDate(run.scheduledStartAt)} – {formatDate(run.scheduledEndAt)}
+                          {formatDateTime(run.scheduledStartAt)} – {formatDateTime(run.scheduledEndAt)}
                         </Typography>
                       </TableCell>
                       <TableCell>
@@ -713,8 +703,8 @@ const DowntimesPage = () => {
                         {dt.machine?.code}
                       </Typography>
                     </TableCell>
-                    <TableCell>{formatDate(dt.startedAt)}</TableCell>
-                    <TableCell>{formatDate(dt.endedAt)}</TableCell>
+                    <TableCell>{formatDateTime(dt.startedAt)}</TableCell>
+                    <TableCell>{formatDateTime(dt.endedAt)}</TableCell>
                     <TableCell>
                       <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
                         <Chip

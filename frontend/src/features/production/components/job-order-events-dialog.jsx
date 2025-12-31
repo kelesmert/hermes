@@ -15,19 +15,9 @@ import {
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { useQuery } from '@tanstack/react-query';
-import { format } from 'date-fns';
-import { tr } from 'date-fns/locale';
 import { fetchJobOrderEvents } from '@/features/production/services/job-orders-api.js';
 import { EVENT_TYPE_LABELS } from '@/features/production/constants/job-order.js';
-
-const formatDate = (value) => {
-  if (!value) return '-';
-  try {
-    return format(new Date(value), 'dd.MM.yyyy HH:mm', { locale: tr });
-  } catch (error) {
-    return value;
-  }
-};
+import { formatDateTime } from '@/lib/date-format.js';
 
 const JobOrderEventsDialog = ({ open, jobOrder, onClose }) => {
   const jobOrderId = jobOrder?.id || jobOrder?._id;
@@ -64,7 +54,7 @@ const JobOrderEventsDialog = ({ open, jobOrder, onClose }) => {
                     color={event.eventType === 'defect' ? 'error' : 'default'}
                   />
                   <Typography variant="caption" color="text.secondary">
-                    {formatDate(event.timestamp)}
+                    {formatDateTime(event.timestamp)}
                   </Typography>
                 </Stack>
                 <Typography variant="body2" sx={{ mt: 0.5 }}>

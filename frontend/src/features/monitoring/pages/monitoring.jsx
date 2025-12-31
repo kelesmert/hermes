@@ -27,8 +27,7 @@ import {
   fetchMachineBoardMetrics,
   fetchMachineTelemetrySeries,
 } from "@/features/dashboard/services/board-api.js";
-import { format } from "date-fns";
-import { tr } from "date-fns/locale";
+import { formatDateTime, formatTime } from "@/lib/date-format.js";
 
 const LINES = [
   { id: "line-alpha", label: "Line Alpha (placeholder)" },
@@ -271,13 +270,7 @@ const MonitoringPage = () => {
                   </Typography>
                   <Typography variant="caption" color="text.secondary">
                     {machineMetricsQuery.data.signal.lastAt
-                      ? format(
-                          new Date(machineMetricsQuery.data.signal.lastAt),
-                          "dd.MM.yyyy HH:mm",
-                          {
-                            locale: tr,
-                          }
-                        )
+                      ? formatDateTime(machineMetricsQuery.data.signal.lastAt)
                       : ""}
                   </Typography>
                 </Stack>
@@ -304,11 +297,7 @@ const MonitoringPage = () => {
                     : ""}
                   {telemetryQuery.data?.virtualDay ? `, day ${telemetryQuery.data.virtualDay}` : ""}
                   {telemetryQuery.data?.latestAt
-                    ? `, latest ${format(
-                        new Date(telemetryQuery.data.latestAt),
-                        "dd.MM.yyyy HH:mm",
-                        { locale: tr }
-                      )}`
+                    ? `, latest ${formatDateTime(telemetryQuery.data.latestAt)}`
                     : ""}
                 </Typography>
                 <Box>
@@ -351,9 +340,7 @@ const MonitoringPage = () => {
                             fontSize={12}
                             tickFormatter={(value) =>
                               typeof value === "number"
-                                ? format(new Date(value), "HH:mm", {
-                                    locale: tr,
-                                  })
+                                ? formatTime(value)
                                 : value
                             }
                           />
@@ -370,9 +357,7 @@ const MonitoringPage = () => {
                           <RechartsTooltip
                             labelFormatter={(value) =>
                               typeof value === "number"
-                                ? format(new Date(value), "dd.MM.yyyy HH:mm", {
-                                    locale: tr,
-                                  })
+                                ? formatDateTime(value)
                                 : value
                             }
                           />
@@ -428,9 +413,7 @@ const MonitoringPage = () => {
                             fontSize={12}
                             tickFormatter={(value) =>
                               typeof value === "number"
-                                ? format(new Date(value), "HH:mm", {
-                                    locale: tr,
-                                  })
+                                ? formatTime(value)
                                 : value
                             }
                           />
@@ -442,9 +425,7 @@ const MonitoringPage = () => {
                           <RechartsTooltip
                             labelFormatter={(value) =>
                               typeof value === "number"
-                                ? format(new Date(value), "dd.MM.yyyy HH:mm", {
-                                    locale: tr,
-                                  })
+                                ? formatDateTime(value)
                                 : value
                             }
                           />

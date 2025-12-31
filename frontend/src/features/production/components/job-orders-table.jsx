@@ -35,8 +35,6 @@ import RefreshIcon from '@mui/icons-material/Refresh';
 import HistoryIcon from '@mui/icons-material/History';
 import ProductionQuantityLimitsIcon from '@mui/icons-material/ProductionQuantityLimits';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { format } from 'date-fns';
-import { tr } from 'date-fns/locale';
 import { toast } from 'react-hot-toast';
 import {
   fetchJobOrders,
@@ -57,15 +55,7 @@ import JobOrderEventsDialog from '@/features/production/components/job-order-eve
 import { DEFECT_OPTIONS, JOB_ORDER_STATUS_CONFIG, QUALITY_OPTIONS } from '@/features/production/constants/job-order.js';
 import usePermissions from '@/hooks/use-permissions.js';
 import { PERMISSIONS } from '@/constants/permissions.js';
-
-const formatDate = (value) => {
-  if (!value) return '-';
-  try {
-    return format(new Date(value), 'dd.MM.yyyy HH:mm', { locale: tr });
-  } catch {
-    return value;
-  }
-};
+import { formatDateTime } from '@/lib/date-format.js';
 
 const getId = (entity) => entity?.id || entity?._id || entity;
 
@@ -361,8 +351,8 @@ const JobOrdersTable = () => {
                           Sağlam: {job.goodQuantity} · Hatalı: {job.defectiveQuantity}
                         </Typography>
                       </TableCell>
-                      <TableCell>{formatDate(job.startTime)}</TableCell>
-                      <TableCell>{formatDate(job.endTime)}</TableCell>
+                      <TableCell>{formatDateTime(job.startTime)}</TableCell>
+                      <TableCell>{formatDateTime(job.endTime)}</TableCell>
                       <TableCell align="right">
                         <Stack direction="row" spacing={0.5} justifyContent="flex-end">
                           <Tooltip title="Olaylar">

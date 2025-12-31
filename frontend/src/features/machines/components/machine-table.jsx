@@ -27,7 +27,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import EventNoteIcon from '@mui/icons-material/EventNote';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { format, formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow } from 'date-fns';
 import { tr } from 'date-fns/locale';
 import { toast } from 'react-hot-toast';
 import {
@@ -40,6 +40,7 @@ import MachineFormDialog from '@/features/machines/components/machine-form-dialo
 import MachineEventDialog from '@/features/machines/components/machine-event-dialog.jsx';
 import usePermissions from '@/hooks/use-permissions.js';
 import { PERMISSIONS } from '@/constants/permissions.js';
+import { formatDateTime } from '@/lib/date-format.js';
 
 const STATUS_LABELS = {
   running: { label: 'Çalışıyor', color: 'success' },
@@ -47,15 +48,6 @@ const STATUS_LABELS = {
   downtime: { label: 'Duruş', color: 'error' },
   maintenance: { label: 'Bakım', color: 'warning' },
   unknown: { label: 'Bilinmiyor', color: 'default' },
-};
-
-const formatDate = (value) => {
-  if (!value) return '-';
-  try {
-    return format(new Date(value), 'dd.MM.yyyy HH:mm', { locale: tr });
-  } catch (_err) {
-    return value;
-  }
 };
 
 const formatRelativeTime = (value) => {
@@ -216,7 +208,7 @@ const MachineTable = () => {
                           </Typography>
                         </Stack>
                       </TableCell>
-                      <TableCell>{formatDate(machine.lastEventAt)}</TableCell>
+                      <TableCell>{formatDateTime(machine.lastEventAt)}</TableCell>
                       <TableCell>
                         <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
                           {(machine.tags || []).length === 0

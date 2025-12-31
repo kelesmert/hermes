@@ -28,6 +28,22 @@
 
 ---
 
+## 31 Aralık 2025 - Context Window #11
+
+### Yapılanlar
+
+- OEE rapor ekranına haftalık ve aylık trend grafiği eklendi, trend başlangıcı ileri tarihe alındı ve tarih etiketleri dd/MM/yyyy formatına çekildi.
+- UI tarih formatı tek helper ile standardize edildi (`frontend/src/lib/date-format.js`) ve Reports, Monitoring, Dashboard, Machines, Production, Downtime, Simulations ekranlarına uygulandı.
+- Raporlar sayfası ve trend tamamlandı; checklist ve roadmap güncellendi.
+
+### Alınan Kararlar
+
+- UI tarih/saat gösterimleri dd/MM/yyyy ve dd/MM/yyyy HH:mm formatında tek helper üzerinden yapılacak, ISO değerler API/state tarafında korunacak.
+
+### Sonraki Adımlar
+
+- Export ve audit log geliştirmeleri.
+
 ## 31 Aralık 2025 - Context Window #10
 
 ### Yapılanlar

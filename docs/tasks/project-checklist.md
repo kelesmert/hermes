@@ -111,9 +111,10 @@
 - [x] Production pause UX'i downtime yazmaz, Duruşlar sayfasına yönlendirir
 - [x] Simülasyonlar sayfası (`/simulations`): shift-sim/data-gen/job-sim başlat-durdur + log konsolu
 - [x] Simülasyonlar: shift-sim reset aksiyonu (sim kaynaklı telemetry ve event temizliği)
-- [ ] Raporlama sayfası + filtreler
+- [x] Raporlama sayfası + filtreler
 - [x] Roller/izinler için yönetim ekranı; permission set düzenleme ve kullanıcıya rol atama modalları
-- [x] Dashboard/rapor placeholder’larını gerçek makine/event verileriyle besleyip React Query polling/WebSocket desteği ekle _(dashboard kısmı tamamlandı, rapor ekranı beklemede)_
+- [x] Dashboard/rapor placeholder’larını gerçek makine/event verileriyle besleyip React Query polling/WebSocket desteği ekle _(dashboard ve rapor ekranı tamamlandı)_
+- [x] UI tarih formatını tek helper ile standartlaştır (`dd/MM/yyyy`, `dd/MM/yyyy HH:mm`)
 - [ ] CSV/Excel export butonları ve kullanıcı geri bildirimi
 - [ ] Audit log görüntüleme ekranı
 - [ ] AI analiz sonuçlarını gösteren bileşen

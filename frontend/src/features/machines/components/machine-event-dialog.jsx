@@ -14,11 +14,10 @@ import {
   Typography,
 } from '@mui/material';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { format } from 'date-fns';
-import { tr } from 'date-fns/locale';
 import { createMachineEvent, fetchMachineEvents } from '@/features/machines/services/machines-api.js';
 import { PERMISSIONS } from '@/constants/permissions.js';
 import usePermissions from '@/hooks/use-permissions.js';
+import { formatDateTime } from '@/lib/date-format.js';
 
 const STATUS_OPTIONS = [
   { label: 'Çalışıyor', value: 'running' },
@@ -26,15 +25,6 @@ const STATUS_OPTIONS = [
   { label: 'Duruş', value: 'downtime' },
   { label: 'Bakım', value: 'maintenance' },
 ];
-
-const formatDate = (value) => {
-  if (!value) return '-';
-  try {
-    return format(new Date(value), 'dd.MM.yyyy HH:mm', { locale: tr });
-  } catch (_err) {
-    return value;
-  }
-};
 
 const MachineEventDialog = ({ open, onClose, machine }) => {
   const queryClient = useQueryClient();
@@ -158,8 +148,8 @@ const MachineEventDialog = ({ open, onClose, machine }) => {
                     {eventItem.state} {eventItem.reasonCode ? `• ${eventItem.reasonCode}` : ''}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    Başlangıç: {formatDate(eventItem.startedAt)}{' '}
-                    {eventItem.endedAt ? `• Bitiş: ${formatDate(eventItem.endedAt)}` : ''}
+                    Başlangıç: {formatDateTime(eventItem.startedAt)}{' '}
+                    {eventItem.endedAt ? `• Bitiş: ${formatDateTime(eventItem.endedAt)}` : ''}
                   </Typography>
                   {eventItem.description && (
                     <Typography variant="body2" sx={{ mt: 0.5 }}>

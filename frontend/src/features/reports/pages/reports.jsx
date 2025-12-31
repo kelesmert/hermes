@@ -28,6 +28,7 @@ import {
 } from 'recharts';
 import { fetchMachines } from '@/features/machines/services/machines-api.js';
 import { fetchOeeStats } from '@/features/reports/services/oee-api.js';
+import { formatDate, formatDateTime } from '@/lib/date-format.js';
 
 const MODE_OPTIONS = [
   { id: 'shift', label: 'Shift' },
@@ -424,13 +425,9 @@ const ReportsPage = () => {
                     Pencere
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    {statsQuery.data.windowStart
-                      ? new Date(statsQuery.data.windowStart).toLocaleString('tr-TR')
-                      : '-'}
+                    {formatDateTime(statsQuery.data.windowStart)}
                     {' — '}
-                    {statsQuery.data.windowEnd
-                      ? new Date(statsQuery.data.windowEnd).toLocaleString('tr-TR')
-                      : '-'}
+                    {formatDateTime(statsQuery.data.windowEnd)}
                   </Typography>
                 </Grid>
               </Grid>
@@ -535,12 +532,13 @@ const ReportsPage = () => {
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={trendQuery.data.points}>
                       <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="date" />
+                      <XAxis dataKey="date" tickFormatter={(value) => formatDate(value)} />
                       <YAxis
                         domain={[0, 1]}
                         tickFormatter={(value) => `${Math.round(value * 100)}%`}
                       />
                       <Tooltip
+                        labelFormatter={(value) => formatDate(value)}
                         formatter={(value) => (value === null ? 'N/A' : formatPercent(value))}
                       />
                       <Legend />

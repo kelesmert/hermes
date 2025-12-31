@@ -102,6 +102,13 @@ frontend/
 - Styling: MUI `sx` prop’ları veya theme tabanlı stil dosyaları; rastgele inline style kullanılmaz.
 - Tüm yeni bağımlılıklar `package.json` script’lerine uygun `npm` komutlarıyla eklenir.
 
+## 6.1 Tarih Formatı Standardı
+
+- Zorunlu
+- UI tarih ve saat gösterimleri `frontend/src/lib/date-format.js` üzerinden yapılır.
+- Görüntüleme formatı: `dd/MM/yyyy` ve `dd/MM/yyyy HH:mm`.
+- API ve state tarafında ISO format (`YYYY-MM-DD` / ISO datetime) korunur; native date input değerleri değiştirilmez.
+
 ## 7. ESLint & Prettier
 
 - Frontend iskeleti çıktıktan sonra ESLint + Prettier konfigürasyonları hazır hale getirilecek.
