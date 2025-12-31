@@ -69,7 +69,7 @@ Bu dokümantasyon, MES (Manufacturing Execution System) projesi kapsamında olu�
 4. **Üretim Süreci:**
 
    - Data-gen scripti telemetry/sinyal verisi üretir.
-   - Üretim simülatörü (`job-simulator`) aktif iş emirleri için son telemetry sinyaline bakarak good/defect üretim eventleri oluşturur.
+  - Üretim simülatörü (`job-simulator`) aktif iş emirleri için ilgili `jobOrder` etiketli telemetry’yi işler; sinyal 1 aralıklarından good/defect üretim eventleri oluşturur. Kaynak seçimi `JOB_SIM_TELEMETRY_SOURCE` ile yapılır.
    - Böylece üretilen parçalar ve hatalı parçalar ayrı event kayıtları olarak saklanır.
 
 5. **Üretim Tamamlama:**

@@ -33,7 +33,7 @@ Amaç, Node.js/Express backend, React frontend ve MongoDB veritabanı kullanarak
 - **Backend (Node.js + Express):** Auth/RBAC middleware, makine durum API'leri, raporlama ve AI analiz servisleri, audit log pipeline'ı.
 - **Frontend (React):** Vite + React (JS) SPA; MUI bileşenleri, React Router v7, TanStack Query + axios, React Hook Form + Zod, TanStack Table + MUI, Recharts ve react-hot-toast ile auth akışı, dashboard, makine kartları, raporlama/analiz ekranları, audit log görünümü, opsiyonel çok dillilik altyapısı.
 - **Veritabanı (MongoDB):** `users`, `roles`, `permissions`, `machines`, `machine_events`, `machine_telemetry`, `parts`, `job_orders`, `production_events`, `planned_downtime_rules`, `planned_downtime_runs`, `reports`, `audit_logs` koleksiyonları.
-- **Veri Simülasyonu:** `backend/scripts/data-gen.js` makine telemetry/sinyal verilerini üretir; OEE processor job bu verileri işler.
+- **Veri Simülasyonu:** `backend/scripts/data-gen.js` (live) ve `backend/scripts/shift-simulator.js` (hızlandırılmış vardiya) telemetry üretir. OEE processor job’u source filtresiyle çalışır ve tez demosunda varsayılan olarak `shift-sim` verisini işler.
 - **Dağıtım:** Lokal geliştirme öncelikli; Docker tabanlı dağıtım dokümantasyonu opsiyonel.
 
 ## 3. Geliştirme Fazları ve Milestones

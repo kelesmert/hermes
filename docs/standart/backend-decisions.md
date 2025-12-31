@@ -115,7 +115,7 @@ backend/
 
 - Tüm dosyalar kebab-case, yalnızca mongoose modelleri PascalCase sınıf isimlerine sahiptir.
 - **Mongoose index tanımı (zorunlu):** Aynı alan için aynı index pattern’i iki kez tanımlanmaz. `unique: true` kullanılıyorsa ayrıca `.index({ field: 1 })` eklenmez; unique index gerekiyorsa ya field-level `unique: true` ya da `schema.index({ field: 1 }, { unique: true })` seçilir.
-- Importlarda `@/` alias’ı `backend/src/` dizinine işaret eder (`@/services/token-service` vb.).
+- Importlarda `@/` alias’ı backend için **opsiyonel**dir. Şu an relatif path’ler kullanılır; alias kullanımı refactor ihtiyacı doğduğunda değerlendirilecektir.
 - Tekrarlayan iş mantığı servis katmanında tutulur; controller’lar sadece doğrulama ve response’la ilgilenir.
 
 ## 8. API Sözleşmesi

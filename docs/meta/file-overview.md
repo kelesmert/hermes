@@ -144,6 +144,6 @@ Yeni geliştirici projeyi anlamak için bu dosyaya bakmalıdır.
 - `frontend/src/lib/storage.js`: LocalStorage helper ve `SESSION_STORAGE_KEY` tanımı.
 - `frontend/src/styles/global.css`: Global tema/Reset ayarları.
 - Teknoloji seti: Vite + React (JS), MUI, React Router v7, TanStack Query + axios, React Hook Form + Zod, TanStack Table + MUI, Recharts ve react-hot-toast. Tema hafif/sade tutulacak, durum yönetimi Context + custom hook ile başlayacak (gerekirse Zustand).
-- Import alias kuralı: Hem frontend hem backend’de `@/` alias’ı kök `src/` klasörlerine işaret edecek; böylece dosya yapısı uzun relatif yollara ihtiyaç duymadan okunabilir kalacak.
+- Import alias kuralı: Frontend’de `@/` alias’ı kök `src/` klasörüne işaret eder; backend tarafında alias kullanımı opsiyoneldir ve şimdilik relatif path’ler korunur.
 
 > Not: Yeni dosyalar (örneğin RBAC middleware, simülasyon script’i, frontend bileşenleri) eklendikçe bu liste güncellenecek.

@@ -79,6 +79,7 @@ Bu proje, Node.js/Express backend, React frontend ve MongoDB veritabanı kullana
    - `npm run data:gen`: (Legacy) Her makine için telemetry sinyali (0/1) ve metrikler üretir. Aktif job varken sinyalin 1’de kalma olasılığı artırılmıştır, idle makinelerde rastgele 0/1 üretilir.
    - Sinyal/mount profili `DATA_GEN_TRANSITION_MS` ile yönetilir; varsayılan 10 saniye içinde sıcaklık/tork/enerji değerleri yeni moda hızlıca yaklaşır ve monitoring ekranları ramp-up/ramp-down davranışı gösterir.
    - `npm run job:sim`: Aktif JobOrder kayıtlarını okuyup telemetry timestamp’lerine göre ideal çevrim süresinden üretim miktarı hesaplar ve good/defect üretim eventleri oluşturur; sinyal 1 değilse üretim yazılmaz. Shift-sim koşularında üretim event’leri simülasyon zamanını korur.
+   - Job-sim telemetry kaynağı explicit seçilir (`JOB_SIM_TELEMETRY_SOURCE`, varsayılan shift-sim); job event zaman ekseni `JOB_TIME_SOURCE` ile belirlenir.
    - OEE processor yalnızca `downtimeThresholdMs` boyunca sinyal 0 olduğunda duruş açar; signal timeout devre dışı bırakılmıştır.
 11. **Raporlama & Export**
    - Verimlilik, OEE benzeri metrikler veya makine bazlı uptime/downtime süreleri.
@@ -110,7 +111,7 @@ Bu proje, Node.js/Express backend, React frontend ve MongoDB veritabanı kullana
 - `permissions`: sistem genelindeki aksiyonların (örn. `machines.read`, `reports.export`) tanımı; roller bu koleksiyondan izin referansı alır.
 - `machines`: makine adı/kodu, açıklama, bağlı operatörler, mevcut durum.
 - `machine_events`: makine, state, başlangıç/bitiş zamanları, reasonCode ve reasonCategory (planned|unplanned), jobOrder snapshot, metadata (plannedRuleId/runId, autoDetected vb.).
-- `machine_telemetry`: makine id, timestamp, sinyal değeri (0/1), metrikler (sıcaklık, tork, enerji), kaynak bilgisi (simulator/edge_gateway), `intervalMs` ve simülasyon koşuları için `simulationRunId`.
+- `machine_telemetry`: makine id, timestamp, sinyal değeri (0/1), metrikler (sıcaklık, tork, enerji), kaynak bilgisi (data-gen/shift-sim), `intervalMs`, `jobOrder`, `processedAt` ve simülasyon koşuları için `simulationRunId`.
 - `oee_machine_states`: Makine başına son sinyal değeri, aktif downtime event referansı, sıfır serisi başlangıç zamanı; OEE processor job tarafından kullanılır.
 - `parts`: parça adı/kodu, kategori, birim, ideal cycle time, uyumlu makineler, varsayılan makine ayarları.
 - `planned_downtime_rules`: planlı duruş kuralları (machineIds, recurrence/one_time, timezone, priority, reasonCode, createdBy).
@@ -143,7 +144,7 @@ Bu proje, Node.js/Express backend, React frontend ve MongoDB veritabanı kullana
 - Makine listesi + detay modal/ekranı.
 - Parts listesi + CRUD modal/ekranı (kategori/birim/makine uyumluluğu).
 - Duruşlar sayfası: Açık duruşlar, planlı duruş kural yönetimi ve run geçmişi, geçmiş duruş filtreleri, reason sınıflandırma (5 dk edit + split).
-- Simülasyonlar sayfası: `data-gen` ve `job-sim` script’lerini başlat/durdur, log konsolu.
+- Simülasyonlar sayfası: `data-gen`, `shift-sim` ve `job-sim` script’lerini başlat/durdur, log konsolu.
 - Raporlama ekranı (filtreler + tablo/grafik + export butonu).
 - AI içgörü paneli.
 - Kullanıcı yönetimi ekranları.
@@ -183,7 +184,7 @@ Bu proje, Node.js/Express backend, React frontend ve MongoDB veritabanı kullana
 - Tema: Hafif ve sade yaklaşım hedefleniyor, detay kararı tasarım aşamasında verilecek.
 - Env: `VITE_API_URL=http://localhost:5000/api` (backend ile uyumlu).
 - Auth oturumu: Refresh token şimdilik `localStorage` içinde saklanacak; uygulama açıldığında otomatik `POST /api/auth/refresh` ile sessiz yenileme yapılacak. HttpOnly cookie yapısına geçiş opsiyonel bir iyileştirme olarak değerlendirilecek.
-- Import alias: Hem frontend hem backend tarafında `@/` alias’ı tanımlanacak, uzun relatif yollar yerine bu kısayol kullanılacak.
+- Import alias: Frontend tarafında `@/` alias’ı zorunlu; backend için alias opsiyonel ve ileride ele alınacak.
 - Layout: Sol sidebar + üst header ana kabuk olacak; sidebar tüm modül menülerini barındıracak, header’da kullanıcı menüsü, genel arama alanı ve notifications dropdown bulunacak. Breadcrumbs her korumalı sayfada gösterilecek. Mobil öncelik değil; tablet boyutu desteklenecek.
 - Bildirim menüsü (header) ve genel arama için placeholder bileşenler ilk fazda hazırlanacak.
 - ESLint ve Prettier, temel iskelet kurulduktan sonra eklenecek ve ortak kural seti oluşturulacak.

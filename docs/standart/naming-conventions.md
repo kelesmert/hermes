@@ -125,7 +125,7 @@ const { user, login } = useAuth();
 
 ### 7. Import Alias Kullanımı
 
-- `@/` alias’ı hem frontend hem backend’de proje kök `src/` dizinine işaret eder.
+- `@/` alias’ı frontend’de proje kök `src/` dizinine işaret eder; backend tarafında alias kullanımı opsiyoneldir.
 - Amaç: `../../services/token-service` gibi karmaşık relatif yollar yerine `@/services/token-service` formatını standart hale getirmek.
 - Alias kullanırken dosya isimlendirme kuralları (kebab-case dosya, PascalCase bileşen) aynen geçerlidir.
 

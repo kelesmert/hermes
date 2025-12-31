@@ -39,7 +39,7 @@
   - Durum yönetimi ihtiyaç oldukça belirlenecek; mümkünse Context + custom hook, gerektiğinde Zustand.
   - `VITE_API_URL` ile backend (`http://localhost:5000/api`) adresi konfigüre edilecek; `axios.withCredentials` ilerideki cookie geçişine hazır tutulacak.
   - `src/lib/api/client.js` altındaki axios instance her zaman `VITE_API_URL` değerini `baseURL` olarak kullanır ve tüm frontend API çağrıları bu client üzerinden geçer.
-- Kodda `@/` import alias’ı kullanılacak; hem frontend’de Vite alias’ı hem de backend’de Node path alias’ı tanımlanacak, böylece `../../` zincirleri yerine `@/services/token-service` gibi okunabilir yollar tercih edilecek.
+- Kodda `@/` import alias’ı frontend için zorunludur; backend tarafında alias kullanımı opsiyoneldir ve ayrı bir refactor işi olarak değerlendirilir. Bu sayede frontend’de `../../` zincirleri yerine `@/features/...` kullanılır.
 - Layout kararı: Uygulama kabuğu sol sidebar + üst header kombinasyonundan oluşacak; sidebar tüm modül menülerini barındıracak, header içinde kullanıcı menüsü, genel arama alanı ve bildirim (notifications dropdown) bulunacak. Breadcrumbs zorunlu olacak; mobil tam destek zorunlu değil fakat tablet boyutlarında düzgün görünmesi sağlanacak.
 - ESLint ve Prettier iskelet kurulduktan hemen sonra projeye eklenecek; kuralların ve kullanılan komutların dokümantasyonu güncel tutulacak.
 - Frontend iskeleti oluşturuldu: `AppProviders` (QueryClient + MUI Theme + Router + SessionProvider), `AppLayout` (sidebar + header + breadcrumbs), mock login formu ve placeholder dashboard/rapor/kullanıcı sayfaları hazır. Backend API’leri açıldıkça yalnızca ilgili feature modülleri genişletmek yeterli olacak.

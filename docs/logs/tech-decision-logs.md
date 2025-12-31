@@ -131,4 +131,4 @@ Bu doküman projede kullanılan veya ileride kullanılacak teknolojileri, neden 
 ### Path Alias (`@/`)
 
 - **Neden?** Kökten başlayan import’larla karmaşık relatif yolları (`../../..`) ortadan kaldırmak.
-- **Görev:** Hem Vite hem Node tarafında `@/` alias’ı `src/` (veya eşdeğer) klasörüne işaret edecek; örn. `@/features/auth/hooks/use-session`.
+- **Görev:** Frontend’de `@/` alias’ı `src/` klasörüne işaret eder; backend tarafında alias geçişi opsiyonel ve ertelenmiştir.

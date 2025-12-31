@@ -88,7 +88,8 @@
 ## Frontend
 
 - [x] Frontend teknoloji kararları (Vite + React (JS), MUI, React Router v7, TanStack Query, axios, React Hook Form + Zod, TanStack Table + MUI, Recharts, react-hot-toast, Context/Zustand stratejisi)
-- [x] Import alias konfigürasyonu (`@/` kısayolu hem frontend hem backend)
+- [x] Import alias konfigürasyonu (frontend `@/`)
+- [ ] (Opsiyonel) Backend `@/` alias geçişi (module-alias veya eşdeğer yapı)
 - [x] React (Vite) projesi kurulumu ve temel yapı
 - [x] UI kit seçimi ve tema ayarları
 - [x] App layout (sol sidebar + üst header + breadcrumbs + notifications dropdown)

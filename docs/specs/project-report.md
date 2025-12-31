@@ -53,7 +53,7 @@ Bu doküman, mezuniyet projesi kapsamında geliştirilecek olan hafif bir Manufa
 - Grafikler: Recharts.
 - Bildirimler: react-hot-toast.
 - Auth oturumu: Refresh token cookie yönetimi hazır olana kadar `localStorage` içinde saklanacak; uygulama açılışında `refresh` endpoint’i çağrılarak sessiz yenileme yapılacak. HttpOnly cookie’ye geçiş için backend TODO’su korunuyor.
-- Import alias: Frontend ve backend genelinde `@/` alias’ı tanımlanarak uzun relatif yollar yerine `@/features/auth` benzeri ifadeler kullanılacak.
+- Import alias: Frontend’de `@/` alias’ı kullanılır; backend tarafında alias henüz uygulanmamıştır, opsiyonel bir refactor olarak değerlendirilecektir.
 - Layout: Sol sidebar + üst header kombinasyonu standart olacak; sidebar tüm navigasyonu tutacak, header’da kullanıcı menüsü, genel arama ve notifications dropdown yer alacak. Breadcrumbs her korumalı sayfada gösterilecek. Mobil ekranlar şu etapta hedeflenmiyor ancak tablet boyutunda uyum gözlenecek.
 - Tema kararı “hafif ve sade” hedefiyle daha sonra netleştirilecek.
 - Client state: Öncelik Context + custom hook; ihtiyaç olursa Zustand devreye alınacak.
@@ -97,7 +97,7 @@ Bu doküman, mezuniyet projesi kapsamında geliştirilecek olan hafif bir Manufa
 - Bildirim altyapısı react-hot-toast ile sağlanacak; tema kararı ileriki tasarım çalışmasında verilecek.
 - Frontend `.env` yapısı ve `VITE_API_URL` standardı belirlendi; axios `baseURL` ve `withCredentials` ayarlarının backend token stratejisiyle uyumlu olması planlandı.
 - Token saklama yaklaşımı, cookie’ye geçiş tamamlanana kadar `localStorage` içinde refresh token tutup uygulama başlatıldığında `refresh` endpoint’ini çağıracak şekilde belirlendi; ileride HttpOnly cookie’lere geçilecek.
-- Kod tabanında `@/` alias’ı kullanılacak; Vite ve Node yapılandırmaları buna göre güncellenecek.
+- Kod tabanında frontend için `@/` alias’ı kullanılır; backend tarafında relatif path’ler korunur ve alias geçişi opsiyoneldir.
 - Layout kararları (sidebar + header + breadcrumbs + notifications dropdown) ve responsive (tablet odaklı) hedefler not edildi.
 - ESLint ve Prettier iskelet kurulumundan hemen sonra eklenip dokümante edilecek.
 

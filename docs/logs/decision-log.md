@@ -153,6 +153,14 @@ Bu dosya, projede alınan mimarî ve teknolojik kararları, gerekçelerini ve be
 - **Karar:** Hem frontend (Vite) hem backend (Node) tarafında `@/` alias’ı kök `src/` dizinine işaret edecek.
 - **Gerekçe:** Derin klasör yapılarında `../../services/...` gibi yolları azaltıp okunabilirliği artırmak, taşınabilirliği kolaylaştırmak.
 - **Etkisi:** Vite config, jsconfig/tsconfig ve backend tarafında `module-alias` benzeri ayarlar yapılacak; tüm importlar alias standardına geçirilecek.
+- **Durum:** Backend alias kullanımı ertelendi; frontend’de alias zorunlu, backend’de relatif path’ler devam ediyor.
+
+### Backend Alias Erteleme
+
+- **Domain:** Ortak - config
+- **Karar:** Backend tarafında `@/` alias kullanımı şimdilik ertelendi; frontend’de alias zorunlu, backend’de relatif path’ler devam ediyor.
+- **Gerekçe:** Mevcut backend kodu relatif importlarla çalışıyor ve geniş refactor ihtiyacı yok. Alias’a geçiş, ihtiyaç doğduğunda planlanacak.
+- **Etki:** `docs/project-guidelines.md`, `docs/standart/backend-decisions.md`, `docs/standart/naming-conventions.md`, `docs/specs/requirements.md`, `docs/specs/project-report.md`, `docs/meta/file-overview.md`, `docs/tasks/project-checklist.md`.
 
 ### Durum Yönetimi
 
@@ -247,7 +255,7 @@ Yeni kararlar alındıkça bu dosyaya tarih/başlık/gerekçe formatıyla ekleme
 ### Telemetry Tabanlı Üretim Simülasyonu
 
 - **Domain:** Backend - production/oee
-- **Karar:** Production domain için ayrı bir `job-simulator` script'i eklendi; aktif iş emirlerini okuyup son telemetry sinyaline göre good/defect üretim kayıtları yazıyor. Script, `machine_telemetry` koleksiyonundan aggregate ile son sinyali alıyor, sinyal 1 değilse üretim yapmıyor ve fractional cycle hesaplarıyla ideal çevrim süresini simüle ediyor. Data-gen sinyali, makineye aktif job atanıp atanmadığına göre farklı olasılıklarla 1/0 üretecek şekilde güncellendi.
+- **Karar:** Production domain için ayrı bir `job-simulator` script'i eklendi; aktif iş emirlerini okuyup ilgili `jobOrder` etiketli telemetry kayıtlarını işler ve good/defect üretim kayıtları yazar. Script telemetry kaynak seçimini explicit olarak yapar (`JOB_SIM_TELEMETRY_SOURCE`), sinyal 1 değilse üretim yazmaz ve fractional cycle hesaplarıyla ideal çevrim süresini simüle eder. Data-gen sinyali, makineye aktif job atanıp atanmadığına göre farklı olasılıklarla 1/0 üretecek şekilde güncellendi.
 - **Gerekçe:** Üretim sayacı ile fiziksel sinyalin birbirinden kopmaması gerekiyordu; makine çalışmıyorsa scriptin üretim yazmaması, çalışıyorsa ideal tempoya göre veri üretmesi gerçek sahaya daha yakın bir davranış sağlıyor. Aynı zamanda idle durumunda sinyalin daha sık 0'a düşmesi, job varken 1'de kalması OEE/Production verilerini tutarlı kılıyor.
 - **Etki:** `backend/scripts/job-simulator.js`, `backend/scripts/data-gen.js`, `.env.example` ve README güncellendi; `npm run data:gen` + `npm run job:sim` sırasıyla telemetry + üretim verisi üretiyor. Frontend Production sayfası gerçek JobOrder API'leriyle dolduruluyor.
 
