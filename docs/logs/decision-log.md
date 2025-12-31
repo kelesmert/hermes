@@ -122,6 +122,13 @@ Bu dosya, projede alınan mimarî ve teknolojik kararları, gerekçelerini ve be
 - **Gerekçe:** Simülasyon kaynakları ile operatör event’lerini karıştırmadan deterministik OEE hesaplamak.
 - **Etki:** `backend/src/domains/oee/services/oee-calculator-service.js`.
 
+### Shift Penceresi Merkezi Kaynak
+
+- **Domain:** Backend - simulations/oee
+- **Karar:** OEE ve raporlama tarafı shift penceresini tek bir merkezden alacak; merkez `simulation-clock-service` ve shift-sim `SimulationState` bilgisi olacak.
+- **Gerekçe:** Mesai saatleri ve hafta içi kurallarının tek yerde tutulması; OEE ile simülasyon arasında zaman uyumsuzluğunu önlemek.
+- **Etki:** `backend/src/domains/oee/services/oee-calculator-service.js`, `backend/src/domains/oee/services/oee-dashboard-service.js`, `backend/src/domains/simulations/services/simulation-clock-service.js`, ilgili dokümanlar.
+
 ## Frontend Kararları
 
 ### Vite + React (JavaScript) SPA

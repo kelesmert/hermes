@@ -52,6 +52,7 @@
 - [x] MachineTelemetry modeli: 0/1 sinyal değeri, timestamp, metrikler (sıcaklık, tork, enerji)
 - [x] OEE Processor Job: Telemetry batch processing, otomatik downtime detection (sıfır serisi > threshold → MachineEvent)
 - [x] OeeMachineState modeli: Makine başına son sinyal, aktif event, sıfır serisi başlangıç zamanı
+- [ ] OEE shift penceresini merkezi kaynaktan al (simulation-clock-service) ve hafta ici filtresi uygula
 - [x] Board domain: Dashboard metrik endpoint'leri (`/api/board/metrics`, `/api/board/machines/:id/metrics`, `/api/board/machines/:id/telemetry`)
 - [x] Parts domaini: model + CRUD endpointleri + RBAC izinleri ve seed verileri
 - [x] Production domaini: JobOrder + ProductionEvent modelleri, CRUD + start/pause/resume/produce endpointleri ve telemetry bağlı job-simulator scripti
