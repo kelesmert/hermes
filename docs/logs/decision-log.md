@@ -392,3 +392,11 @@ Yeni kararlar alındıkça bu dosyaya tarih/başlık/gerekçe formatıyla ekleme
 - **Karar:** JobOrder `orderNo` için index tanımı tek yerde tutulur; `orderNo` alanındaki `unique: true` yeterlidir, ayrıca `jobOrderSchema.index({ orderNo: 1 })` tanımı eklenmez.
 - **Gerekçe:** Aynı index pattern’i iki kez tanımlamak Mongoose tarafında startup sırasında “duplicate schema index” uyarısı üretir ve gereksiz index oluşturma denemelerine yol açar.
 - **Etki:** `backend/src/domains/production/models/job-order-model.js` içindeki duplicate `.index` kaldırıldı; unique kuralı korunur.
+
+### OEE Event Sıralama Tie-Breaker
+
+- **Tarih:** 2026-01-01
+- **Domain:** Backend - oee
+- **Karar:** Ayni timestamp’te gelen job event’lerinde `COMPLETE/CANCEL` once, `START/RESUME` sonra islenir.
+- **Gerekçe:** Job bitis ve yeni job baslangic event’leri ayni anda gelirse interval kopup performance > 1 gibi absurt degerler uretmemeli.
+- **Etki:** `backend/src/domains/oee/services/oee-calculator-service.js` interval toplama davranisi deterministik hale gelir.

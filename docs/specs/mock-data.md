@@ -19,6 +19,7 @@ veri uretip DB'ye yazmak ve OEE raporlarinda secilen tarihte goruntulemek.
 ## Kapsam (Ilk Faz)
 
 - Tek gunluk veri uretimi (tek seferlik script, simulasyon degil)
+- Opsiyonel haftalik veri uretimi (5 is gunu, `--week` ile)
 - Tek makine: `MCH-001`
 - Planli ogle arasi: 12:00-13:00 (planned_break)
 - Kaynak uyumu: OEE icin ayrik kaynak (`source=mock-batch`)
@@ -51,9 +52,13 @@ veri uretip DB'ye yazmak ve OEE raporlarinda secilen tarihte goruntulemek.
 - Job suresi degisken olacak:
   - Bazi joblar 1 gunden kisa
   - Bazi joblar 2+ gun surer
-  - Ilk fazda sadece 1 gunluk job yazilir (1 gunluk veri)
+  - Ilk fazda tek gun veya 5 is gunu uretimi var, joblar bu aralikta coklu olabilir
+- Minimum job suresi: 4 saat
+- Maksimum job suresi (haftalik mod): 5 is gunu
+- 1-3 gun arasi sureler daha sik, 4-5 gun daha nadir
 - Kalite orani joba gore degisir
 - Plansiz durus miktari gun/gun degisebilir (gercekci dagilim hedeflenir)
+- Ayni tarih icin deterministik cikti (default) veya `--random` ile farkli cikti secilebilir
 - Telemetry ornekleme sikligi dusuk olabilir (OEE icin yeterli olmasi yeterli)
 
 ## Akis (Oneri)
@@ -69,10 +74,11 @@ veri uretip DB'ye yazmak ve OEE raporlarinda secilen tarihte goruntulemek.
 - Parca/idealCycleTime mevcut mu? yoksa hata ver
 
 3) Veri uretimi
-- Shift penceresinde telemetry üret
+- Shift pencerelerinde telemetry üret
 - 12:00-13:00 planned_break olustur
+- Her gun icin plansiz durus bloklari uret (gun bazli degisen profil)
 - Uretim eventleri (produce/defect) yaz
-- Job eventlerini yaz (start/pause)
+- Job eventlerini yaz (start/auto_pause/auto_resume/complete)
 
 4) Ozet cikti
 - Uretilen telemetry sayisi
@@ -83,6 +89,8 @@ veri uretip DB'ye yazmak ve OEE raporlarinda secilen tarihte goruntulemek.
 
 ```bash
 node scripts/mock-batch.js --date 2025-01-03
+node scripts/mock-batch.js --date 2025-01-03 --week
+node scripts/mock-batch.js --date 2025-01-03 --week --random
 node scripts/mock-batch.js --from 2025-01-03 --to 2025-01-07
 ```
 
@@ -100,12 +108,15 @@ node scripts/mock-batch.js --from 2025-01-03 --to 2025-01-07
 - Duruş sayfasina düşmemesi için mock-batch scripti MachineEvent üretmeyecek
 - Shift tarihi CLI arg ile verilecek:
   - Tek tarih -> 1 gunluk veri (ilk faz)
+  - `--week` -> verilen tarihten itibaren 5 is gunu
   - Tarih araligi -> o gunler arasinda veri (ileride)
+- Hafta sonu baslangici hatadir, kaydirma yapilmaz (uyari verilir)
 - Cakisma olursa eski veri ustune yazilacak (aynı kaynak/tarih araligi icin overwrite)
 - Telemetry intervalMs: 60 sn
 - Plansiz durus dagilimi (ilk faz): gunde 1-3 adet, 5-20 dk; bazi gunler 30 dk tek durus
 - Defect orani (ilk faz): %2 - %8 (gun bazli degisecek)
-- Job akisi (ilk faz): 07:00 START, gun sonunda AUTO_PAUSE; target dolarsa COMPLETE
+- Job akisi (ilk faz): 07:00 START, gun sonunda AUTO_PAUSE; devam eden job ertesi gun AUTO_RESUME ile surer
+- Randomlik modu: varsayilan deterministik, `--random` ile ayni tarihte farkli cikti
 
 ## Acik Sorular
 

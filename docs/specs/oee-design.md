@@ -52,6 +52,7 @@ Amaç: Job yokken OEE hesaplamamak, job varken ise durusların Availability’ye
 - **Job aktif** kabul edilen durumlar: `in_progress + paused`
   - Gerekçe: Job “devam eden bir is” ise, duruslar job aktifken yasaniyor kabul edilmeli.
   - Not: Durusların OEE’ye etkisini `affectsOee` belirler (yemek molasi etkilesin mi gibi).
+  - Uygulama notu: Ayni timestamp’te gelen event’lerde `COMPLETE/CANCEL` once, `START/RESUME` sonra islenir (interval kopmasini engeller).
 - **plannedTime tanimi:** `plannedTime = Shift ∩ (job aktif sureleri)`
   - Job yoksa plannedTime = 0 olur ve OEE skoru N/A olur (beklenen davranis).
   - paused sureleri de job aktif surelerine dahildir; planli duruslarda `affectsOee=false` olan kisim plannedTime’dan dusulur.

@@ -149,6 +149,19 @@ const collectJobActiveIntervals = async (machineId, windowStart, windowEnd, sour
     .select({ eventType: 1, timestamp: 1 })
     .lean();
 
+  const eventPriority = (eventType) => {
+    if (INACTIVE_JOB_EVENTS.has(eventType)) return 0;
+    if (ACTIVE_JOB_EVENTS.has(eventType)) return 1;
+    return 2;
+  };
+
+  events.sort((a, b) => {
+    const aTime = a.timestamp ? a.timestamp.getTime() : 0;
+    const bTime = b.timestamp ? b.timestamp.getTime() : 0;
+    if (aTime !== bTime) return aTime - bTime;
+    return eventPriority(a.eventType) - eventPriority(b.eventType);
+  });
+
   const intervals = [];
   let active = false;
   let currentStart = null;
