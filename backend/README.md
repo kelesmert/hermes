@@ -62,6 +62,9 @@ Seed sonrası örnek hesaplar:
   - Job-sim telemetry kaynağı `JOB_SIM_TELEMETRY_SOURCE` ile seçilir (varsayılan `shift-sim`); job event zaman ekseni `JOB_TIME_SOURCE` ile belirlenir (varsayılan `shift-sim`).
   - Shift-sim test amaçlı sabit duruş segmentleri `SHIFT_SIM_TEST_DOWNTIME_ENABLED` ve süre parametreleri ile kontrol edilir.
   - UI üzerinden simülasyon yönetimi için `/simulations` sayfası kullanılabilir (backend API: `GET/POST /api/simulations/*`, izin: `production.manage`). `shift-sim` için reset aksiyonu, sim kaynaklı telemetry ve event’leri temizler. Prod ortamında kapatmak için `ENABLE_SIMULATION_CONTROL=false` bırakın.
+  - Tek seferlik OEE veri üretimi (mock-batch): `npm run mock:batch -- --date YYYY-MM-DD`
+    - Bu script `source=mock-batch` ile telemetry + production event yazar; monitoring hedef değildir.
+    - OEE rapor ekranında kaynak olarak `mock-batch` seçilerek tarih bazlı analiz yapılır.
 
 ## Dizin Yapısı
 
@@ -103,6 +106,7 @@ backend/
 | `npm run data:gen` | Makine telemetry verisi simüle eder; OEE ve monitoring için sinyal üretir (legacy)      |
 | `npm run shift:sim` | 07:00–18:00 vardiyası için hızlandırılmış deterministik telemetry üretir (test için)  |
 | `npm run job:sim`  | Aktif job order’lar için üretim (good/defect) verisi üretir; telemetry sinyaline bakar  |
+| `npm run mock:batch -- --date YYYY-MM-DD` | Tek seferlik mock-batch veri üretimi (OEE için) |
 | `npm test`     | (Planlı)                                                                                   |
 
 Yeni bağımlılık veya mimari karar eklemeden önce `docs/standart/backend-decisions.md` dosyasını güncelleyip onay alın.

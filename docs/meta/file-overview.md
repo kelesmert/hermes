@@ -71,6 +71,7 @@ Yeni geliştirici projeyi anlamak için bu dosyaya bakmalıdır.
 - `backend/scripts/data-gen.js`: Simülasyon amaçlı telemetry/sinyal üretir; `npm run data:gen` ile çalıştırıldığında periyodik olarak `machine_telemetry` koleksiyonuna veri yazar (`source=data-gen`), makinenin `currentJobOrder` + `status` bilgisine göre aktif (yüksek sıcaklık/tork/enerji) ile idle (düşük) profilleri arasında `DATA_GEN_TRANSITION_MS` süresince ramp-up/ramp-down uygular ve aktif makine listesini en geç `DATA_GEN_MACHINE_REFRESH_MS` süresinde yeniden sorgular. `currentJobOrder` varsa telemetry’ye `jobOrder` etiketi ekler. Planlı duruş açıkken `DATA_GEN_PLANNED_STOPPED_MODE` ile signal/metrikleri 0’a kilitleyebilir.
 - `backend/scripts/shift-simulator.js`: Hızlandırılmış vardiya telemetry simülatörü; 07:00–18:00 aralığı için deterministik sinyal/telemetry üretir ve `simulationRunId` ile işaretler (`npm run shift:sim`). Sanal takvim `SHIFT_SIM_EPOCH_DATE` + kalıcı Simulation Clock state üzerinden ilerler; yarıda durursa kaldığı yerden devam eder, shift bitince ertesi güne geçer. Sinyal 1 yalnızca `in_progress` job varken üretilir; job `paused` ise sinyal 0 kalır. Telemetry kayıtlarında `jobOrder` etiketi yazılır. Koşu bitince OEE processor telemetry’yi işledikten sonra (maksimum `SHIFT_SIM_WAIT_FOR_PROCESSING_MS`) `shift_end` uygular: `in_progress` job’u `paused` yapar, açık event’leri vardiya bitişinde kapatır ve makineyi `idle` durumuna çeker (`currentJobOrder` korunur). Planlı duruş açıkken `SHIFT_SIM_PLANNED_STOPPED_MODE` ile signal/metrikleri 0’a kilitleyebilir. Test downtime segmentleri env ile kontrol edilebilir.
 - `backend/scripts/job-simulator.js`: Aktif JobOrder kayıtları için telemetry’ye bağlı üretim verisi üretir; explicit telemetry kaynağı (`JOB_SIM_TELEMETRY_SOURCE`, default shift-sim) seçer ve telemetry’yi `jobOrder` alanına göre filtreler. Son telemetry timestamp’lerine göre ideal çevrim süresini hesaplayıp `production_events` yazar ve shift-sim koşularında simülasyon timestamp’lerini korur (`npm run job:sim`).
+- `backend/scripts/mock-batch.js`: Tek seferlik mock veri üretim script’i; `source=mock-batch` ile telemetry + production event yazıp OEE raporlarında tarih bazlı analiz için veri hazırlar (`npm run mock:batch`).
 
 ## Docs
 
@@ -94,6 +95,7 @@ Yeni geliştirici projeyi anlamak için bu dosyaya bakmalıdır.
 - `docs/specs/requirements.md`: Proje gereksinimleri, roller, veri modeli.
 - `docs/specs/project-report.md`: Tez raporu taslağı ve mimari anlatım.
 - `docs/specs/project-roadmap.md`: Geliştirme fazları ve kilometre taşları.
+- `docs/specs/mock-data.md`: Tek seferlik mock batch veri üretimi için kararlar, akış ve CLI kullanım notları.
 - `docs/specs/oee-downtime-design.md`: OEE ve downtime tasarımı v1; tarihsel kayıt ve OEE notları için korunur, downtime implementasyonu için kaynak değildir.
 - `docs/specs/downtime-design-v2.md`: Downtime implementasyonu için ana tasarım; planlı scheduler, plansız telemetry + operatör manuel başlatma semantiği, API ve UI akışları.
 - `docs/specs/sim-clock.md`: Shift sim için sanal takvim Simulation Clock tasarımı; deterministik tarih saat, resume ve kaynak seçimi kuralları.

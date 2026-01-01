@@ -12,6 +12,7 @@ const machineStatuses = require('../../../constants/machine-statuses');
 const TELEMETRY_SOURCES = {
   SHIFT_SIM: 'shift-sim',
   DATA_GEN: 'data-gen',
+  MOCK_BATCH: 'mock-batch',
 };
 
 const LEGACY_DATA_GEN_SOURCES = ['data-gen', 'simulator'];
@@ -38,6 +39,7 @@ const normalizeSource = (value) => {
   if (!raw || raw === 'auto') return 'auto';
   if (raw === TELEMETRY_SOURCES.SHIFT_SIM) return TELEMETRY_SOURCES.SHIFT_SIM;
   if (raw === TELEMETRY_SOURCES.DATA_GEN) return TELEMETRY_SOURCES.DATA_GEN;
+  if (raw === TELEMETRY_SOURCES.MOCK_BATCH) return TELEMETRY_SOURCES.MOCK_BATCH;
   if (raw === 'simulator') return TELEMETRY_SOURCES.DATA_GEN;
   return 'auto';
 };
@@ -54,12 +56,18 @@ const resolveAutoSource = async (machineId) => {
   if (latest?.source === TELEMETRY_SOURCES.SHIFT_SIM) {
     return TELEMETRY_SOURCES.SHIFT_SIM;
   }
+  if (latest?.source === TELEMETRY_SOURCES.MOCK_BATCH) {
+    return TELEMETRY_SOURCES.MOCK_BATCH;
+  }
   return TELEMETRY_SOURCES.DATA_GEN;
 };
 
 const buildSourceFilter = (source) => {
   if (source === TELEMETRY_SOURCES.SHIFT_SIM) {
     return { source: TELEMETRY_SOURCES.SHIFT_SIM };
+  }
+  if (source === TELEMETRY_SOURCES.MOCK_BATCH) {
+    return { source: TELEMETRY_SOURCES.MOCK_BATCH };
   }
   if (source === TELEMETRY_SOURCES.DATA_GEN) {
     return { source: { $in: LEGACY_DATA_GEN_SOURCES } };
@@ -128,7 +136,11 @@ const collectJobActiveIntervals = async (machineId, windowStart, windowEnd, sour
     eventType: { $in: Array.from(new Set([...ACTIVE_JOB_EVENTS, ...INACTIVE_JOB_EVENTS])) },
     timestamp: { $lte: windowEnd },
   };
-  if (source === TELEMETRY_SOURCES.SHIFT_SIM || source === TELEMETRY_SOURCES.DATA_GEN) {
+  if (
+    source === TELEMETRY_SOURCES.SHIFT_SIM ||
+    source === TELEMETRY_SOURCES.DATA_GEN ||
+    source === TELEMETRY_SOURCES.MOCK_BATCH
+  ) {
     eventFilter['metadata.simulationSource'] = source;
   }
 
@@ -348,6 +360,9 @@ const calculateOeeForMachine = async ({
     eventFilter.source = 'simulator';
   } else if (effectiveSource === TELEMETRY_SOURCES.DATA_GEN) {
     eventFilter['metadata.simulationSource'] = 'data-gen';
+  } else if (effectiveSource === TELEMETRY_SOURCES.MOCK_BATCH) {
+    eventFilter['metadata.simulationSource'] = 'mock-batch';
+    eventFilter.source = 'simulator';
   }
 
   const productionEvents = await ProductionEvent.find(eventFilter)

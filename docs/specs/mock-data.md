@@ -79,6 +79,13 @@ veri uretip DB'ye yazmak ve OEE raporlarinda secilen tarihte goruntulemek.
 - Uretilen good/defect toplam
 - Job durumu (complete mi, ongoing mi)
 
+## Calistirma (CLI)
+
+```bash
+node scripts/mock-batch.js --date 2025-01-03
+node scripts/mock-batch.js --from 2025-01-03 --to 2025-01-07
+```
+
 ## Kararlar (Net)
 
 - Ilk faz: 1 gunluk veri uretimi
@@ -87,20 +94,19 @@ veri uretip DB'ye yazmak ve OEE raporlarinda secilen tarihte goruntulemek.
 - Tek makine: `MCH-001`
 - OEE uyumu icin ProductionEvent ve telemetry birlikte yazilacak
 - Script tek seferlik calisacak (real-time degil)
-- Parca: `MB-001`
+- Parca: `PART-MB-001`
 - Monitoring hedef degil; telemetry sikligi dusuk tutulabilir
 - OEE UI'da kaynak secimi olacak (mock-batch secilebilecek)
 - Duruş sayfasina düşmemesi için mock-batch scripti MachineEvent üretmeyecek
 - Shift tarihi CLI arg ile verilecek:
   - Tek tarih -> 1 gunluk veri (ilk faz)
   - Tarih araligi -> o gunler arasinda veri (ileride)
-- Cakisma olursa eski veri ustune yazilacak (aynı kaynak/arih araligi icin overwrite)
+- Cakisma olursa eski veri ustune yazilacak (aynı kaynak/tarih araligi icin overwrite)
 - Telemetry intervalMs: 60 sn
-- Plansiz durus dagilimi: gun bazli degisir (ileride farkli gunlerde farkli siklik)
-- Defect orani: gun bazli degisir (ileride farkli gunlerde farkli oran)
+- Plansiz durus dagilimi (ilk faz): gunde 1-3 adet, 5-20 dk; bazi gunler 30 dk tek durus
+- Defect orani (ilk faz): %2 - %8 (gun bazli degisecek)
 - Job akisi (ilk faz): 07:00 START, gun sonunda AUTO_PAUSE; target dolarsa COMPLETE
 
 ## Acik Sorular
 
-- Plansiz durus dagilimi (ilk fazda gun icinde kac adet / sure araligi netlestirilecek)
-- Defect orani (ilk fazda hangi aralik kullanilacak netlestirilecek)
+- Su an acik soru kalmadi.

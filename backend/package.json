@@ -10,7 +10,8 @@
     "seed": "node scripts/seed.js",
     "data:gen": "node scripts/data-gen.js",
     "job:sim": "node scripts/job-simulator.js",
-    "shift:sim": "node scripts/shift-simulator.js"
+    "shift:sim": "node scripts/shift-simulator.js",
+    "mock:batch": "node scripts/mock-batch.js"
   },
   "keywords": [],
   "author": "",

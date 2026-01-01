@@ -38,6 +38,7 @@ const MODE_OPTIONS = [
 const SOURCE_OPTIONS = [
   { id: 'shift-sim', label: 'Shift Sim' },
   { id: 'data-gen', label: 'Data Gen' },
+  { id: 'mock-batch', label: 'Mock Batch' },
   { id: 'auto', label: 'Auto' },
 ];
 
