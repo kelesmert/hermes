@@ -45,6 +45,24 @@
 - Job-sim cursor state kalıcılığı ve actualDurationMinutes düzeltmesi.
 - OEE trend için tek endpoint tasarımı (opsiyonel).
 
+## 01 Ocak 2026 - Context Window #13
+
+### Yapılanlar
+
+- Mock-batch scripti haftalik ve aylik modlara genisletildi; `--week` ve `--month` bayraklari ile is gunleri uretimi eklendi, `--random` ile deterministik seed kapatildi.
+- OEE calculator’da ayni timestamp’li job event’leri icin tie-breaker eklendi; performance > 1 sapmalari onlendi.
+- Reports trend grafigi is gunleriyle sinirlandi ve hafta sonu bosluklari cizgi uzerinde birlestirildi.
+- Mock-batch akis ve CLI kullanim notlari dokumantasyona islendi.
+
+### Alinan Kararlar
+
+- Yeni karar alinmadi.
+
+### Sonraki Adımlar
+
+- Shift calendar altyapisini makine bazli hale getirmek.
+- Raporlama export ve audit log gelistirmeleri.
+
 ## 31 Aralık 2025 - Context Window #11
 
 ### Yapılanlar

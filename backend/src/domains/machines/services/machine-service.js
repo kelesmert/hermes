@@ -1,6 +1,20 @@
 const mongoose = require('mongoose');
 const Machine = require('../models/machine-model');
+const User = require('../../auth/models/user-model');
 const AppError = require('../../../utils/app-error');
+
+const resolveUserId = async (value) => {
+  if (value === undefined) return undefined;
+  if (value === null || value === '') return null;
+  if (!mongoose.Types.ObjectId.isValid(value)) {
+    throw new AppError('Geçersiz kullanıcı id formatı.', 400);
+  }
+  const user = await User.findById(value).select('_id');
+  if (!user) {
+    throw new AppError('Kullanıcı bulunamadı.', 404);
+  }
+  return user._id;
+};
 
 const ensureMachine = async (id) => {
   if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -20,7 +34,7 @@ const listMachines = async () => {
 const getMachine = async (id) => ensureMachine(id);
 
 const createMachine = async (payload) => {
-  const { code, name, tags = [], isActive = true } = payload;
+  const { code, name, tags = [], isActive = true, responsibleUser } = payload;
 
   if (!code || !name) {
     throw new AppError('Makine kodu ve adı zorunludur.', 400);
@@ -31,11 +45,14 @@ const createMachine = async (payload) => {
     throw new AppError('Bu kodla kayıtlı bir makine zaten mevcut.', 409);
   }
 
+  const resolvedResponsibleUser = await resolveUserId(responsibleUser);
+
   const machine = await Machine.create({
     code: code.trim().toUpperCase(),
     name: name.trim(),
     tags,
     isActive: Boolean(isActive),
+    ...(resolvedResponsibleUser && { responsibleUser: resolvedResponsibleUser }),
   });
 
   return machine;
@@ -43,7 +60,7 @@ const createMachine = async (payload) => {
 
 const updateMachine = async (id, payload) => {
   const machine = await ensureMachine(id);
-  const { code, name, tags, isActive } = payload;
+  const { code, name, tags, isActive, responsibleUser } = payload;
 
   if (code && code.trim().toUpperCase() !== machine.code) {
     const existing = await Machine.findOne({ code: code.trim().toUpperCase(), _id: { $ne: id } });
@@ -61,6 +78,10 @@ const updateMachine = async (id, payload) => {
   }
   if (typeof isActive === 'boolean') {
     machine.isActive = isActive;
+  }
+  if (responsibleUser !== undefined) {
+    const resolvedResponsibleUser = await resolveUserId(responsibleUser);
+    machine.responsibleUser = resolvedResponsibleUser || null;
   }
 
   await machine.save();

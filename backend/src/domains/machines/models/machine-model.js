@@ -36,6 +36,11 @@ const machineSchema = new mongoose.Schema(
       ref: 'JobOrder',
       default: null,
     },
+    responsibleUser: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: null,
+    },
   },
   {
     timestamps: true,

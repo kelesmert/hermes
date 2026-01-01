@@ -400,3 +400,11 @@ Yeni kararlar alındıkça bu dosyaya tarih/başlık/gerekçe formatıyla ekleme
 - **Karar:** Ayni timestamp’te gelen job event’lerinde `COMPLETE/CANCEL` once, `START/RESUME` sonra islenir.
 - **Gerekçe:** Job bitis ve yeni job baslangic event’leri ayni anda gelirse interval kopup performance > 1 gibi absurt degerler uretmemeli.
 - **Etki:** `backend/src/domains/oee/services/oee-calculator-service.js` interval toplama davranisi deterministik hale gelir.
+
+### Mock Batch CLI Modlari ve Deterministik Uretim
+
+- **Tarih:** 2026-01-01
+- **Domain:** Backend - reports/oee
+- **Karar:** Mock-batch script’i `--week` (5 is gunu) ve `--month` (20 is gunu) modlarini destekler; hafta sonu baslangici hataya dusurulur ve varsayilan cikti deterministiktir, `--random` ile degistirilebilir.
+- **Gerekçe:** OEE raporlari icin tekrarlanabilir (deterministik) veri uretmek, ancak gerekirse ayni tarih araliginda farkli dagilimlar denemek; uzun araliklari tek seferde hizli uretmek.
+- **Etki:** `backend/scripts/mock-batch.js`, `backend/README.md`, `docs/specs/mock-data.md`, `frontend/src/features/reports/pages/reports.jsx` (kaynak secimi).

@@ -3,6 +3,7 @@ const JobOrder = require('../models/job-order-model');
 const ProductionEvent = require('../models/production-event-model');
 const Part = require('../../parts/models/part-model');
 const Machine = require('../../machines/models/machine-model');
+const User = require('../../auth/models/user-model');
 const { createEvent: createMachineEvent } = require('../../machines/services/machine-event-service');
 const jobOrderStatuses = require('../../../constants/job-order-statuses');
 const productionEventTypes = require('../../../constants/production-event-types');
@@ -135,6 +136,19 @@ const ensureMachine = async (machineId) => {
   return machine;
 };
 
+const resolveAssignedOperator = async (value) => {
+  if (value === undefined) return undefined;
+  if (value === null || value === '') return null;
+  if (!mongoose.Types.ObjectId.isValid(value)) {
+    throw new AppError('Geçersiz kullanıcı id formatı.', 400);
+  }
+  const user = await User.findById(value).select('_id');
+  if (!user) {
+    throw new AppError('Kullanıcı bulunamadı.', 404);
+  }
+  return user._id;
+};
+
 const ensurePart = async (partId) => {
   if (!mongoose.Types.ObjectId.isValid(partId)) {
     throw new AppError('Geçersiz parça id formatı.', 400);
@@ -205,12 +219,13 @@ const createJobOrder = async (payload) => {
   const machine = await ensureMachine(payload.machine);
   const userProvidedOrderNo = payload.orderNo?.trim() || null;
   const targetQuantity = parseTargetQuantity(payload.targetQuantity);
+  const resolvedAssignedOperator = await resolveAssignedOperator(payload.assignedOperator);
 
   const baseDoc = {
     part: part._id,
     machine: machine._id,
     targetQuantity,
-    assignedOperator: payload.assignedOperator,
+    assignedOperator: resolvedAssignedOperator,
     createdBy: payload.createdBy,
     notes: payload.notes?.trim(),
     estimatedDurationMinutes: computeEstimatedDurationMinutes(part, targetQuantity),
@@ -293,13 +308,8 @@ const updateJobOrder = async (id, payload) => {
     jobOrder.targetQuantity = parseTargetQuantity(payload.targetQuantity);
   }
   if (payload.assignedOperator !== undefined) {
-    if (payload.assignedOperator === null) {
-      jobOrder.assignedOperator = undefined;
-    } else if (!mongoose.Types.ObjectId.isValid(payload.assignedOperator)) {
-      throw new AppError('Geçersiz operatör id formatı.', 400);
-    } else {
-      jobOrder.assignedOperator = payload.assignedOperator;
-    }
+    const resolvedAssignedOperator = await resolveAssignedOperator(payload.assignedOperator);
+    jobOrder.assignedOperator = resolvedAssignedOperator || undefined;
   }
   if (payload.notes !== undefined) {
     jobOrder.notes = payload.notes?.trim();

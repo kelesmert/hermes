@@ -7,6 +7,7 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  MenuItem,
   Stack,
   Switch,
   TextField,
@@ -19,9 +20,10 @@ const defaultValues = {
   name: '',
   tags: '',
   isActive: true,
+  responsibleUser: '',
 };
 
-const MachineFormDialog = ({ open, onClose, onSubmit, initialData, isSubmitting }) => {
+const MachineFormDialog = ({ open, onClose, onSubmit, initialData, isSubmitting, users }) => {
   const {
     register,
     handleSubmit,
@@ -36,6 +38,7 @@ const MachineFormDialog = ({ open, onClose, onSubmit, initialData, isSubmitting 
         name: initialData.name || '',
         tags: (initialData.tags || []).join(', '),
         isActive: typeof initialData.isActive === 'boolean' ? initialData.isActive : true,
+        responsibleUser: initialData.responsibleUser?.id || initialData.responsibleUser || '',
       });
     } else {
       reset(defaultValues);
@@ -47,6 +50,9 @@ const MachineFormDialog = ({ open, onClose, onSubmit, initialData, isSubmitting 
   };
 
   const handleSubmitForm = (values) => {
+    const responsibleUserValue = values.responsibleUser?.toString?.() || values.responsibleUser;
+    const responsibleUser =
+      responsibleUserValue || (initialData ? null : undefined);
     const payload = {
       code: values.code.trim(),
       name: values.name.trim(),
@@ -55,6 +61,7 @@ const MachineFormDialog = ({ open, onClose, onSubmit, initialData, isSubmitting 
         .map((tag) => tag.trim())
         .filter(Boolean),
       isActive: values.isActive,
+      ...(responsibleUser !== undefined && { responsibleUser }),
     };
     onSubmit(payload);
   };
@@ -86,6 +93,14 @@ const MachineFormDialog = ({ open, onClose, onSubmit, initialData, isSubmitting 
               helperText="Örn: press, hat-a"
               fullWidth
             />
+            <TextField select label="Sorumlu Kullanıcı" {...register('responsibleUser')} fullWidth>
+              <MenuItem value="">Seçilmedi</MenuItem>
+              {users.map((user) => (
+                <MenuItem key={user.id} value={user.id}>
+                  {user.firstName} {user.lastName} ({user.username})
+                </MenuItem>
+              ))}
+            </TextField>
             <FormControlLabel
               control={<Switch {...register('isActive')} defaultChecked />}
               label="Aktif"
@@ -115,13 +130,16 @@ MachineFormDialog.propTypes = {
     name: PropTypes.string,
     tags: PropTypes.arrayOf(PropTypes.string),
     isActive: PropTypes.bool,
+    responsibleUser: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
   }),
   isSubmitting: PropTypes.bool,
+  users: PropTypes.array,
 };
 
 MachineFormDialog.defaultProps = {
   initialData: null,
   isSubmitting: false,
+  users: [],
 };
 
 export default MachineFormDialog;

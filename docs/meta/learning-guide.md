@@ -222,3 +222,15 @@ Frontend
 - `Auto` modunda backend, seçili makinede en son yazılan telemetry kaynağını baz alır (shift-sim koşusu bittiyse bile “en yeni” kaynak shift-sim olabilir).
 - `Shift Sim` modu 07:00–18:00 vardiya penceresini (Simulation Clock) gösterir; `Data Gen` modu ise canlı izleme için kayan pencereyi gösterir.
 - Bu ayrım, shift-sim verisi DB’de dursa bile data-gen’i çalıştırdıktan sonra Monitoring’de “temiz” bir live akış görmeyi sağlar.
+
+## 21) OEE Mock Batch Veri Üretimi
+
+- Amaç: Gercek zamanli simulasyon beklemeden OEE raporu icin tek seferlik veri yazmak.
+- Script: `backend/scripts/mock-batch.js` (`npm run mock:batch`).
+- Calistirma:
+  - Tek gun: `npm run mock:batch -- --date YYYY-MM-DD`
+  - 5 is gunu: `npm run mock:batch -- --date YYYY-MM-DD --week`
+  - 20 is gunu: `npm run mock:batch -- --date YYYY-MM-DD --month`
+  - Deterministik ciktiyi bozmak icin: `--random`
+- Kaynak: Telemetry ve production event’ler `source=mock-batch` ve `metadata.simulationSource=mock-batch` ile yazilir.
+- Not: Monitoring hedef degildir; OEE rapor ekraninda kaynak olarak `mock-batch` secilerek tarih bazli analiz yapilir.

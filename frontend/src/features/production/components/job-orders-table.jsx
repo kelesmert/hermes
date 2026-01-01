@@ -50,6 +50,7 @@ import {
 } from '@/features/production/services/job-orders-api.js';
 import { fetchParts } from '@/features/parts/services/parts-api.js';
 import { fetchMachines } from '@/features/machines/services/machines-api.js';
+import { fetchUsers } from '@/features/users/services/users-api.js';
 import JobOrderFormDialog from '@/features/production/components/job-order-form-dialog.jsx';
 import JobOrderEventsDialog from '@/features/production/components/job-order-events-dialog.jsx';
 import { DEFECT_OPTIONS, JOB_ORDER_STATUS_CONFIG, QUALITY_OPTIONS } from '@/features/production/constants/job-order.js';
@@ -85,6 +86,7 @@ const JobOrdersTable = () => {
   const { hasPermission } = usePermissions();
   const canManage = hasPermission(PERMISSIONS.PRODUCTION_MANAGE);
   const canExecute = hasPermission(PERMISSIONS.WORK_ORDERS_EXECUTE) || canManage;
+  const canManageUsers = hasPermission(PERMISSIONS.USERS_MANAGE);
 
   const [formOpen, setFormOpen] = useState(false);
   const [editingJobOrder, setEditingJobOrder] = useState(null);
@@ -99,6 +101,11 @@ const JobOrdersTable = () => {
 
   const { data: parts = [] } = useQuery({ queryKey: ['parts'], queryFn: fetchParts });
   const { data: machines = [] } = useQuery({ queryKey: ['machines'], queryFn: fetchMachines });
+  const { data: users = [] } = useQuery({
+    queryKey: ['users', 'assignable'],
+    queryFn: fetchUsers,
+    enabled: canManageUsers,
+  });
 
   const createMutation = useMutation({
     mutationFn: createJobOrder,
@@ -453,6 +460,7 @@ const JobOrdersTable = () => {
         isSubmitting={createMutation.isLoading || updateMutation.isLoading}
         parts={parts}
         machines={machines}
+        users={users}
       />
 
       <Dialog open={actionDialogOpen} onClose={closeActionDialog} fullWidth maxWidth="xs">

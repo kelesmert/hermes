@@ -16,11 +16,21 @@ import { useForm } from 'react-hook-form';
 const defaultValues = {
   part: '',
   machine: '',
+  assignedOperator: '',
   targetQuantity: 100,
   notes: '',
 };
 
-const JobOrderFormDialog = ({ open, onClose, onSubmit, initialData, isSubmitting, parts, machines }) => {
+const JobOrderFormDialog = ({
+  open,
+  onClose,
+  onSubmit,
+  initialData,
+  isSubmitting,
+  parts,
+  machines,
+  users,
+}) => {
   const {
     register,
     handleSubmit,
@@ -38,6 +48,8 @@ const JobOrderFormDialog = ({ open, onClose, onSubmit, initialData, isSubmitting
       reset({
         part: initialData.part?.id || initialData.part || parts[0]?.id || '',
         machine: initialData.machine?.id || initialData.machine || '',
+        assignedOperator:
+          initialData.assignedOperator?.id || initialData.assignedOperator || '',
         targetQuantity: initialData.targetQuantity || 100,
         notes: initialData.notes || '',
       });
@@ -82,9 +94,13 @@ const JobOrderFormDialog = ({ open, onClose, onSubmit, initialData, isSubmitting
   };
 
   const handleSubmitForm = (values) => {
+    const assignedOperatorValue = values.assignedOperator?.toString?.() || values.assignedOperator;
+    const assignedOperator =
+      assignedOperatorValue || (initialData ? null : undefined);
     const payload = {
       part: values.part,
       machine: values.machine,
+      ...(assignedOperator !== undefined && { assignedOperator }),
       targetQuantity: Number(values.targetQuantity),
       notes: values.notes?.trim() || undefined,
     };
@@ -123,6 +139,15 @@ const JobOrderFormDialog = ({ open, onClose, onSubmit, initialData, isSubmitting
               {availableMachines.map((machine) => (
                 <MenuItem key={machine.id} value={machine.id}>
                   {machine.name} ({machine.code})
+                </MenuItem>
+              ))}
+            </TextField>
+
+            <TextField select label="Sorumlu Operatör" {...register('assignedOperator')} fullWidth>
+              <MenuItem value="">Seçilmedi</MenuItem>
+              {users.map((user) => (
+                <MenuItem key={user.id} value={user.id}>
+                  {user.firstName} {user.lastName} ({user.username})
                 </MenuItem>
               ))}
             </TextField>
@@ -170,6 +195,7 @@ JobOrderFormDialog.propTypes = {
   isSubmitting: PropTypes.bool,
   parts: PropTypes.array,
   machines: PropTypes.array,
+  users: PropTypes.array,
 };
 
 JobOrderFormDialog.defaultProps = {
@@ -177,6 +203,7 @@ JobOrderFormDialog.defaultProps = {
   isSubmitting: false,
   parts: [],
   machines: [],
+  users: [],
 };
 
 export default JobOrderFormDialog;

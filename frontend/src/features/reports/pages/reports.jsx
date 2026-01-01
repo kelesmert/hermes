@@ -81,6 +81,11 @@ const toIsoString = (value) => {
   return parsed.toISOString();
 };
 
+const isWeekendDate = (date) => {
+  const day = date.getUTCDay();
+  return day === 0 || day === 6;
+};
+
 const ReportsPage = () => {
   const [selectedMachineId, setSelectedMachineId] = useState('');
   const [mode, setMode] = useState('shift');
@@ -154,10 +159,12 @@ const ReportsPage = () => {
     ],
     enabled: Boolean(selectedMachineId && trendAnchorDate),
     queryFn: async () => {
-      const days = trendScope === 'month' ? 30 : 7;
+      const totalDays = trendScope === 'month' ? 30 : 7;
       const dates = [];
-      for (let i = 0; i < days; i += 1) {
-        dates.push(addDays(trendAnchorDate, i));
+      for (let i = 0; i < totalDays; i += 1) {
+        const candidate = addDays(trendAnchorDate, i);
+        if (isWeekendDate(candidate)) continue;
+        dates.push(candidate);
       }
 
       const results = await Promise.allSettled(
@@ -223,7 +230,7 @@ const ReportsPage = () => {
           goodCount,
           defectCount,
           coverageDays,
-          windowDays: days,
+          windowDays: dates.length,
         },
       };
     },
@@ -543,10 +550,35 @@ const ReportsPage = () => {
                         formatter={(value) => (value === null ? 'N/A' : formatPercent(value))}
                       />
                       <Legend />
-                      <Line type="monotone" dataKey="oee" name="OEE" stroke="#1976d2" strokeWidth={2} />
-                      <Line type="monotone" dataKey="availability" name="Kullanılabilirlik" stroke="#2e7d32" />
-                      <Line type="monotone" dataKey="performance" name="Performans" stroke="#ed6c02" />
-                      <Line type="monotone" dataKey="quality" name="Kalite" stroke="#9c27b0" />
+                      <Line
+                        type="monotone"
+                        dataKey="oee"
+                        name="OEE"
+                        stroke="#1976d2"
+                        strokeWidth={2}
+                        connectNulls
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="availability"
+                        name="Kullanılabilirlik"
+                        stroke="#2e7d32"
+                        connectNulls
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="performance"
+                        name="Performans"
+                        stroke="#ed6c02"
+                        connectNulls
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="quality"
+                        name="Kalite"
+                        stroke="#9c27b0"
+                        connectNulls
+                      />
                     </LineChart>
                   </ResponsiveContainer>
                 </Box>

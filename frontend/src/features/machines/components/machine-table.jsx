@@ -36,6 +36,7 @@ import {
   updateMachine,
   deleteMachine,
 } from '@/features/machines/services/machines-api.js';
+import { fetchUsers } from '@/features/users/services/users-api.js';
 import MachineFormDialog from '@/features/machines/components/machine-form-dialog.jsx';
 import MachineEventDialog from '@/features/machines/components/machine-event-dialog.jsx';
 import usePermissions from '@/hooks/use-permissions.js';
@@ -63,6 +64,7 @@ const MachineTable = () => {
   const queryClient = useQueryClient();
   const { hasPermission } = usePermissions();
   const canWrite = hasPermission(PERMISSIONS.MACHINES_WRITE);
+  const canManageUsers = hasPermission(PERMISSIONS.USERS_MANAGE);
 
   const [formOpen, setFormOpen] = useState(false);
   const [eventDialogOpen, setEventDialogOpen] = useState(false);
@@ -72,6 +74,11 @@ const MachineTable = () => {
   const { data: machines = [], isLoading, refetch } = useQuery({
     queryKey: ['machines'],
     queryFn: fetchMachines,
+  });
+  const { data: users = [] } = useQuery({
+    queryKey: ['users', 'assignable'],
+    queryFn: fetchUsers,
+    enabled: canManageUsers,
   });
 
   const createMutation = useMutation({
@@ -272,6 +279,7 @@ const MachineTable = () => {
         onSubmit={handleSubmitForm}
         initialData={selectedMachine}
         isSubmitting={createMutation.isLoading || updateMutation.isLoading}
+        users={users}
       />
 
       <MachineEventDialog open={eventDialogOpen} onClose={handleCloseEvents} machine={selectedMachine} />

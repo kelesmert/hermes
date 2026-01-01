@@ -117,7 +117,11 @@ node scripts/mock-batch.js --from 2025-01-03 --to 2025-01-07
 - Hafta sonu baslangici hatadir, kaydirma yapilmaz (uyari verilir)
 - Cakisma olursa eski veri ustune yazilacak (aynı kaynak/tarih araligi icin overwrite)
 - Telemetry intervalMs: 60 sn
-- Plansiz durus dagilimi (ilk faz): gunde 1-3 adet, 5-20 dk; bazi gunler 30 dk tek durus
+- Plansiz durus dagilimi (ilk faz): gun bazli agirlikli profil
+  - low: 1 durus, 5-10 dk
+  - medium: 1-2 durus, 5-20 dk, %15 ihtimalle 30 dk
+  - high: 2-4 durus, 10-25 dk, %25 ihtimalle 30 dk
+  - Gun profili haftaya gore degisir (Pzt daha yogun, Carsamba daha sakin)
 - Defect orani (ilk faz): %2 - %8 (gun bazli degisecek)
 - Job akisi (ilk faz): 07:00 START, gun sonunda AUTO_PAUSE; devam eden job ertesi gun AUTO_RESUME ile surer
 - Randomlik modu: varsayilan deterministik, `--random` ile ayni tarihte farkli cikti
