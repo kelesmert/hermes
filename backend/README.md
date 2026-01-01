@@ -64,6 +64,7 @@ Seed sonrası örnek hesaplar:
   - UI üzerinden simülasyon yönetimi için `/simulations` sayfası kullanılabilir (backend API: `GET/POST /api/simulations/*`, izin: `production.manage`). `shift-sim` için reset aksiyonu, sim kaynaklı telemetry ve event’leri temizler. Prod ortamında kapatmak için `ENABLE_SIMULATION_CONTROL=false` bırakın.
   - Tek seferlik OEE veri üretimi (mock-batch): `npm run mock:batch -- --date YYYY-MM-DD`
     - Haftalik 5 is gunu uretim: `npm run mock:batch -- --date YYYY-MM-DD --week`
+    - Aylik 20 is gunu uretim: `npm run mock:batch -- --date YYYY-MM-DD --month`
     - Ayni tarihte farkli cikti: `--random`
     - Bu script `source=mock-batch` ile telemetry + production event yazar; monitoring hedef değildir.
     - OEE rapor ekranında kaynak olarak `mock-batch` seçilerek tarih bazlı analiz yapılır.
@@ -110,6 +111,7 @@ backend/
 | `npm run job:sim`  | Aktif job order’lar için üretim (good/defect) verisi üretir; telemetry sinyaline bakar  |
 | `npm run mock:batch -- --date YYYY-MM-DD` | Tek seferlik mock-batch veri üretimi (OEE için) |
 | `npm run mock:batch -- --date YYYY-MM-DD --week` | 5 is gunu boyunca mock-batch veri üretimi |
+| `npm run mock:batch -- --date YYYY-MM-DD --month` | 20 is gunu boyunca mock-batch veri üretimi |
 | `npm run mock:batch -- --date YYYY-MM-DD --random` | Ayni tarihte farkli mock-batch ciktilari |
 | `npm test`     | (Planlı)                                                                                   |
 

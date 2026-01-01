@@ -20,6 +20,7 @@ veri uretip DB'ye yazmak ve OEE raporlarinda secilen tarihte goruntulemek.
 
 - Tek gunluk veri uretimi (tek seferlik script, simulasyon degil)
 - Opsiyonel haftalik veri uretimi (5 is gunu, `--week` ile)
+- Opsiyonel aylik veri uretimi (20 is gunu, `--month` ile)
 - Tek makine: `MCH-001`
 - Planli ogle arasi: 12:00-13:00 (planned_break)
 - Kaynak uyumu: OEE icin ayrik kaynak (`source=mock-batch`)
@@ -55,7 +56,8 @@ veri uretip DB'ye yazmak ve OEE raporlarinda secilen tarihte goruntulemek.
   - Ilk fazda tek gun veya 5 is gunu uretimi var, joblar bu aralikta coklu olabilir
 - Minimum job suresi: 4 saat
 - Maksimum job suresi (haftalik mod): 5 is gunu
-- 1-3 gun arasi sureler daha sik, 4-5 gun daha nadir
+- Maksimum job suresi (aylik mod): 8 is gunu
+- 1-3 gun arasi sureler daha sik, 4-5+ gun daha nadir
 - Kalite orani joba gore degisir
 - Plansiz durus miktari gun/gun degisebilir (gercekci dagilim hedeflenir)
 - Ayni tarih icin deterministik cikti (default) veya `--random` ile farkli cikti secilebilir
@@ -90,6 +92,7 @@ veri uretip DB'ye yazmak ve OEE raporlarinda secilen tarihte goruntulemek.
 ```bash
 node scripts/mock-batch.js --date 2025-01-03
 node scripts/mock-batch.js --date 2025-01-03 --week
+node scripts/mock-batch.js --date 2025-01-03 --month
 node scripts/mock-batch.js --date 2025-01-03 --week --random
 node scripts/mock-batch.js --from 2025-01-03 --to 2025-01-07
 ```
@@ -109,6 +112,7 @@ node scripts/mock-batch.js --from 2025-01-03 --to 2025-01-07
 - Shift tarihi CLI arg ile verilecek:
   - Tek tarih -> 1 gunluk veri (ilk faz)
   - `--week` -> verilen tarihten itibaren 5 is gunu
+  - `--month` -> verilen tarihten itibaren 20 is gunu
   - Tarih araligi -> o gunler arasinda veri (ileride)
 - Hafta sonu baslangici hatadir, kaydirma yapilmaz (uyari verilir)
 - Cakisma olursa eski veri ustune yazilacak (aynı kaynak/tarih araligi icin overwrite)

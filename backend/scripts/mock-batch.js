@@ -25,7 +25,10 @@ const PLANNED_BREAK_END = '13:00';
 const BUCKET_MS = 60 * 60 * 1000;
 
 const MIN_JOB_DURATION_MS = 4 * 60 * 60 * 1000;
-const MAX_JOB_DAYS = 5;
+const DEFAULT_MAX_JOB_DAYS = 5;
+const MONTH_MAX_JOB_DAYS = 8;
+const WORKDAYS_PER_WEEK = 5;
+const WORKDAYS_PER_MONTH = 20;
 
 const DEFECT_RATE_MIN = 0.02;
 const DEFECT_RATE_MAX = 0.08;
@@ -91,7 +94,7 @@ const listDates = (fromYmd, toYmd) => {
   return dates;
 };
 
-const listWeekdays = (startYmd, count) => {
+const listWorkdays = (startYmd, count) => {
   const dates = [];
   let cursor = { ...startYmd };
   while (dates.length < count) {
@@ -272,13 +275,23 @@ const resolveArgs = () => {
   const from = valueOf('--from');
   const to = valueOf('--to');
   const week = hasFlag('--week');
+  const month = hasFlag('--month');
   const randomize = hasFlag('--random');
 
   if (week && !date) {
     throw new Error('--week kullanimi icin --date zorunlu.');
   }
+  if (month && !date) {
+    throw new Error('--month kullanimi icin --date zorunlu.');
+  }
   if (week && (from || to)) {
     throw new Error('--week ile --from/--to birlikte kullanilamaz.');
+  }
+  if (month && (from || to)) {
+    throw new Error('--month ile --from/--to birlikte kullanilamaz.');
+  }
+  if (week && month) {
+    throw new Error('--week ve --month birlikte kullanilamaz.');
   }
   if (date && (from || to)) {
     throw new Error('Tek tarih icin sadece --date kullanin.');
@@ -297,12 +310,26 @@ const resolveArgs = () => {
     }
     if (week) {
       return {
-        dates: listWeekdays(parsed, 5),
+        dates: listWorkdays(parsed, WORKDAYS_PER_WEEK),
         rangeLabel: `${normalized}-week`,
         randomize,
+        maxJobDays: DEFAULT_MAX_JOB_DAYS,
       };
     }
-    return { dates: [normalized], rangeLabel: normalized, randomize };
+    if (month) {
+      return {
+        dates: listWorkdays(parsed, WORKDAYS_PER_MONTH),
+        rangeLabel: `${normalized}-month`,
+        randomize,
+        maxJobDays: MONTH_MAX_JOB_DAYS,
+      };
+    }
+    return {
+      dates: [normalized],
+      rangeLabel: normalized,
+      randomize,
+      maxJobDays: DEFAULT_MAX_JOB_DAYS,
+    };
   }
 
   if (from && to) {
@@ -315,10 +342,11 @@ const resolveArgs = () => {
       dates: listDates(parsedFrom, parsedTo),
       rangeLabel: `${from}..${to}`,
       randomize,
+      maxJobDays: DEFAULT_MAX_JOB_DAYS,
     };
   }
 
-  throw new Error('Kullanim: --date YYYY-MM-DD [--week] [--random] veya --from YYYY-MM-DD --to YYYY-MM-DD');
+  throw new Error('Kullanim: --date YYYY-MM-DD [--week|--month] [--random] veya --from YYYY-MM-DD --to YYYY-MM-DD');
 };
 
 const findWindowIndexForTime = (windows, time) =>
@@ -359,9 +387,10 @@ const addShiftTime = (startAt, durationMs, windows) => {
   return { endAt: windows[windows.length - 1].shiftEndAt, exhausted: true };
 };
 
-const sampleJobDurationMs = (shiftDurationMs) => {
+const sampleJobDurationMs = (shiftDurationMs, maxJobDays) => {
   const dayMs = shiftDurationMs;
-  const maxMs = dayMs * MAX_JOB_DAYS;
+  const safeMaxDays = Math.max(1, Number(maxJobDays) || DEFAULT_MAX_JOB_DAYS);
+  const maxMs = dayMs * safeMaxDays;
   const pick = rand();
   if (pick < 0.22) {
     return randomBetween(MIN_JOB_DURATION_MS, dayMs);
@@ -378,7 +407,7 @@ const sampleJobDurationMs = (shiftDurationMs) => {
   return randomBetween(dayMs * 4, maxMs);
 };
 
-const buildJobPlans = (windows) => {
+const buildJobPlans = (windows, maxJobDays) => {
   const plans = [];
   let cursor = windows[0].shiftStartAt.getTime();
 
@@ -399,7 +428,7 @@ const buildJobPlans = (windows) => {
 
     const shiftDurationMs =
       windows[windowIndex].shiftEndAt.getTime() - windows[windowIndex].shiftStartAt.getTime();
-    let durationMs = sampleJobDurationMs(shiftDurationMs);
+    let durationMs = sampleJobDurationMs(shiftDurationMs, maxJobDays);
     if (durationMs > remainingShiftMs) {
       durationMs = remainingShiftMs;
     }
@@ -465,7 +494,7 @@ const estimateOperatingMs = (segments, dayData) => {
 };
 
 const main = async () => {
-  const { dates, rangeLabel, randomize } = resolveArgs();
+  const { dates, rangeLabel, randomize, maxJobDays } = resolveArgs();
   rand = randomize ? Math.random : createSeededRandom(`${rangeLabel}-${dates.join(',')}`);
 
   await connectDatabase();
@@ -561,7 +590,7 @@ const main = async () => {
     });
   }
 
-  const jobPlans = buildJobPlans(windows);
+  const jobPlans = buildJobPlans(windows, maxJobDays);
 
   for (const jobPlan of jobPlans) {
     const segments = buildJobSegments(jobPlan, windows);
