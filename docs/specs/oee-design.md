@@ -98,7 +98,8 @@ Amaç: Job yokken OEE hesaplamamak, job varken ise durusların Availability’ye
 - API’de `source` verilmezse backend `auto` ile son telemetry kaynagini baz alir
 - `machineId` MVP icin zorunlu
 - Yanit formatinda tek obje: `availability`, `performance`, `quality`, `oee`,
-  `plannedTime`, `operatingTime`, `totalCount`, `goodCount`, `defectCount`, `operators`
+  `plannedTime`, `operatingTime`, `totalCount`, `goodCount`, `defectCount`,
+  `operators`, `operatorStats`
 
 ### 6.2) OEE formulleri
 
@@ -186,6 +187,15 @@ Karar: **P1 API raw, UI opsiyonel clamp**
 - API `performance` degerini oldugu gibi dondurur
 - UI isterse gorsel olarak %100’e clamp edebilir, ama hesap gercegi saklanmaz
 
+### 6.7) Operatör performans listesi
+
+Amaç: Aynı makinede, seçilen pencere içinde operatör bazlı A/P/Q/OEE izlemek.
+
+- Kaynak: `jobOrder.assignedOperator`
+- Hesaplama: operatörün job’ları birleştirilir, A/P/Q/OEE aynı formüllerle hesaplanır.
+- Liste sıralaması: OEE (azalan)
+- Atanmış operatör yoksa: `Atanmadı` olarak listelenir.
+
 ### 7) Job-sim cycle time olasilik dagilimi
 Ideal cycle time icin hedeflenen dagilim:
 - Min = 0.8 * ideal
@@ -236,6 +246,7 @@ Bu dagilimda beklenen oran:
 - [x] Range modu shift-aware planli sure hesaplamasi uygulandi (mesai disi saatler ve hafta sonu haric)
 - [x] OEE shift penceresi tek merkezden aliniyor (simulation-clock-service)
 - [x] OEE API pencere modeli: `mode/shiftDate/from/to/source` var; UI default `source=shift-sim` gonderiyor, API source verilmezse `auto`
+- [x] OEE stats `operatorStats` (A/P/Q/OEE + sureler + adetler) ve rapor ekraninda listeleme
 - [x] Reports tarafinda OEE ekrani (makine secimi + gunluk shift gorunumu)
 - [x] Haftalik ve aylik trend (T2 toplamlar + N1 coverage) UI tarafinda uygulandi
 

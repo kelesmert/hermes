@@ -422,3 +422,11 @@ Yeni kararlar alındıkça bu dosyaya tarih/başlık/gerekçe formatıyla ekleme
 - **Karar:** Mock-batch script’i `--week` (5 is gunu) ve `--month` (20 is gunu) modlarini destekler; hafta sonu baslangici hataya dusurulur ve varsayilan cikti deterministiktir, `--random` ile degistirilebilir.
 - **Gerekçe:** OEE raporlari icin tekrarlanabilir (deterministik) veri uretmek, ancak gerekirse ayni tarih araliginda farkli dagilimlar denemek; uzun araliklari tek seferde hizli uretmek.
 - **Etki:** `backend/scripts/mock-batch.js`, `backend/README.md`, `docs/specs/mock-data.md`, `frontend/src/features/reports/pages/reports.jsx` (kaynak secimi).
+
+### Mock Batch Orphan Job Temizligi
+
+- **Tarih:** 2026-01-01
+- **Domain:** Backend - reports/oee
+- **Karar:** Mock-batch script’i, `mock-batch` source’u ile yazilan event’leri olup COMPLETE/CANCEL event’i olmayan job’lari temizler. Temizlik kriteri ProductionEvent metadata’si uzerinden yapilir.
+- **Gerekçe:** Eski/bozuk mock-batch job’lar OEE’de “Atanmadı” satiri ve yanlis plannedTime/operatingTime uretir. JobOrder metadata’si her zaman güvenilir degil, event metadata’si esas alinmalidir.
+- **Etki:** `backend/scripts/mock-batch.js` orphan cleanup davranisi guncellendi; rapor ekraninda yalanci “Atanmadı” satirlari engellenir.

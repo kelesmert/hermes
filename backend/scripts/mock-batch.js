@@ -110,6 +110,22 @@ const listWorkdays = (startYmd, count) => {
   return dates;
 };
 
+const findOrphanMockBatchJobs = async (machineId) => {
+  const jobIds = await ProductionEvent.distinct('jobOrder', {
+    machine: machineId,
+    'metadata.simulationSource': SOURCE,
+  });
+  if (!jobIds.length) return [];
+
+  const closedJobIds = await ProductionEvent.distinct('jobOrder', {
+    jobOrder: { $in: jobIds },
+    eventType: { $in: [productionEventTypes.COMPLETE, productionEventTypes.CANCEL] },
+    'metadata.simulationSource': SOURCE,
+  });
+  const closedSet = new Set(closedJobIds.map((id) => id.toString()));
+  return jobIds.filter((id) => !closedSet.has(id.toString()));
+};
+
 const xmur3 = (str) => {
   let h = 1779033703 ^ str.length;
   for (let i = 0; i < str.length; i += 1) {
@@ -564,6 +580,15 @@ const main = async () => {
   const rangeEnd = new Date(
     Math.max(...windows.map((item) => item.shiftEndAt.getTime())),
   );
+
+  const orphanJobIds = await findOrphanMockBatchJobs(machine._id);
+  if (orphanJobIds.length) {
+    await Promise.all([
+      ProductionEvent.deleteMany({ jobOrder: { $in: orphanJobIds } }),
+      JobOrder.deleteMany({ _id: { $in: orphanJobIds } }),
+    ]);
+    console.log(`[mock-batch] Orphan job temizlendi: ${orphanJobIds.length}`);
+  }
 
   await Promise.all([
     MachineTelemetry.deleteMany({

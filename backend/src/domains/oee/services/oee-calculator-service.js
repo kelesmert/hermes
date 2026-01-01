@@ -260,7 +260,7 @@ const buildJobIntervals = (events, windowStart, windowEnd) => {
   return intervals.filter((interval) => interval.end.getTime() > interval.start.getTime());
 };
 
-const collectActiveJobIds = async (machineId, windowStart, windowEnd, source, windows) => {
+const collectJobIntervalsByJobId = async (machineId, windowStart, windowEnd, source, windows) => {
   const eventFilter = {
     machine: machineId,
     eventType: { $in: Array.from(new Set([...ACTIVE_JOB_EVENTS, ...INACTIVE_JOB_EVENTS])) },
@@ -295,6 +295,7 @@ const collectActiveJobIds = async (machineId, windowStart, windowEnd, source, wi
   }
 
   const activeJobIds = [];
+  const jobIntervalsById = new Map();
   const windowList = windows?.length
     ? windows
     : [{ start: windowStart, end: windowEnd }];
@@ -302,13 +303,14 @@ const collectActiveJobIds = async (machineId, windowStart, windowEnd, source, wi
   for (const [jobId, jobEvents] of grouped.entries()) {
     const intervals = buildJobIntervals(jobEvents, windowStart, windowEnd);
     if (!intervals.length) continue;
+    jobIntervalsById.set(jobId, intervals);
     const overlaps = intersectIntervals(intervals, windowList);
     if (overlaps.length) {
       activeJobIds.push(jobId);
     }
   }
 
-  return activeJobIds;
+  return { activeJobIds, jobIntervalsById };
 };
 
 const sumIntervals = (intervals) =>
@@ -327,6 +329,22 @@ const intersectIntervals = (intervals, windows) => {
     });
   });
   return result.sort((a, b) => a.start.getTime() - b.start.getTime());
+};
+
+const mergeIntervals = (intervals) => {
+  if (!intervals.length) return [];
+  const sorted = [...intervals].sort((a, b) => a.start.getTime() - b.start.getTime());
+  const merged = [sorted[0]];
+  for (let i = 1; i < sorted.length; i += 1) {
+    const current = sorted[i];
+    const last = merged[merged.length - 1];
+    if (current.start.getTime() <= last.end.getTime()) {
+      last.end = new Date(Math.max(last.end.getTime(), current.end.getTime()));
+    } else {
+      merged.push({ start: current.start, end: current.end });
+    }
+  }
+  return merged;
 };
 
 const buildShiftWindowsForRange = async (windowStart, windowEnd) => {
@@ -375,6 +393,111 @@ const computeOperatingMs = (telemetry, activeIntervals) => {
   return operatingMs;
 };
 
+const buildOperatorStats = ({
+  jobIntervalsById,
+  jobOrdersById,
+  jobStatsById,
+  shiftWindows,
+  telemetry,
+  plannedDowntimeEvents,
+  windowStart,
+  windowEnd,
+}) => {
+  const operatorGroups = new Map();
+  const ensureGroup = (operatorId, operator) => {
+    if (!operatorGroups.has(operatorId)) {
+      operatorGroups.set(operatorId, { operator, jobIds: new Set() });
+    }
+    return operatorGroups.get(operatorId);
+  };
+
+  jobOrdersById.forEach((job, jobId) => {
+    const assigned = job.assignedOperator;
+    const operatorId = assigned?._id ? assigned._id.toString() : 'unassigned';
+    const operator = assigned?._id
+      ? {
+          id: operatorId,
+          firstName: assigned.firstName,
+          lastName: assigned.lastName,
+          username: assigned.username,
+        }
+      : {
+          id: 'unassigned',
+          label: 'Atanmadı',
+        };
+    ensureGroup(operatorId, operator).jobIds.add(jobId);
+  });
+
+  const results = [];
+  operatorGroups.forEach((group) => {
+    const jobIds = Array.from(group.jobIds);
+    const intervals = mergeIntervals(
+      jobIds.flatMap((jobId) => jobIntervalsById.get(jobId) || []),
+    );
+    const plannedIntervals = intersectIntervals(intervals, shiftWindows);
+    const basePlannedMs = sumIntervals(plannedIntervals);
+
+    let nonAffectingPlannedMs = 0;
+    plannedDowntimeEvents.forEach((event) => {
+      const eventStart = event.startedAt || windowStart;
+      const eventEnd = event.endedAt || windowEnd;
+      nonAffectingPlannedMs += sumOverlapMs(plannedIntervals, eventStart, eventEnd);
+    });
+
+    const plannedTimeMs = Math.max(basePlannedMs - nonAffectingPlannedMs, 0);
+    const operatingTimeMs = computeOperatingMs(telemetry, plannedIntervals);
+
+    let totalCount = 0;
+    let goodCount = 0;
+    let defectCount = 0;
+    let totalIdealMs = 0;
+
+    jobIds.forEach((jobId) => {
+      const stats = jobStatsById.get(jobId);
+      if (!stats) return;
+      totalCount += stats.totalCount;
+      goodCount += stats.goodCount;
+      defectCount += stats.defectCount;
+      totalIdealMs += stats.totalIdealMs;
+    });
+
+    if (plannedTimeMs <= 0 && totalCount <= 0 && operatingTimeMs <= 0) {
+      return;
+    }
+
+    const availability = plannedTimeMs > 0 ? operatingTimeMs / plannedTimeMs : null;
+    const performance =
+      operatingTimeMs > 0 && totalIdealMs > 0 ? totalIdealMs / operatingTimeMs : null;
+    const quality = totalCount > 0 ? goodCount / totalCount : null;
+    const oee =
+      availability !== null && performance !== null && quality !== null
+        ? availability * performance * quality
+        : null;
+
+    results.push({
+      ...group.operator,
+      availability,
+      performance,
+      quality,
+      oee,
+      plannedTime: plannedTimeMs,
+      operatingTime: operatingTimeMs,
+      totalCount,
+      goodCount,
+      defectCount,
+    });
+  });
+
+  return results.sort((a, b) => {
+    const aOee = a.oee ?? -1;
+    const bOee = b.oee ?? -1;
+    if (aOee !== bOee) return bOee - aOee;
+    const aName = [a.firstName, a.lastName, a.label, a.username].filter(Boolean).join(' ');
+    const bName = [b.firstName, b.lastName, b.label, b.username].filter(Boolean).join(' ');
+    return aName.localeCompare(bName);
+  });
+};
+
 const isWithinWindows = (timestamp, windows) => {
   if (!windows.length) return false;
   return windows.some(
@@ -419,11 +542,16 @@ const calculateOeeForMachine = async ({
     shiftWindows = shiftWindow.shiftWindows || [];
   }
 
-  const activeIntervals = await collectJobActiveIntervals(machine._id, windowStart, windowEnd, effectiveSource);
+  const activeIntervals = await collectJobActiveIntervals(
+    machine._id,
+    windowStart,
+    windowEnd,
+    effectiveSource,
+  );
   const plannedIntervals = intersectIntervals(activeIntervals, shiftWindows);
   const basePlannedMs = sumIntervals(plannedIntervals);
 
-  const activeJobIds = await collectActiveJobIds(
+  const { activeJobIds, jobIntervalsById } = await collectJobIntervalsByJobId(
     machine._id,
     windowStart,
     windowEnd,
@@ -491,51 +619,75 @@ const calculateOeeForMachine = async ({
     .select({ jobOrder: 1, quantity: 1, qualityStatus: 1, timestamp: 1 })
     .lean();
 
-  let totalCount = 0;
-  let goodCount = 0;
-  let defectCount = 0;
-
+  const eventsInShift = [];
   const jobOrderIds = new Set();
   productionEvents.forEach((event) => {
     if (!isWithinWindows(event.timestamp, shiftWindows)) {
       return;
     }
-    const qty = Math.max(0, Number(event.quantity) || 0);
-    totalCount += qty;
-    if (event.qualityStatus === 'defective') {
-      defectCount += qty;
-    } else {
-      goodCount += qty;
-    }
+    eventsInShift.push(event);
     if (event.jobOrder) {
       jobOrderIds.add(event.jobOrder.toString());
     }
   });
 
+  const allJobIds = new Set(activeJobIds);
+  jobOrderIds.forEach((id) => allJobIds.add(id));
+
+  const jobOrders = allJobIds.size
+    ? await JobOrder.find({ _id: { $in: Array.from(allJobIds) } })
+        .populate('part', 'idealCycleTime')
+        .populate('assignedOperator', 'firstName lastName username')
+        .select({ part: 1, assignedOperator: 1 })
+        .lean()
+    : [];
+
+  const jobOrdersById = new Map();
+  const jobIdealSeconds = new Map();
+  jobOrders.forEach((job) => {
+    const id = job._id.toString();
+    jobOrdersById.set(id, job);
+    const idealSeconds = Number(job.part?.idealCycleTime || 0);
+    if (Number.isFinite(idealSeconds) && idealSeconds > 0) {
+      jobIdealSeconds.set(id, idealSeconds);
+    }
+  });
+
+  const jobStatsById = new Map();
+  eventsInShift.forEach((event) => {
+    if (!event.jobOrder) return;
+    const jobId = event.jobOrder.toString();
+    const qty = Math.max(0, Number(event.quantity) || 0);
+    const stats = jobStatsById.get(jobId) || {
+      totalCount: 0,
+      goodCount: 0,
+      defectCount: 0,
+      totalIdealMs: 0,
+    };
+    stats.totalCount += qty;
+    if (event.qualityStatus === 'defective') {
+      stats.defectCount += qty;
+    } else {
+      stats.goodCount += qty;
+    }
+    const idealSeconds = jobIdealSeconds.get(jobId);
+    if (idealSeconds) {
+      stats.totalIdealMs += idealSeconds * 1000 * qty;
+    }
+    jobStatsById.set(jobId, stats);
+  });
+
+  let totalCount = 0;
+  let goodCount = 0;
+  let defectCount = 0;
   let totalIdealMs = 0;
-  if (jobOrderIds.size) {
-    const jobOrders = await JobOrder.find({ _id: { $in: Array.from(jobOrderIds) } })
-      .populate('part', 'idealCycleTime')
-      .select({ part: 1, status: 1 })
-      .lean();
 
-    const idealByJob = new Map();
-    jobOrders.forEach((job) => {
-      const idealSeconds = Number(job.part?.idealCycleTime || 0);
-      if (!Number.isFinite(idealSeconds) || idealSeconds <= 0) {
-        return;
-      }
-      idealByJob.set(job._id.toString(), idealSeconds);
-    });
-
-    productionEvents.forEach((event) => {
-      if (!event.jobOrder) return;
-      const idealSeconds = idealByJob.get(event.jobOrder.toString());
-      if (!idealSeconds) return;
-      const qty = Math.max(0, Number(event.quantity) || 0);
-      totalIdealMs += idealSeconds * 1000 * qty;
-    });
-  }
+  jobStatsById.forEach((stats) => {
+    totalCount += stats.totalCount;
+    goodCount += stats.goodCount;
+    defectCount += stats.defectCount;
+    totalIdealMs += stats.totalIdealMs;
+  });
 
   const availability = plannedTimeMs > 0 ? operatingTimeMs / plannedTimeMs : null;
   const performance =
@@ -546,28 +698,25 @@ const calculateOeeForMachine = async ({
       ? availability * performance * quality
       : null;
 
-  let operators = [];
-  if (activeJobIds.length) {
-    const jobsWithOperators = await JobOrder.find({ _id: { $in: activeJobIds } })
-      .populate('assignedOperator', 'firstName lastName username')
-      .select({ assignedOperator: 1 })
-      .lean();
-    const operatorMap = new Map();
-    jobsWithOperators.forEach((job) => {
-      const op = job.assignedOperator;
-      if (!op?._id) return;
-      const key = op._id.toString();
-      if (!operatorMap.has(key)) {
-        operatorMap.set(key, {
-          id: key,
-          firstName: op.firstName,
-          lastName: op.lastName,
-          username: op.username,
-        });
-      }
-    });
-    operators = Array.from(operatorMap.values());
-  }
+  const operatorStats = buildOperatorStats({
+    jobIntervalsById,
+    jobOrdersById,
+    jobStatsById,
+    shiftWindows,
+    telemetry,
+    plannedDowntimeEvents,
+    windowStart,
+    windowEnd,
+  });
+
+  const operators = operatorStats
+    .filter((operator) => operator.id !== 'unassigned')
+    .map(({ id, firstName, lastName, username }) => ({
+      id,
+      firstName,
+      lastName,
+      username,
+    }));
 
   return {
     availability,
@@ -582,6 +731,7 @@ const calculateOeeForMachine = async ({
     windowStart,
     windowEnd,
     operators,
+    operatorStats,
     source: effectiveSource,
     mode: effectiveMode,
   };

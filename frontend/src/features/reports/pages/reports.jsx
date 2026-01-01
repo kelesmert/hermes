@@ -11,8 +11,15 @@ import {
   Grid,
   InputLabel,
   MenuItem,
+  Paper,
   Select,
   Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
   TextField,
   Typography,
 } from '@mui/material';
@@ -67,6 +74,7 @@ const formatDurationMs = (value) => {
 
 const formatUserName = (user) => {
   if (!user) return '';
+  if (user.label) return user.label;
   const name = [user.firstName, user.lastName].filter(Boolean).join(' ').trim();
   return name || user.username || '';
 };
@@ -340,6 +348,62 @@ const ReportsPage = () => {
                 </>
               )}
             </Grid>
+          </Stack>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent>
+          <Stack spacing={2}>
+            <Typography variant="h6">Operatör Performansı</Typography>
+            {statsQuery.isLoading ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                <CircularProgress size={28} />
+              </Box>
+            ) : statsQuery.data?.operatorStats?.length ? (
+              <TableContainer component={Paper} variant="outlined">
+                <Table size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Operatör</TableCell>
+                      <TableCell align="right">OEE</TableCell>
+                      <TableCell align="right">A</TableCell>
+                      <TableCell align="right">P</TableCell>
+                      <TableCell align="right">Q</TableCell>
+                      <TableCell align="right">Planlı</TableCell>
+                      <TableCell align="right">Çalışma</TableCell>
+                      <TableCell align="right">Üretim</TableCell>
+                      <TableCell align="right">Sağlam</TableCell>
+                      <TableCell align="right">Hatalı</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {statsQuery.data.operatorStats.map((operator) => (
+                      <TableRow key={operator.id}>
+                        <TableCell>{formatUserName(operator)}</TableCell>
+                        <TableCell align="right">{formatPercent(operator.oee)}</TableCell>
+                        <TableCell align="right">
+                          {formatPercent(operator.availability)}
+                        </TableCell>
+                        <TableCell align="right">{formatPercent(operator.performance)}</TableCell>
+                        <TableCell align="right">{formatPercent(operator.quality)}</TableCell>
+                        <TableCell align="right">
+                          {formatDurationMs(operator.plannedTime)}
+                        </TableCell>
+                        <TableCell align="right">
+                          {formatDurationMs(operator.operatingTime)}
+                        </TableCell>
+                        <TableCell align="right">{formatNumber(operator.totalCount, 0)}</TableCell>
+                        <TableCell align="right">{formatNumber(operator.goodCount, 0)}</TableCell>
+                        <TableCell align="right">{formatNumber(operator.defectCount, 0)}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            ) : (
+              <Typography color="text.secondary">Operatör verisi bulunamadı.</Typography>
+            )}
           </Stack>
         </CardContent>
       </Card>

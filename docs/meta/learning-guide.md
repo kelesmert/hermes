@@ -233,4 +233,5 @@ Frontend
   - 20 is gunu: `npm run mock:batch -- --date YYYY-MM-DD --month`
   - Deterministik ciktiyi bozmak icin: `--random`
 - Kaynak: Telemetry ve production event’ler `source=mock-batch` ve `metadata.simulationSource=mock-batch` ile yazilir.
+- Not: Orphan mock-batch job’lar (COMPLETE/CANCEL event’i olmayanlar) script tarafinda temizlenir.
 - Not: Monitoring hedef degildir; OEE rapor ekraninda kaynak olarak `mock-batch` secilerek tarih bazli analiz yapilir.

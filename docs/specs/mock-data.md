@@ -75,6 +75,7 @@ veri uretip DB'ye yazmak ve OEE raporlarinda secilen tarihte goruntulemek.
 2) DB kontrolu
 - MCH-001 var mi? yoksa hata ver
 - Parca/idealCycleTime mevcut mu? yoksa hata ver
+- Orphan mock-batch job temizligi: `mock-batch` event'i olup COMPLETE/CANCEL olmayan job'lari sil
 
 3) Veri uretimi
 - Shift pencerelerinde telemetry üret
@@ -110,6 +111,7 @@ node scripts/mock-batch.js --from 2025-01-03 --to 2025-01-07
 - Monitoring hedef degil; telemetry sikligi dusuk tutulabilir
 - OEE UI'da kaynak secimi olacak (mock-batch secilebilecek)
 - Duruş sayfasina düşmemesi için mock-batch scripti MachineEvent üretmeyecek
+- Orphan mock-batch job'lar temizlenir (COMPLETE/CANCEL event'i olmayan job'lar silinir)
 - Shift tarihi CLI arg ile verilecek:
   - Tek tarih -> 1 gunluk veri (ilk faz)
   - `--week` -> verilen tarihten itibaren 5 is gunu
