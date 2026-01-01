@@ -80,6 +80,16 @@ const ACTION_MESSAGES = {
   delete: 'İş emri silindi.',
 };
 
+const formatUserLabel = (user) => {
+  if (!user) return '-';
+  if (typeof user === 'string') return user;
+  const name = [user.firstName, user.lastName].filter(Boolean).join(' ').trim();
+  return name || user.username || '-';
+};
+
+const isOperatorUser = (user) =>
+  Array.isArray(user?.roles) && user.roles.some((role) => role?.name === 'operator');
+
 const JobOrdersTable = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
@@ -106,6 +116,7 @@ const JobOrdersTable = () => {
     queryFn: fetchUsers,
     enabled: canManageUsers,
   });
+  const operatorUsers = useMemo(() => users.filter(isOperatorUser), [users]);
 
   const createMutation = useMutation({
     mutationFn: createJobOrder,
@@ -306,6 +317,8 @@ const JobOrdersTable = () => {
                   <TableCell>#</TableCell>
                   <TableCell>Parça</TableCell>
                   <TableCell>Makine</TableCell>
+                  <TableCell>Operatör</TableCell>
+                  <TableCell>Atayan</TableCell>
                   <TableCell>Durum</TableCell>
                   <TableCell>Üretim</TableCell>
                   <TableCell>Başlangıç</TableCell>
@@ -348,6 +361,22 @@ const JobOrdersTable = () => {
                         <Typography variant="caption" color="text.secondary">
                           {job.machine?.code}
                         </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Typography>{formatUserLabel(job.assignedOperator)}</Typography>
+                        {job.assignedOperator?.username && (
+                          <Typography variant="caption" color="text.secondary">
+                            {job.assignedOperator.username}
+                          </Typography>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <Typography>{formatUserLabel(job.createdBy)}</Typography>
+                        {job.createdBy?.username && (
+                          <Typography variant="caption" color="text.secondary">
+                            {job.createdBy.username}
+                          </Typography>
+                        )}
                       </TableCell>
                       <TableCell>{renderStatusChip(status)}</TableCell>
                       <TableCell>
@@ -460,7 +489,7 @@ const JobOrdersTable = () => {
         isSubmitting={createMutation.isLoading || updateMutation.isLoading}
         parts={parts}
         machines={machines}
-        users={users}
+        users={operatorUsers}
       />
 
       <Dialog open={actionDialogOpen} onClose={closeActionDialog} fullWidth maxWidth="xs">

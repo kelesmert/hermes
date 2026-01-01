@@ -9,6 +9,7 @@ const jobOrderStatuses = require('../../../constants/job-order-statuses');
 const productionEventTypes = require('../../../constants/production-event-types');
 const defectTypes = require('../../../constants/defect-types');
 const machineStatuses = require('../../../constants/machine-statuses');
+const roles = require('../../../constants/roles');
 const AppError = require('../../../utils/app-error');
 const simulationClockService = require('../../simulations/services/simulation-clock-service');
 
@@ -142,9 +143,13 @@ const resolveAssignedOperator = async (value) => {
   if (!mongoose.Types.ObjectId.isValid(value)) {
     throw new AppError('Geçersiz kullanıcı id formatı.', 400);
   }
-  const user = await User.findById(value).select('_id');
+  const user = await User.findById(value).populate('roles', 'name');
   if (!user) {
     throw new AppError('Kullanıcı bulunamadı.', 404);
+  }
+  const hasOperatorRole = (user.roles || []).some((role) => role.name === roles.OPERATOR);
+  if (!hasOperatorRole) {
+    throw new AppError('Sorumlu operatör sadece operator rolüne sahip kullanıcı olabilir.', 400);
   }
   return user._id;
 };
@@ -200,6 +205,7 @@ const listJobOrders = async (filters = {}) => {
     .populate('part', 'code name idealCycleTime')
     .populate('machine', 'code name status currentJobOrder')
     .populate('assignedOperator', 'username firstName lastName')
+    .populate('createdBy', 'username firstName lastName')
     .sort({ createdAt: -1 });
 };
 
@@ -207,7 +213,8 @@ const getJobOrderById = async (id) => {
   const jobOrder = await JobOrder.findById(id)
     .populate('part', 'code name idealCycleTime')
     .populate('machine', 'code name status currentJobOrder')
-    .populate('assignedOperator', 'username firstName lastName');
+    .populate('assignedOperator', 'username firstName lastName')
+    .populate('createdBy', 'username firstName lastName');
   if (!jobOrder) {
     throw new AppError('İş emri bulunamadı.', 404);
   }
