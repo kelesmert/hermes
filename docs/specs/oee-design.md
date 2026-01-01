@@ -98,7 +98,7 @@ Amaç: Job yokken OEE hesaplamamak, job varken ise durusların Availability’ye
 - API’de `source` verilmezse backend `auto` ile son telemetry kaynagini baz alir
 - `machineId` MVP icin zorunlu
 - Yanit formatinda tek obje: `availability`, `performance`, `quality`, `oee`,
-  `plannedTime`, `operatingTime`, `totalCount`, `goodCount`, `defectCount`
+  `plannedTime`, `operatingTime`, `totalCount`, `goodCount`, `defectCount`, `operators`
 
 ### 6.2) OEE formulleri
 

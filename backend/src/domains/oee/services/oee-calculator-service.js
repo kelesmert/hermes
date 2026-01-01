@@ -28,6 +28,12 @@ const INACTIVE_JOB_EVENTS = new Set([
   productionEventTypes.CANCEL,
 ]);
 
+const eventPriority = (eventType) => {
+  if (INACTIVE_JOB_EVENTS.has(eventType)) return 0;
+  if (ACTIVE_JOB_EVENTS.has(eventType)) return 1;
+  return 2;
+};
+
 const normalizeMode = (value) => {
   const raw = String(value || '').trim().toLowerCase();
   if (raw === 'range') return 'range';
@@ -149,12 +155,6 @@ const collectJobActiveIntervals = async (machineId, windowStart, windowEnd, sour
     .select({ eventType: 1, timestamp: 1 })
     .lean();
 
-  const eventPriority = (eventType) => {
-    if (INACTIVE_JOB_EVENTS.has(eventType)) return 0;
-    if (ACTIVE_JOB_EVENTS.has(eventType)) return 1;
-    return 2;
-  };
-
   events.sort((a, b) => {
     const aTime = a.timestamp ? a.timestamp.getTime() : 0;
     const bTime = b.timestamp ? b.timestamp.getTime() : 0;
@@ -208,6 +208,107 @@ const collectJobActiveIntervals = async (machineId, windowStart, windowEnd, sour
   }
 
   return intervals.filter((interval) => interval.end.getTime() > interval.start.getTime());
+};
+
+const buildJobIntervals = (events, windowStart, windowEnd) => {
+  if (!events.length) return [];
+  const intervals = [];
+  let active = false;
+  let currentStart = null;
+
+  for (const event of events) {
+    const eventTime = event.timestamp;
+    if (!eventTime) continue;
+
+    if (eventTime.getTime() < windowStart.getTime()) {
+      if (ACTIVE_JOB_EVENTS.has(event.eventType)) {
+        active = true;
+        currentStart = new Date(windowStart.getTime());
+      }
+      if (INACTIVE_JOB_EVENTS.has(event.eventType)) {
+        active = false;
+        currentStart = null;
+      }
+      continue;
+    }
+
+    if (eventTime.getTime() >= windowEnd.getTime()) {
+      break;
+    }
+
+    if (ACTIVE_JOB_EVENTS.has(event.eventType)) {
+      if (!active) {
+        active = true;
+        currentStart = new Date(eventTime.getTime());
+      }
+      continue;
+    }
+
+    if (INACTIVE_JOB_EVENTS.has(event.eventType)) {
+      if (active && currentStart) {
+        intervals.push({ start: currentStart, end: new Date(eventTime.getTime()) });
+      }
+      active = false;
+      currentStart = null;
+    }
+  }
+
+  if (active && currentStart) {
+    intervals.push({ start: currentStart, end: new Date(windowEnd.getTime()) });
+  }
+
+  return intervals.filter((interval) => interval.end.getTime() > interval.start.getTime());
+};
+
+const collectActiveJobIds = async (machineId, windowStart, windowEnd, source, windows) => {
+  const eventFilter = {
+    machine: machineId,
+    eventType: { $in: Array.from(new Set([...ACTIVE_JOB_EVENTS, ...INACTIVE_JOB_EVENTS])) },
+    timestamp: { $lte: windowEnd },
+  };
+  if (
+    source === TELEMETRY_SOURCES.SHIFT_SIM ||
+    source === TELEMETRY_SOURCES.DATA_GEN ||
+    source === TELEMETRY_SOURCES.MOCK_BATCH
+  ) {
+    eventFilter['metadata.simulationSource'] = source;
+  }
+
+  const events = await ProductionEvent.find(eventFilter)
+    .sort({ timestamp: 1 })
+    .select({ jobOrder: 1, eventType: 1, timestamp: 1 })
+    .lean();
+
+  events.sort((a, b) => {
+    const aTime = a.timestamp ? a.timestamp.getTime() : 0;
+    const bTime = b.timestamp ? b.timestamp.getTime() : 0;
+    if (aTime !== bTime) return aTime - bTime;
+    return eventPriority(a.eventType) - eventPriority(b.eventType);
+  });
+
+  const grouped = new Map();
+  for (const event of events) {
+    if (!event.jobOrder) continue;
+    const key = String(event.jobOrder);
+    if (!grouped.has(key)) grouped.set(key, []);
+    grouped.get(key).push(event);
+  }
+
+  const activeJobIds = [];
+  const windowList = windows?.length
+    ? windows
+    : [{ start: windowStart, end: windowEnd }];
+
+  for (const [jobId, jobEvents] of grouped.entries()) {
+    const intervals = buildJobIntervals(jobEvents, windowStart, windowEnd);
+    if (!intervals.length) continue;
+    const overlaps = intersectIntervals(intervals, windowList);
+    if (overlaps.length) {
+      activeJobIds.push(jobId);
+    }
+  }
+
+  return activeJobIds;
 };
 
 const sumIntervals = (intervals) =>
@@ -321,6 +422,14 @@ const calculateOeeForMachine = async ({
   const activeIntervals = await collectJobActiveIntervals(machine._id, windowStart, windowEnd, effectiveSource);
   const plannedIntervals = intersectIntervals(activeIntervals, shiftWindows);
   const basePlannedMs = sumIntervals(plannedIntervals);
+
+  const activeJobIds = await collectActiveJobIds(
+    machine._id,
+    windowStart,
+    windowEnd,
+    effectiveSource,
+    shiftWindows,
+  );
 
   const reasonCatalog = oeeRulesService.getReasonCatalog();
   const nonAffectingPlanned = new Set(
@@ -437,6 +546,29 @@ const calculateOeeForMachine = async ({
       ? availability * performance * quality
       : null;
 
+  let operators = [];
+  if (activeJobIds.length) {
+    const jobsWithOperators = await JobOrder.find({ _id: { $in: activeJobIds } })
+      .populate('assignedOperator', 'firstName lastName username')
+      .select({ assignedOperator: 1 })
+      .lean();
+    const operatorMap = new Map();
+    jobsWithOperators.forEach((job) => {
+      const op = job.assignedOperator;
+      if (!op?._id) return;
+      const key = op._id.toString();
+      if (!operatorMap.has(key)) {
+        operatorMap.set(key, {
+          id: key,
+          firstName: op.firstName,
+          lastName: op.lastName,
+          username: op.username,
+        });
+      }
+    });
+    operators = Array.from(operatorMap.values());
+  }
+
   return {
     availability,
     performance,
@@ -449,6 +581,7 @@ const calculateOeeForMachine = async ({
     defectCount,
     windowStart,
     windowEnd,
+    operators,
     source: effectiveSource,
     mode: effectiveMode,
   };

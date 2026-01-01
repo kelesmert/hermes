@@ -65,6 +65,12 @@ const formatDurationMs = (value) => {
   return `${formatNumber(hours, 1)} sa`;
 };
 
+const formatUserName = (user) => {
+  if (!user) return '';
+  const name = [user.firstName, user.lastName].filter(Boolean).join(' ').trim();
+  return name || user.username || '';
+};
+
 const parseShiftDate = (value) => {
   if (!value) return null;
   const parsed = new Date(`${value}T00:00:00Z`);
@@ -436,6 +442,19 @@ const ReportsPage = () => {
                     {formatDateTime(statsQuery.data.windowStart)}
                     {' — '}
                     {formatDateTime(statsQuery.data.windowEnd)}
+                  </Typography>
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <Typography variant="subtitle2" color="text.secondary">
+                    Sorumlu Operatörler
+                  </Typography>
+                  <Typography variant="body2">
+                    {(statsQuery.data.operators || []).length
+                      ? statsQuery.data.operators
+                          .map((operator) => formatUserName(operator))
+                          .filter(Boolean)
+                          .join(', ')
+                      : 'Atanmış operatör yok'}
                   </Typography>
                 </Grid>
               </Grid>

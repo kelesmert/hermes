@@ -150,6 +150,13 @@ Bu dosya, projede alınan mimarî ve teknolojik kararları, gerekçelerini ve be
 - **Gerekçe:** OEE için “tek seferlik batch veri” üretimi ile canlı simülasyon verilerini karıştırmamak; monitoringi etkilememek.
 - **Etki:** OEE API `source` filtresi genişletilecek, Reports UI kaynak seçimi eklenecek, mock-batch script kendi source'uyla yazacak.
 
+### OEE Operatör Listesi (AssignedOperator)
+
+- **Domain:** Backend - oee/production, Frontend - reports
+- **Karar:** OEE stats yanıtı, seçilen pencere içinde makinede aktif olan job order’ların `assignedOperator` bilgisinden türetilen operatör listesini döndürür; rapor ekranında bu liste gösterilir.
+- **Gerekçe:** Operatör bazlı verim karşılaştırması yapmak ve OEE etkisini operatörle ilişkilendirmek.
+- **Etki:** `backend/src/domains/oee/services/oee-calculator-service.js`, `frontend/src/features/reports/pages/reports.jsx`, ilgili dokümanlar.
+
 ## Frontend Kararları
 
 ### Vite + React (JavaScript) SPA

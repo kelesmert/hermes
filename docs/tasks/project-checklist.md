@@ -78,6 +78,7 @@
 - [x] OEE source filtresine `mock-batch` kaynagini ekle (API `source` parametresi genisletme)
 - [x] Mock-batch tek seferlik veri uretim scripti (OEE icin)
 - [x] Mock-batch CLI genisletmeleri: `--week`, `--month`, `--random` ve hafta sonu baslangic hatasi
+- [x] OEE stats endpoint'inde sorumlu operator listesi dondur (assignedOperator bazli)
 - [ ] (Opsiyonel) JobOrder silmede ilgili telemetry kayıtlarını da temizle (purge parametresi veya admin aksiyonu)
 - [ ] (İleride) OEE processor processedAt gecikmesi ve shift-sim wait süresi optimizasyonu (oee-rules.json `pollIntervalMs` + `batchSize`, `OEE_PROCESSOR_TELEMETRY_SOURCE` uyumu, `SHIFT_SIM_WAIT_FOR_PROCESSING_MS` düşürme/0, işlenmeyen telemetry için uyarı)
 - [ ] (Opsiyonel) Monitoring periyot/bucket endpoint'i (vardiya görünümü için ayrı endpoint ve UI)
@@ -120,6 +121,7 @@
 - [x] Simülasyonlar: shift-sim reset aksiyonu (sim kaynaklı telemetry ve event temizliği)
 - [x] Raporlama sayfası + filtreler
 - [x] OEE rapor ekraninda kaynak secimi (shift-sim | data-gen | mock-batch)
+- [x] OEE rapor ozetinde sorumlu operator listesi goster
 - [x] Roller/izinler için yönetim ekranı; permission set düzenleme ve kullanıcıya rol atama modalları
 - [x] Dashboard/rapor placeholder’larını gerçek makine/event verileriyle besleyip React Query polling/WebSocket desteği ekle _(dashboard ve rapor ekranı tamamlandı)_
 - [x] UI tarih formatını tek helper ile standartlaştır (`dd/MM/yyyy`, `dd/MM/yyyy HH:mm`)

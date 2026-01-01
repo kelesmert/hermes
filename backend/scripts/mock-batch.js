@@ -12,9 +12,12 @@ const Part = require('../src/domains/parts/models/part-model');
 const JobOrder = require('../src/domains/production/models/job-order-model');
 const ProductionEvent = require('../src/domains/production/models/production-event-model');
 const MachineTelemetry = require('../src/domains/machines/models/machine-telemetry-model');
+const Role = require('../src/domains/auth/models/role-model');
+const User = require('../src/domains/auth/models/user-model');
 const jobOrderStatuses = require('../src/constants/job-order-statuses');
 const productionEventTypes = require('../src/constants/production-event-types');
 const simulationClockService = require('../src/domains/simulations/services/simulation-clock-service');
+const roles = require('../src/constants/roles');
 
 const SOURCE = 'mock-batch';
 const MACHINE_CODE = 'MCH-001';
@@ -137,6 +140,7 @@ const randomInt = (min, max) =>
   Math.floor(rand() * (max - min + 1)) + min;
 
 const randomBetween = (min, max) => min + rand() * (max - min);
+const pickRandom = (items) => items[Math.floor(rand() * items.length)];
 
 const overlaps = (a, b) => a.start < b.end && b.start < a.end;
 
@@ -213,6 +217,20 @@ const pickDowntimeProfile = (ymd) => {
   const weights = DOWNTIME_WEIGHTS[weekday] || DOWNTIME_WEIGHTS.Mon;
   const profileKey = pickWeighted(weights);
   return DOWNTIME_PROFILES[profileKey];
+};
+
+const loadUsersByRole = async (roleName) => {
+  const roleDoc = await Role.findOne({ name: roleName }).select('_id');
+  if (!roleDoc) {
+    throw new Error(`Rol bulunamadi: ${roleName}`);
+  }
+  const users = await User.find({ roles: roleDoc._id })
+    .select('_id firstName lastName username')
+    .lean();
+  if (!users.length) {
+    throw new Error(`Kullanici bulunamadi: ${roleName}`);
+  }
+  return users;
 };
 
 const buildUnplannedBlocks = (shiftStartAt, shiftEndAt, plannedBreak, profile) => {
@@ -511,6 +529,11 @@ const main = async () => {
     throw new Error('Parca idealCycleTime gecersiz.');
   }
 
+  const [operatorUsers, supervisorUsers] = await Promise.all([
+    loadUsersByRole(roles.OPERATOR),
+    loadUsersByRole(roles.SUPERVISOR),
+  ]);
+
   const windows = [];
   for (const date of dates) {
     const reference = new Date(`${date}T12:00:00Z`);
@@ -603,12 +626,16 @@ const main = async () => {
     const expectedCycleSeconds = idealCycleSeconds * 1.0667;
     const estimatedOperatingMs = estimateOperatingMs(segments, dayData);
     const initialTarget = Math.max(1, Math.floor((estimatedOperatingMs / 1000) / expectedCycleSeconds));
+    const assignedOperator = pickRandom(operatorUsers);
+    const createdBy = pickRandom(supervisorUsers);
 
     const jobOrder = await JobOrder.create({
       orderNo,
       part: part._id,
       machine: machine._id,
       targetQuantity: initialTarget,
+      assignedOperator: assignedOperator?._id,
+      createdBy: createdBy?._id,
       status: jobOrderStatuses.IN_PROGRESS,
       startTime: jobPlan.startAt,
       estimatedDurationMinutes: Math.round((initialTarget * idealCycleSeconds) / 60),

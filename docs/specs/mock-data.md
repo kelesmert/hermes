@@ -38,6 +38,7 @@ veri uretip DB'ye yazmak ve OEE raporlarinda secilen tarihte goruntulemek.
 
 2) JobOrder + ProductionEvent
 - JobOrder olusacak ve `metadata.simulationSource=mock-batch` olacak
+- JobOrder `assignedOperator` rastgele operator, `createdBy` rastgele supervisor olacak
 - ProductionEvent:
   - `START` (shift basinda)
   - `AUTO_PAUSE` (shift sonunda)
@@ -125,6 +126,7 @@ node scripts/mock-batch.js --from 2025-01-03 --to 2025-01-07
 - Defect orani (ilk faz): %2 - %8 (gun bazli degisecek)
 - Job akisi (ilk faz): 07:00 START, gun sonunda AUTO_PAUSE; devam eden job ertesi gun AUTO_RESUME ile surer
 - Randomlik modu: varsayilan deterministik, `--random` ile ayni tarihte farkli cikti
+- Mock job atamalari: `assignedOperator` rastgele operator, `createdBy` rastgele supervisor
 
 ## Acik Sorular
 
