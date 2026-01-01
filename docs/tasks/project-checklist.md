@@ -45,6 +45,7 @@
 - [x] JWT tabanlı auth akışı (register/login/refresh/logout)
 - [x] RBAC middleware ve korunan endpoint örnekleri
 - [x] Admin kullanıcı seed script’i
+- [x] Seed kullanıcı seti sabit listeye alındı (master/supervisor/operator/viewer) ve maintenance rolü kaldırıldı
 - [ ] (Opsiyonel) Tokenları cookie tabanlı yönetime geçir (HTTP-only, Secure, SameSite), CSRF koruması ekle ve çoklu cihaz oturum yönetimi + aktif refresh listesi hazırla
 - [x] Roller/izinler için CRUD endpoint’leri ve permission yönetim API’si
 - [x] Makine domaini Faz 1: `machines` + `machine_events` modelleri, CRUD ve event API'leri, denormalize durum alanları

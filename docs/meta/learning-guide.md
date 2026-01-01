@@ -62,7 +62,7 @@ Bu rehber, backend ve frontend'i MVP hedefiyle nasıl kurduğumuzu öğretici ş
 ## 7) Seed Script (Başlangıç Verileri)
 
 - Dosya: `backend/scripts/seed.js`.
-- Yapar: Permission/rol upsert, `.env` bazlı admin & sys hesaplarını güncelleme, yalnızca `dashboard.read + machines.read` iznine sahip viewer hesabı oluşturma, örnek makineler + parçalar + telemetry kayıtları ekleme. Seed tekrar çalıştırıldığında mevcut hesapların şifreleri `.env` değerine göre otomatik güncellenir.
+- Yapar: Permission/rol upsert, sabit kullanıcı listesini (master/supervisor/operator/viewer) oluşturma/güncelleme, örnek makineler + parçalar + telemetry kayıtları ekleme. Seed tekrar çalıştırıldığında listedeki kullanıcıların şifreleri sabit değerlere göre güncellenir.
 - Çalıştırma: `cd backend && npm run seed`.
 
 ## 8) API’ler (Şu Ana Kadar)

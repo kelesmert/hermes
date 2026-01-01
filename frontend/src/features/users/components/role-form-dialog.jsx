@@ -74,7 +74,7 @@ const RoleFormDialog = ({ open, onClose, onSubmit, permissions, initialData }) =
               label="Rol Adı (sistem)"
               {...register('name', { required: true })}
               disabled={Boolean(initialData)}
-              helperText={initialData ? 'Rol adı değiştirilemez.' : 'Örn: maintenance, operator'}
+              helperText={initialData ? 'Rol adı değiştirilemez.' : 'Örn: master, supervisor, operator, viewer'}
               fullWidth
             />
             <TextField label="Görünen İsim" {...register('label', { required: true })} fullWidth />

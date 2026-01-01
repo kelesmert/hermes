@@ -77,7 +77,7 @@ backend/
 - Her korumalı endpoint önce `auth-guard`, ardından gerekiyorsa `permission-guard` kullanır.
 - İzin zinciri `permissions → roles → users` şeklindedir; kullanıcıların en az bir rolü olmak zorundadır.
 - Kullanıcı kayıtlarında `username` alanı zorunlu ve unique’tir. E-posta alanı opsiyoneldir ve yalnızca bildirim/şifre sıfırlama gibi süreçlerde kullanılır.
-- Varsayılan rol piramidi `master > supervisor > operator > viewer` olarak tanımlıdır; master tüm izinlere sahiptir, supervisor üretim/operatör yönetimi yapar, operator yalnızca atanmış istasyonda iş yürütür.
+- Varsayılan rol piramidi `master > supervisor > operator > viewer` olarak tanımlıdır; master tüm izinlere sahiptir, supervisor üretim/operatör yönetimi yapar, operator yalnızca atanmış istasyonda iş yürütür. `maintenance` rolü kullanılmaz ve seed tarafından oluşturulmaz.
 - RBAC yönetimi için `domains/access-control` altında rol ve permission CRUD endpointleri bulunur (`/api/roles`, `/api/permissions`); kullanıcı yönetimi `/api/users` üzerinden yapılır.
 - Makine domaini `domains/machines` altında konumlandırılacak; model katmanı `machines`, `machine_events` ve `machine_telemetry` koleksiyonlarını içerir, durum enumları `src/constants/machine-statuses.js` dosyasından okunur. Event oluşturulduğunda makine kaydındaki `status` + `lastEventAt` alanları güncellenir.
 - **Parts Domain:** `domains/parts` altında parça yönetimi bulunur. Parçalar sabit kategoriler (fasteners, electronics, mechanical_plastics) üzerinden tanımlanır. Her kategori, izin verilen birim listesi ve varsayılan makine ayarı alanlarını (spindle hızı, reflow sıcaklığı, kalıp sıcaklığı) `src/parts/constants/part-categories.js` dosyasından okur. Bir parça birden fazla makineyle eşleştirilebilir; backend bu uyumluluğu doğrular.
@@ -101,7 +101,7 @@ backend/
 ## 5. Seed ve Konfigürasyon
 
 - `npm run seed` komutu varsayılan permission/role ve sistem kullanıcılarını (master/admin ve sys/test) oluşturmak zorundadır.
-- `.env.example` içindeki anahtarlar: `PORT`, `MONGO_URI`, `MONGO_DB_NAME`, `JWT_SECRET`, `REFRESH_TOKEN_SECRET`, `TOKEN_EXPIRES_IN`, `REFRESH_TOKEN_EXPIRES_IN`, simülasyon anahtarları (`DATA_GEN_*`, `SHIFT_SIM_*`, `JOB_SIM_*`, `OEE_PROCESSOR_TELEMETRY_SOURCE`, `ENABLE_SIMULATION_CONTROL` vb.) ve seed kullanıcı bilgileri (`SEED_*_USERNAME`, `SEED_*_EMAIL`, `SEED_*_PASSWORD` vb.).
+- `.env.example` içindeki anahtarlar: `PORT`, `MONGO_URI`, `MONGO_DB_NAME`, `JWT_SECRET`, `REFRESH_TOKEN_SECRET`, `TOKEN_EXPIRES_IN`, `REFRESH_TOKEN_EXPIRES_IN`, simülasyon anahtarları (`DATA_GEN_*`, `SHIFT_SIM_*`, `JOB_SIM_*`, `OEE_PROCESSOR_TELEMETRY_SOURCE`, `ENABLE_SIMULATION_CONTROL` vb.). Seed kullanıcıları `.env` ile değil, `backend/scripts/seed.js` içindeki sabit listeden yönetilir.
 - Seed script’i eksik permission/role gördüğünde hata fırlatmak yerine upsert eder; username alanı boş olan kullanıcıları otomatik doldurur ve silinemez roller (master/viewer) için koruma uygular.
 
 ## 6. Hata Yönetimi

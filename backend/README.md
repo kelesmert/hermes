@@ -19,7 +19,7 @@ Node.js + Express tabanlı Hermes API'si bu klasörde yer alır. Mevcut sürüm:
 - OEE/Telemetry altyapısı (telemetry yazımı + OEE processor job ile downtime event üretimi),
 - Board domain'i (dashboard metrik endpoint'leri, telemetry serisi),
 - Production domain'i (JobOrder + ProductionEvent, aksiyon endpointleri),
-- Seed script ile master/supervisor/operator/viewer rollerini, test hesaplarını, örnek makineleri ve örnek parçaları üretir (env'deki şifreler değişirse kayıtlar güncellenir).
+- Seed script ile master/supervisor/operator/viewer rollerini, sabit kullanıcı listesini, örnek makineleri ve örnek parçaları üretir (kullanıcı listesi `backend/scripts/seed.js` içinde).
 
 ## Kurulum
 
@@ -27,15 +27,18 @@ Node.js + Express tabanlı Hermes API'si bu klasörde yer alır. Mevcut sürüm:
 cd backend
 cp .env.example .env
 npm install
-npm run seed   # roller + master/sys kullanıcıları oluşur
+npm run seed   # roller + sabit kullanıcılar oluşur
 npm run dev    # http://localhost:5000
 ```
 
 Seed sonrası örnek hesaplar:
 
-- Master: `admin / ChangeMe123!`
-- Sys/test: `sys / syssys`
-- Viewer: `viewer@hermes.local / Viewer123!` (sadece dashboard + makineler okunabilir)
+- Master: `sys / sysysys`
+- Master: `kelesmert / kelesmert`
+- Supervisor: `supervisor1 / supervisor1`, `supervisor2 / supervisor2`
+- Operator: `operator1 / operator1`, `operator2 / operator2`
+- Viewer: `viewer1 / viewer1`
+- Hesap isimleri ve e-postalar `backend/scripts/seed.js` içinde sabittir.
 - Örnek makineler: `MCH-001 (Simülasyon Presi)` ve `MCH-002 (CNC Kesim)` varsayılan olarak eklenir.
 - Örnek parçalar: Vida, profil ve anakart seti gibi üç kategori (`fasteners`, `mechanical_plastics`, `electronics`) için kayıtlar eklenir; kategori/birim/varsayılan makine ayarları `src/domains/parts/constants/part-categories.js` sözlüğüne göre doğrulanır.
 
@@ -105,7 +108,7 @@ backend/
 | Komut          | Açıklama                                                                                   |
 | -------------- | ------------------------------------------------------------------------------------------ |
 | `npm run dev`  | Nodemon ile geliştirme sunucusu                                                            |
-| `npm run seed` | Permission/role + master/sys kullanıcıları ve örnek makine kayıtlarını oluşturur/günceller |
+| `npm run seed` | Permission/role + sabit kullanıcı seti ve örnek makine kayıtlarını oluşturur/günceller |
 | `npm run data:gen` | Makine telemetry verisi simüle eder; OEE ve monitoring için sinyal üretir (legacy)      |
 | `npm run shift:sim` | 07:00–18:00 vardiyası için hızlandırılmış deterministik telemetry üretir (test için)  |
 | `npm run job:sim`  | Aktif job order’lar için üretim (good/defect) verisi üretir; telemetry sinyaline bakar  |
