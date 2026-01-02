@@ -40,7 +40,7 @@ export const NAV_ITEMS = [
     permission: 'users.manage',
   },
   {
-    label: 'Monitoring',
+    label: 'İzleme Ekranı',
     path: '/monitoring',
     icon: SensorsOutlinedIcon,
     permission: 'dashboard.read',
