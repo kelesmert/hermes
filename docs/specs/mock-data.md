@@ -44,10 +44,14 @@ veri uretip DB'ye yazmak ve OEE raporlarinda secilen tarihte goruntulemek.
   - `AUTO_PAUSE` (shift sonunda)
   - `PRODUCE/DEFECT` (uretim adetleri)
 
-3) MachineEvent (planli mola)
-- Ilk fazda URETILMEYECEK (duruş sayfasına düşmemesi için)
-- Not: Bu durumda ogle arasi plannedTime’dan dusulmez; bu fark sonradan
-  "gizli planned event" veya UI filtre ile duzeltilecek
+3) MachineEvent (duruşlar)
+- Mock-batch, **duruş sayfasında görünebilmesi** için `MachineEvent` de üretir.
+- Üretilecek event tipleri:
+  - Planlı mola (12:00-13:00) → `state=downtime`, `reasonCode=planned_break`, `reasonCategory=planned`
+  - Planlı duruş (OEE etkiler) → `state=downtime`, `reasonCode=other_planned`, `reasonCategory=planned`
+  - Plansız duruş blokları → `state=downtime`, `reasonCategory=unplanned`, `reasonCode` ağırlıklı seçilir (`breakdown`, `material_shortage`, `tooling_change`, `other_unplanned`)
+- Event'ler **closed** yazılır (`endedAt` set edilir). Bu nedenle Duruşlar sayfasında varsayılan "Açık" tabında görünmez; "Geçmiş" filtresinden ilgili tarih aralığı seçilmelidir.
+- Not: Mock-batch geçmişe dönük veri ürettiği için `MachineEvent` kayıtları `insertMany` ile yazılır; **machine.status/currentJobOrder** gibi canlı durum alanlarını değiştirmemek amaçlanır.
 
 ## Rastgelelik Kurallari
 
@@ -81,6 +85,7 @@ veri uretip DB'ye yazmak ve OEE raporlarinda secilen tarihte goruntulemek.
 - Shift pencerelerinde telemetry üret
 - 12:00-13:00 planned_break olustur
 - Her gun icin plansiz durus bloklari uret (gun bazli degisen profil)
+- Duruşlar icin `MachineEvent` kaydi yaz (planned_break + plansiz bloklar)
 - Uretim eventleri (produce/defect) yaz
 - Job eventlerini yaz (start/auto_pause/auto_resume/complete)
 
@@ -110,7 +115,7 @@ node scripts/mock-batch.js --from 2025-01-03 --to 2025-01-07
 - Parca: `PART-MB-001`
 - Monitoring hedef degil; telemetry sikligi dusuk tutulabilir
 - OEE UI'da kaynak secimi olacak (mock-batch secilebilecek)
-- Duruş sayfasina düşmemesi için mock-batch scripti MachineEvent üretmeyecek
+- Mock-batch scripti MachineEvent de uretecek (duruş sayfasinda gorunur)
 - Orphan mock-batch job'lar temizlenir (COMPLETE/CANCEL event'i olmayan job'lar silinir)
 - Shift tarihi CLI arg ile verilecek:
   - Tek tarih -> 1 gunluk veri (ilk faz)
@@ -125,6 +130,9 @@ node scripts/mock-batch.js --from 2025-01-03 --to 2025-01-07
   - medium: 1-2 durus, 5-20 dk, %15 ihtimalle 30 dk
   - high: 2-4 durus, 10-25 dk, %25 ihtimalle 30 dk
   - Gun profili haftaya gore degisir (Pzt daha yogun, Carsamba daha sakin)
+- Planli (OEE etkileyen) durus: `other_planned`
+  - Her gun cikmasi garanti degil; hafta gunune gore olasiligi degisir (Pzt daha olasi, Carsamba daha nadir).
+  - Sure profili: 30-60dk (short), 1-2sa (medium), 2-3sa (long).
 - Defect orani (ilk faz): %2 - %8 (gun bazli degisecek)
 - Job akisi (ilk faz): 07:00 START, gun sonunda AUTO_PAUSE; devam eden job ertesi gun AUTO_RESUME ile surer
 - Randomlik modu: varsayilan deterministik, `--random` ile ayni tarihte farkli cikti

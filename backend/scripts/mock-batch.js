@@ -12,12 +12,14 @@ const Part = require('../src/domains/parts/models/part-model');
 const JobOrder = require('../src/domains/production/models/job-order-model');
 const ProductionEvent = require('../src/domains/production/models/production-event-model');
 const MachineTelemetry = require('../src/domains/machines/models/machine-telemetry-model');
+const MachineEvent = require('../src/domains/machines/models/machine-event-model');
 const Role = require('../src/domains/auth/models/role-model');
 const User = require('../src/domains/auth/models/user-model');
 const jobOrderStatuses = require('../src/constants/job-order-statuses');
 const productionEventTypes = require('../src/constants/production-event-types');
 const simulationClockService = require('../src/domains/simulations/services/simulation-clock-service');
 const roles = require('../src/constants/roles');
+const machineStatuses = require('../src/constants/machine-statuses');
 
 const SOURCE = 'mock-batch';
 const MACHINE_CODE = 'MCH-001';
@@ -228,11 +230,42 @@ const DOWNTIME_WEIGHTS = {
   Fri: { high: 0.25, medium: 0.4, low: 0.25, none: 0.1 },
 };
 
+const OTHER_PLANNED_PROFILES = {
+  none: { count: 0, minMs: 0, maxMs: 0 },
+  short: { count: 1, minMs: 30 * 60 * 1000, maxMs: 60 * 60 * 1000 },
+  medium: { count: 1, minMs: 60 * 60 * 1000, maxMs: 120 * 60 * 1000 },
+  long: { count: 1, minMs: 120 * 60 * 1000, maxMs: 180 * 60 * 1000 },
+};
+
+const OTHER_PLANNED_WEIGHTS = {
+  Mon: { none: 0.6, short: 0.15, medium: 0.15, long: 0.1 },
+  Tue: { none: 0.7, short: 0.15, medium: 0.1, long: 0.05 },
+  Wed: { none: 0.85, short: 0.1, medium: 0.04, long: 0.01 },
+  Thu: { none: 0.7, short: 0.15, medium: 0.1, long: 0.05 },
+  Fri: { none: 0.65, short: 0.15, medium: 0.15, long: 0.05 },
+};
+
+const UNPLANNED_REASON_WEIGHTS = {
+  breakdown: 0.45,
+  material_shortage: 0.25,
+  tooling_change: 0.2,
+  other_unplanned: 0.1,
+};
+
 const pickDowntimeProfile = (ymd) => {
   const weekday = getWeekdayCode(ymd);
   const weights = DOWNTIME_WEIGHTS[weekday] || DOWNTIME_WEIGHTS.Mon;
   const profileKey = pickWeighted(weights);
   return DOWNTIME_PROFILES[profileKey];
+};
+
+const pickUnplannedReasonCode = () => pickWeighted(UNPLANNED_REASON_WEIGHTS);
+
+const pickOtherPlannedProfile = (ymd) => {
+  const weekday = getWeekdayCode(ymd);
+  const weights = OTHER_PLANNED_WEIGHTS[weekday] || OTHER_PLANNED_WEIGHTS.Mon;
+  const profileKey = pickWeighted(weights);
+  return OTHER_PLANNED_PROFILES[profileKey] || OTHER_PLANNED_PROFILES.none;
 };
 
 const loadUsersByRole = async (roleName) => {
@@ -270,6 +303,34 @@ const buildUnplannedBlocks = (shiftStartAt, shiftEndAt, plannedBreak, profile) =
       const end = new Date(start.getTime() + duration);
       const candidate = { start, end };
       if (plannedBreak && overlaps(candidate, plannedBreak)) continue;
+      if (blocks.some((block) => overlaps(block, candidate))) continue;
+      blocks.push(candidate);
+      placed = true;
+    }
+  }
+
+  return blocks.sort((a, b) => a.start.getTime() - b.start.getTime());
+};
+
+const buildOtherPlannedBlocks = (shiftStartAt, shiftEndAt, plannedBreak, unplannedBlocks, profile) => {
+  const blocks = [];
+  const total = Number(profile?.count || 0);
+  if (total <= 0) return blocks;
+
+  const durationCandidates = () => randomBetween(profile.minMs, profile.maxMs);
+
+  for (let i = 0; i < total; i += 1) {
+    let placed = false;
+    for (let attempt = 0; attempt < 50 && !placed; attempt += 1) {
+      const duration = durationCandidates();
+      const maxStart = shiftEndAt.getTime() - shiftStartAt.getTime() - duration;
+      if (maxStart <= 0) break;
+      const startOffset = rand() * maxStart;
+      const start = new Date(shiftStartAt.getTime() + startOffset);
+      const end = new Date(start.getTime() + duration);
+      const candidate = { start, end };
+      if (plannedBreak && overlaps(candidate, plannedBreak)) continue;
+      if (unplannedBlocks.some((block) => overlaps(block, candidate))) continue;
       if (blocks.some((block) => overlaps(block, candidate))) continue;
       blocks.push(candidate);
       placed = true;
@@ -520,11 +581,109 @@ const estimateOperatingMs = (segments, dayData) => {
         segmentMs -= overlapEnd - overlapStart;
       }
     });
+    info.otherPlannedBlocks.forEach((block) => {
+      const overlapStart = Math.max(segment.startAt.getTime(), block.start.getTime());
+      const overlapEnd = Math.min(segment.endAt.getTime(), block.end.getTime());
+      if (overlapEnd > overlapStart) {
+        segmentMs -= overlapEnd - overlapStart;
+      }
+    });
     if (segmentMs > 0) {
       operatingMs += segmentMs;
     }
   });
   return operatingMs;
+};
+
+const buildDowntimeEventsForSegments = ({
+  segments,
+  dayData,
+  machineId,
+  jobOrderId,
+  runId,
+  batchKey,
+}) => {
+  const events = [];
+
+  segments.forEach((segment) => {
+    const info = dayData.get(segment.date);
+    if (!info) return;
+
+    const plannedBreakWindow = info.plannedBreakWindow;
+    if (plannedBreakWindow) {
+      const start = Math.max(segment.startAt.getTime(), plannedBreakWindow.start.getTime());
+      const end = Math.min(segment.endAt.getTime(), plannedBreakWindow.end.getTime());
+      if (end > start) {
+        events.push({
+          machine: machineId,
+          jobOrder: jobOrderId,
+          state: machineStatuses.DOWNTIME,
+          reasonCode: 'planned_break',
+          reasonCategory: 'planned',
+          startedAt: new Date(start),
+          endedAt: new Date(end),
+          source: 'simulator',
+          description: 'Mock planlı mola',
+          metadata: {
+            simulationSource: SOURCE,
+            simulationRunId: runId,
+            batchKey,
+            shiftDate: segment.date,
+          },
+        });
+      }
+    }
+
+    info.unplannedBlocks.forEach((block) => {
+      const start = Math.max(segment.startAt.getTime(), block.start.getTime());
+      const end = Math.min(segment.endAt.getTime(), block.end.getTime());
+      if (end <= start) return;
+
+      events.push({
+        machine: machineId,
+        jobOrder: jobOrderId,
+        state: machineStatuses.DOWNTIME,
+        reasonCode: block.reasonCode,
+        reasonCategory: 'unplanned',
+        startedAt: new Date(start),
+        endedAt: new Date(end),
+        source: 'simulator',
+        description: 'Mock plansız duruş',
+        metadata: {
+          simulationSource: SOURCE,
+          simulationRunId: runId,
+          batchKey,
+          shiftDate: segment.date,
+        },
+      });
+    });
+
+    info.otherPlannedBlocks.forEach((block) => {
+      const start = Math.max(segment.startAt.getTime(), block.start.getTime());
+      const end = Math.min(segment.endAt.getTime(), block.end.getTime());
+      if (end <= start) return;
+
+      events.push({
+        machine: machineId,
+        jobOrder: jobOrderId,
+        state: machineStatuses.DOWNTIME,
+        reasonCode: 'other_planned',
+        reasonCategory: 'planned',
+        startedAt: new Date(start),
+        endedAt: new Date(end),
+        source: 'simulator',
+        description: 'Mock planlı duruş (OEE etkiler)',
+        metadata: {
+          simulationSource: SOURCE,
+          simulationRunId: runId,
+          batchKey,
+          shiftDate: segment.date,
+        },
+      });
+    });
+  });
+
+  return events;
 };
 
 const main = async () => {
@@ -586,6 +745,10 @@ const main = async () => {
     await Promise.all([
       ProductionEvent.deleteMany({ jobOrder: { $in: orphanJobIds } }),
       JobOrder.deleteMany({ _id: { $in: orphanJobIds } }),
+      MachineEvent.deleteMany({
+        jobOrder: { $in: orphanJobIds },
+        'metadata.simulationSource': SOURCE,
+      }),
     ]);
     console.log(`[mock-batch] Orphan job temizlendi: ${orphanJobIds.length}`);
   }
@@ -595,6 +758,12 @@ const main = async () => {
       machine: machine._id,
       source: SOURCE,
       timestamp: { $gte: rangeStart, $lt: rangeEnd },
+    }),
+    MachineEvent.deleteMany({
+      machine: machine._id,
+      state: machineStatuses.DOWNTIME,
+      startedAt: { $gte: rangeStart, $lt: rangeEnd },
+      'metadata.simulationSource': SOURCE,
     }),
     ProductionEvent.deleteMany({
       machine: machine._id,
@@ -629,11 +798,20 @@ const main = async () => {
       window.shiftEndAt,
       plannedBreakWindow,
       profile,
+    ).map((block) => ({ ...block, reasonCode: pickUnplannedReasonCode() }));
+    const otherPlannedProfile = pickOtherPlannedProfile(window.date);
+    const otherPlannedBlocks = buildOtherPlannedBlocks(
+      window.shiftStartAt,
+      window.shiftEndAt,
+      plannedBreakWindow,
+      unplannedBlocks,
+      otherPlannedProfile,
     );
     const defectRate = randomBetween(DEFECT_RATE_MIN, DEFECT_RATE_MAX);
     dayData.set(window.date, {
       plannedBreakWindow,
       unplannedBlocks,
+      otherPlannedBlocks,
       defectRate,
     });
   }
@@ -675,6 +853,14 @@ const main = async () => {
     totalJobs += 1;
 
     const telemetryDocs = [];
+    const machineEventDocs = buildDowntimeEventsForSegments({
+      segments,
+      dayData,
+      machineId: machine._id,
+      jobOrderId: jobOrder._id,
+      runId,
+      batchKey,
+    });
     const bucketMap = new Map();
     let carry = 0;
     let onMs = 0;
@@ -685,6 +871,7 @@ const main = async () => {
       const info = dayData.get(segment.date);
       const plannedBreakWindow = info?.plannedBreakWindow;
       const unplannedBlocks = info?.unplannedBlocks || [];
+      const otherPlannedBlocks = info?.otherPlannedBlocks || [];
 
       for (let t = segment.startAt.getTime(); t < segment.endAt.getTime(); t += TELEMETRY_INTERVAL_MS) {
         const intervalMs = Math.min(TELEMETRY_INTERVAL_MS, segment.endAt.getTime() - t);
@@ -696,8 +883,11 @@ const main = async () => {
         const withinUnplanned = unplannedBlocks.some(
           (block) => timestamp.getTime() >= block.start.getTime() && timestamp.getTime() < block.end.getTime(),
         );
+        const withinOtherPlanned = otherPlannedBlocks.some(
+          (block) => timestamp.getTime() >= block.start.getTime() && timestamp.getTime() < block.end.getTime(),
+        );
 
-        const signalValue = withinPlanned || withinUnplanned ? 0 : 1;
+        const signalValue = withinPlanned || withinUnplanned || withinOtherPlanned ? 0 : 1;
         if (signalValue === 1) {
           onMs += intervalMs;
           const cycleSeconds = sampleCycleTimeSeconds(idealCycleSeconds);
@@ -734,6 +924,10 @@ const main = async () => {
     if (telemetryDocs.length) {
       await MachineTelemetry.insertMany(telemetryDocs);
       totalTelemetry += telemetryDocs.length;
+    }
+
+    if (machineEventDocs.length) {
+      await MachineEvent.insertMany(machineEventDocs);
     }
 
     const buckets = Array.from(bucketMap.values()).sort((a, b) => a.start.getTime() - b.start.getTime());

@@ -150,6 +150,14 @@ Bu dosya, projede alınan mimarî ve teknolojik kararları, gerekçelerini ve be
 - **Gerekçe:** OEE için “tek seferlik batch veri” üretimi ile canlı simülasyon verilerini karıştırmamak; monitoringi etkilememek.
 - **Etki:** OEE API `source` filtresi genişletilecek, Reports UI kaynak seçimi eklenecek, mock-batch script kendi source'uyla yazacak.
 
+### Mock-Batch Duruş Kayıtları (MachineEvent)
+
+- **Domain:** Backend - simulations/downtime
+- **Karar:** Mock-batch scripti, OEE’deki `affectsOee=false` (ör. öğle arası) semantiğinin doğru çalışması ve Duruşlar sayfasında görünürlük için `MachineEvent` (state=`downtime`) kayıtları da üretir.
+- **Detay:** `planned_break` (planned) + plansız bloklar (unplanned) closed olarak yazılır; overwrite çalıştırmalarında aynı aralıkta mock-batch event’leri silinip yeniden üretilir.
+- **Gerekçe:** Öğle arası gibi planlı duruşların plannedTime’dan düşebilmesi için event gerekir; ayrıca kullanıcı mock-batch ile üretilen duruşları Duruşlar ekranında görmek ister.
+- **Etki:** `backend/scripts/mock-batch.js`, `docs/specs/mock-data.md`.
+
 ### OEE Operatör Listesi (AssignedOperator)
 
 - **Domain:** Backend - oee/production, Frontend - reports

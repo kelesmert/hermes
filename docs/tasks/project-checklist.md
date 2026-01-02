@@ -79,6 +79,7 @@
 - [x] Mock-batch tek seferlik veri uretim scripti (OEE icin)
 - [x] Mock-batch CLI genisletmeleri: `--week`, `--month`, `--random` ve hafta sonu baslangic hatasi
 - [x] Mock-batch orphan job temizligi: COMPLETE/CANCEL event'i olmayan mock-batch job'larini sil
+- [x] Mock-batch durus kaydi: `MachineEvent` uret (planned_break + plansiz bloklar) ve overwrite'da sil/yeniden yaz
 - [x] OEE stats endpoint'inde sorumlu operator listesi dondur (assignedOperator bazli)
 - [x] OEE stats endpoint'inde operatör performans metrikleri dondur (`operatorStats`)
 - [ ] (Opsiyonel) JobOrder silmede ilgili telemetry kayıtlarını da temizle (purge parametresi veya admin aksiyonu)
