@@ -186,7 +186,7 @@ const ensureShiftSimState = async ({
     throw new Error('SHIFT_SIM_EPOCH_DATE formatı geçersiz. Beklenen: YYYY-MM-DD');
   }
 
-  state = await SimulationState.create({
+  const insertDoc = {
     key: SHIFT_SIM_KEY,
     timezone,
     epochDate: resolvedEpoch,
@@ -198,8 +198,14 @@ const ensureShiftSimState = async ({
     cursorAt: latest?.timestamp || null,
     simulationRunId: latest?.simulationRunId || buildShiftSimRunId(window.shiftStartAt),
     status: 'idle',
-    metadata: latest?.simulationRunId ? { inferredFromTelemetry: true } : undefined,
-  });
+    ...(latest?.simulationRunId ? { metadata: { inferredFromTelemetry: true } } : {}),
+  };
+
+  state = await SimulationState.findOneAndUpdate(
+    { key: SHIFT_SIM_KEY },
+    { $setOnInsert: insertDoc },
+    { new: true, upsert: true, setDefaultsOnInsert: true },
+  );
 
   return state;
 };
