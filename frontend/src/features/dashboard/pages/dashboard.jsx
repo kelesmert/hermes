@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
   Alert,
@@ -10,106 +10,95 @@ import {
   Grid,
   InputLabel,
   MenuItem,
+  Paper,
   Select,
   Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TextField,
   Typography,
 } from '@mui/material';
-import {
-  Line,
-  LineChart,
-  ResponsiveContainer,
-  Tooltip as RechartsTooltip,
-  XAxis,
-  YAxis,
-} from 'recharts';
-import {
-  fetchBoardMetrics,
-  fetchMachineBoardMetrics,
-  fetchMachineTelemetrySeries,
-} from '@/features/dashboard/services/board-api.js';
-import { fetchMachines } from '@/features/machines/services/machines-api.js';
-import { formatDateTime, formatTime } from '@/lib/date-format.js';
+import { fetchOperationsDashboard } from '@/features/dashboard/services/board-api.js';
+import { formatDateTime } from '@/lib/date-format.js';
 
 const formatNumber = (value) => {
   if (value === null || value === undefined) return '-';
   return Number(value).toLocaleString('tr-TR', { maximumFractionDigits: 1 });
 };
 
+const formatDurationMs = (value) => {
+  if (value === null || value === undefined) return '-';
+  const minutes = value / 60000;
+  if (minutes < 60) return `${formatNumber(minutes)} dk`;
+  const hours = minutes / 60;
+  return `${formatNumber(hours)} sa`;
+};
+
+const SOURCE_OPTIONS = [
+  { id: 'mock-batch', label: 'Mock Batch' },
+  { id: 'shift-sim', label: 'Shift Sim' },
+  { id: 'data-gen', label: 'Data Gen' },
+  { id: 'auto', label: 'Auto' },
+];
+
+const STATUS_LABELS = {
+  running: 'Çalışıyor',
+  downtime: 'Duruşta',
+  idle: 'Boşta',
+  unknown: 'Bilinmiyor',
+};
+
 const DashboardPage = () => {
-  const [selectedMachineId, setSelectedMachineId] = useState(null);
+  const [source, setSource] = useState('mock-batch');
+  const [shiftDate, setShiftDate] = useState('');
 
-  const boardQuery = useQuery({
-    queryKey: ['boardMetrics'],
-    queryFn: fetchBoardMetrics,
-    refetchInterval: 10000,
-  });
-
-  const machinesQuery = useQuery({
-    queryKey: ['machines', 'dashboard'],
-    queryFn: fetchMachines,
-    staleTime: 30000,
-  });
-
-  useEffect(() => {
-    if (!selectedMachineId && machinesQuery.data?.length) {
-      setSelectedMachineId(machinesQuery.data[0].id || machinesQuery.data[0]._id);
-    }
-  }, [machinesQuery.data, selectedMachineId]);
-
-  const machineMetricsQuery = useQuery({
-    queryKey: ['boardMachineMetrics', selectedMachineId],
-    queryFn: () => fetchMachineBoardMetrics(selectedMachineId),
-    enabled: Boolean(selectedMachineId),
-    refetchInterval: 10000,
-  });
-
-  const machineTelemetrySeriesQuery = useQuery({
-    queryKey: ['boardMachineTelemetry', selectedMachineId],
-    queryFn: () => fetchMachineTelemetrySeries({ machineId: selectedMachineId, limit: 40 }),
-    enabled: Boolean(selectedMachineId),
-    refetchInterval: 10000,
+  const operationsQuery = useQuery({
+    queryKey: ['operationsDashboard', source, shiftDate],
+    queryFn: () =>
+      fetchOperationsDashboard({
+        source,
+        shiftDate: shiftDate || undefined,
+      }),
+    refetchInterval: source === 'data-gen' || source === 'shift-sim' ? 15000 : false,
   });
 
   const cards = useMemo(() => {
-    if (!boardQuery.data) return [];
-    const { counts, telemetry, downtime } = boardQuery.data;
+    if (!operationsQuery.data) return [];
+    const { counts } = operationsQuery.data;
     return [
       {
         label: 'Toplam Makine',
-        value: formatNumber(counts.totalMachines),
-        caption: 'Sistemde kayıtlı',
+        value: formatNumber(counts.total),
+        caption: 'Aktif makine',
       },
       {
         label: 'Çalışan',
-        value: formatNumber(counts.runningMachines),
-        caption: 'Son durum',
+        value: formatNumber(counts.running),
+        caption: 'Şu an',
       },
       {
         label: 'Duruşta',
-        value: formatNumber(counts.downtimeMachines),
-        caption: 'Anlık',
+        value: formatNumber(counts.downtime),
+        caption: 'Şu an',
       },
       {
-        label: 'Ortalama Sıcaklık',
-        value: telemetry.avgTemperatureC ? `${formatNumber(telemetry.avgTemperatureC)} °C` : '-',
-        caption: 'Son pencere',
+        label: 'Boşta',
+        value: formatNumber(counts.idle),
+        caption: 'Job yok',
       },
       {
-        label: 'Ortalama Tork',
-        value: telemetry.avgTorqueNm ? `${formatNumber(telemetry.avgTorqueNm)} Nm` : '-',
-        caption: 'Son pencere',
-      },
-      {
-        label: 'Toplam Duruş Süresi',
-        value: downtime.totalDowntimeMs
-          ? `${formatNumber(downtime.totalDowntimeMs / 60000)} dk`
-          : '-',
-        caption: 'Seçili pencere',
+        label: 'Bilinmiyor',
+        value: formatNumber(counts.unknown),
+        caption: 'Veri yok',
       },
     ];
-  }, [boardQuery.data]);
+  }, [operationsQuery.data]);
 
-  if (boardQuery.isLoading) {
+  if (operationsQuery.isLoading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
         <CircularProgress />
@@ -117,17 +106,68 @@ const DashboardPage = () => {
     );
   }
 
-  if (boardQuery.isError) {
+  if (operationsQuery.isError) {
     return (
       <Alert severity="error">
         Dashboard verileri alınamadı:{' '}
-        {boardQuery.error?.response?.data?.message || boardQuery.error?.message}
+        {operationsQuery.error?.response?.data?.message || operationsQuery.error?.message}
       </Alert>
     );
   }
 
+  const effectiveShiftDate = operationsQuery.data?.shiftDate || '';
+  const shiftDateValue = shiftDate || effectiveShiftDate;
+
   return (
     <Grid container spacing={3}>
+      <Grid item xs={12}>
+        <Card>
+          <CardContent>
+            <Stack spacing={2}>
+              <Typography variant="h6">Operasyon</Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={12} sm={6} md={4}>
+                  <FormControl fullWidth size="small">
+                    <InputLabel id="dashboard-source-label">Kaynak</InputLabel>
+                    <Select
+                      labelId="dashboard-source-label"
+                      label="Kaynak"
+                      value={source}
+                      onChange={(event) => setSource(event.target.value)}
+                    >
+                      {SOURCE_OPTIONS.map((option) => (
+                        <MenuItem key={option.id} value={option.id}>
+                          {option.label}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12} sm={6} md={4}>
+                  <TextField
+                    fullWidth
+                    size="small"
+                    label="Shift Tarihi"
+                    type="date"
+                    value={shiftDateValue}
+                    onChange={(event) => setShiftDate(event.target.value)}
+                    InputLabelProps={{ shrink: true }}
+                    helperText="Boş bırakılırsa son telemetry günü kullanılır."
+                  />
+                </Grid>
+              </Grid>
+              {operationsQuery.data?.windowStart && operationsQuery.data?.windowEnd ? (
+                <Typography variant="body2" color="text.secondary">
+                  Pencere: {formatDateTime(operationsQuery.data.windowStart)} →{' '}
+                  {formatDateTime(operationsQuery.data.windowEnd)}
+                  {operationsQuery.data.asOf ? ` • As-Of: ${formatDateTime(operationsQuery.data.asOf)}` : ''}
+                </Typography>
+              ) : null}
+            </Stack>
+          </CardContent>
+        </Card>
+      </Grid>
+
       {cards.map((metric) => (
         <Grid item xs={12} sm={6} md={4} key={metric.label}>
           <Card>
@@ -149,156 +189,80 @@ const DashboardPage = () => {
       <Grid item xs={12}>
         <Card>
           <CardContent>
-            <Stack spacing={3}>
-              <Typography variant="h6">Makine Telemetry Özeti</Typography>
-              <FormControl fullWidth size="small" disabled={machinesQuery.isLoading}>
-                <InputLabel id="machine-select-label">Makine Seç</InputLabel>
-                <Select
-                  labelId="machine-select-label"
-                  label="Makine Seç"
-                  value={selectedMachineId || ''}
-                  onChange={(event) => setSelectedMachineId(event.target.value)}
-                >
-                  {(machinesQuery.data || []).map((machine) => (
-                    <MenuItem key={machine.id || machine._id} value={machine.id || machine._id}>
-                      {machine.code} — {machine.name}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-
-              {machineMetricsQuery.isLoading ? (
-                <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-                  <CircularProgress size={28} />
-                </Box>
-              ) : machineMetricsQuery.isError ? (
-                <Alert severity="error">
-                  Makine verileri alınamadı:{' '}
-                  {machineMetricsQuery.error?.response?.data?.message ||
-                    machineMetricsQuery.error?.message}
-                </Alert>
-              ) : machineMetricsQuery.data ? (
-                <Grid container spacing={2}>
-                  <Grid item xs={12} md={6}>
-                    <Typography variant="subtitle2" color="text.secondary">
-                      Ortalama Sıcaklık
-                    </Typography>
-                    <Typography variant="h5" sx={{ mb: 2 }}>
-                      {machineMetricsQuery.data.telemetry.avgTemperatureC
-                        ? `${formatNumber(machineMetricsQuery.data.telemetry.avgTemperatureC)} °C`
-                        : '-'}
-                    </Typography>
-                    <Typography variant="subtitle2" color="text.secondary">
-                      Ortalama Tork
-                    </Typography>
-                    <Typography variant="h5" sx={{ mb: 2 }}>
-                      {machineMetricsQuery.data.telemetry.avgTorqueNm
-                        ? `${formatNumber(machineMetricsQuery.data.telemetry.avgTorqueNm)} Nm`
-                        : '-'}
-                    </Typography>
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <Typography variant="subtitle2" color="text.secondary">
-                      Ortalama Enerji
-                    </Typography>
-                    <Typography variant="h5" sx={{ mb: 2 }}>
-                      {machineMetricsQuery.data.telemetry.avgEnergyKwh
-                        ? `${formatNumber(machineMetricsQuery.data.telemetry.avgEnergyKwh)} kWh`
-                        : '-'}
-                    </Typography>
-                    <Typography variant="subtitle2" color="text.secondary">
-                      Son Sinyal
-                    </Typography>
-                    <Typography variant="h5">
-                      {machineMetricsQuery.data.signal.lastValue === null
-                        ? '-'
-                        : machineMetricsQuery.data.signal.lastValue === 1
-                        ? 'Çalışıyor'
-                        : 'Duruşta'}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {machineMetricsQuery.data.signal.lastAt
-                        ? formatDateTime(machineMetricsQuery.data.signal.lastAt)
-                        : ''}
-                    </Typography>
-                  </Grid>
-                  <Grid item xs={12}>
-                    <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
-                      Telemetry Trend (Son ölçümler)
-                    </Typography>
-                    {machineTelemetrySeriesQuery.isLoading ? (
-                      <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-                        <CircularProgress size={24} />
-                      </Box>
-                    ) : machineTelemetrySeriesQuery.isError ? (
-                      <Alert severity="warning">
-                        Trend verileri alınamadı:{' '}
-                        {machineTelemetrySeriesQuery.error?.response?.data?.message ||
-                          machineTelemetrySeriesQuery.error?.message}
-                      </Alert>
-                    ) : (machineTelemetrySeriesQuery.data?.series || []).length === 0 ? (
-                      <Typography color="text.secondary">Trend verisi bulunamadı.</Typography>
-                    ) : (
-                      <Box sx={{ height: 260 }}>
-                        <ResponsiveContainer width="100%" height="100%">
-                          <LineChart data={machineTelemetrySeriesQuery.data.series}>
-                            <XAxis
-                              dataKey="timestamp"
-                              tickFormatter={(value) => formatTime(value)}
-                              stroke="#999"
-                              fontSize={12}
-                            />
-                            <YAxis
-                              yAxisId="left"
-                              stroke="#8884d8"
-                              fontSize={12}
-                              allowDecimals
-                              tickFormatter={(value) => `${value}`}
-                            />
-                            <YAxis
-                              yAxisId="right"
-                              orientation="right"
-                              stroke="#82ca9d"
-                              fontSize={12}
-                              allowDecimals
-                              tickFormatter={(value) => `${value}`}
-                            />
-                            <RechartsTooltip
-                              labelFormatter={(value) => formatDateTime(value)}
-                            />
-                            <Line
-                              yAxisId="left"
-                              type="monotone"
-                              dataKey="metrics.temperatureC"
-                              stroke="#ff7043"
-                              name="Sıcaklık (°C)"
-                              dot={false}
-                            />
-                            <Line
-                              yAxisId="left"
-                              type="monotone"
-                              dataKey="metrics.torqueNm"
-                              stroke="#42a5f5"
-                              name="Tork (Nm)"
-                              dot={false}
-                            />
-                            <Line
-                              yAxisId="right"
-                              type="monotone"
-                              dataKey="metrics.energyKwh"
-                              stroke="#66bb6a"
-                              name="Enerji (kWh)"
-                              dot={false}
-                            />
-                          </LineChart>
-                        </ResponsiveContainer>
-                      </Box>
-                    )}
-                  </Grid>
-                </Grid>
+            <Stack spacing={2}>
+              <Typography variant="h6">Duruşlar</Typography>
+              {(operationsQuery.data?.downtimes || []).length === 0 ? (
+                <Typography color="text.secondary">Bu pencerede duruş bulunamadı.</Typography>
               ) : (
-                <Typography color="text.secondary">Makine verisi bulunamadı.</Typography>
+                <TableContainer component={Paper} variant="outlined">
+                  <Table size="small">
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>Makine</TableCell>
+                        <TableCell>Sebep</TableCell>
+                        <TableCell>Tür</TableCell>
+                        <TableCell align="right">Süre</TableCell>
+                        <TableCell>Başlangıç</TableCell>
+                        <TableCell>Bitiş</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {operationsQuery.data.downtimes.map((downtime) => (
+                        <TableRow key={downtime.id}>
+                          <TableCell>
+                            {downtime.machine?.code
+                              ? `${downtime.machine.code} — ${downtime.machine.name}`
+                              : '-'}
+                          </TableCell>
+                          <TableCell>{downtime.reasonCode || '-'}</TableCell>
+                          <TableCell>{downtime.reasonCategory || '-'}</TableCell>
+                          <TableCell align="right">{formatDurationMs(downtime.durationMs)}</TableCell>
+                          <TableCell>
+                            {downtime.startedAt ? formatDateTime(downtime.startedAt) : '-'}
+                          </TableCell>
+                          <TableCell>
+                            {downtime.endedAt ? formatDateTime(downtime.endedAt) : 'Açık'}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
               )}
+
+              <Typography variant="h6" sx={{ pt: 1 }}>
+                Makineler
+              </Typography>
+              <TableContainer component={Paper} variant="outlined">
+                <Table size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Makine</TableCell>
+                      <TableCell>Durum</TableCell>
+                      <TableCell align="right">Açık Duruş</TableCell>
+                      <TableCell>Son Telemetry</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {(operationsQuery.data?.machines || []).map((machine) => (
+                      <TableRow key={machine.id}>
+                        <TableCell>
+                          {machine.code} — {machine.name}
+                        </TableCell>
+                        <TableCell>{STATUS_LABELS[machine.status] || machine.status}</TableCell>
+                        <TableCell align="right">
+                          {machine.openDowntime
+                            ? formatDurationMs(machine.openDowntime.durationMs)
+                            : '-'}
+                        </TableCell>
+                        <TableCell>
+                          {machine.lastTelemetryAt ? formatDateTime(machine.lastTelemetryAt) : '-'}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
             </Stack>
           </CardContent>
         </Card>

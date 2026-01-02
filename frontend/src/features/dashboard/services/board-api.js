@@ -25,3 +25,10 @@ export const fetchMachineTelemetrySeries = async ({
   });
   return data;
 };
+
+export const fetchOperationsDashboard = async ({ source, shiftDate } = {}) => {
+  const { data } = await apiClient.get('/board/operations', {
+    params: { source, shiftDate },
+  });
+  return data;
+};

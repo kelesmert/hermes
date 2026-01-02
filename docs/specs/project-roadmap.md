@@ -71,6 +71,6 @@ Amaç, Node.js/Express backend, React frontend ve MongoDB veritabanı kullanarak
 ## 5. Güncel Durum
 
 - **Tamamlanan Domainler:** Auth, Users, Access-Control, Machines, Parts, OEE, Board, Production, Downtime, Simulations
-- **Frontend Sayfaları:** Login, Dashboard, Monitoring, Users, Machines, Parts, Production/Job Orders (CRUD + aksiyon ekranı), Downtimes, Simulations, Reports
+- **Frontend Sayfaları:** Login, Dashboard (Operasyon), Monitoring, Users, Machines, Parts, Production/Job Orders (CRUD + aksiyon ekranı), Downtimes, Simulations, Reports
 - **Telemetry/OEE Altyapısı:** Monitoring “Kaynak” seçimi ile data-gen live akışı ve shift-sim vardiya görünümü arasında geçiş yapılır. OEE job’u tez demosunda varsayılan olarak sadece shift-sim telemetry’sini işler; 0 serisi eşiği ile plansız duruşları yönetir ve planlı duruşlar scheduler ile rule/run modelinden yürütülür. Shift-sim koşusu tamamlanınca `shift_end` uygulanır: `in_progress` job `paused` olur ve makine `idle` durumuna çekilir
 - **Sıradaki:** Export + audit log geliştirmeleri

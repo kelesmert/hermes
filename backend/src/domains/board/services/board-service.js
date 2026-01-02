@@ -8,9 +8,13 @@ const getMachineTelemetrySummary = async (machineId, options) =>
 const getMachineTelemetrySeries = async (machineId, options) =>
   oeeDashboardService.getMachineTelemetrySeries(machineId, options);
 
+const getOperationsDashboard = async (options) =>
+  oeeDashboardService.getOperationsDashboard(options);
+
 module.exports = {
   getBoardMetrics,
   getMachineTelemetrySummary,
   getMachineTelemetrySeries,
+  getOperationsDashboard,
   telemetryWindowMs: oeeDashboardService.telemetryWindowMs,
 };

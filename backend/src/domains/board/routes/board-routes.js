@@ -26,4 +26,10 @@ router.get(
   boardController.getMachineTelemetrySeries,
 );
 
+router.get(
+  '/operations',
+  requirePermissions(permissions.DASHBOARD_READ),
+  boardController.getOperationsDashboard,
+);
+
 module.exports = router;

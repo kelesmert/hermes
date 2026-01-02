@@ -54,7 +54,7 @@
 - [x] OEE Processor Job: Telemetry batch processing, otomatik downtime detection (sıfır serisi > threshold → MachineEvent)
 - [x] OeeMachineState modeli: Makine başına son sinyal, aktif event, sıfır serisi başlangıç zamanı
 - [x] OEE shift penceresini merkezi kaynaktan al (simulation-clock-service) ve hafta ici filtresi uygula
-- [x] Board domain: Dashboard metrik endpoint'leri (`/api/board/metrics`, `/api/board/machines/:id/metrics`, `/api/board/machines/:id/telemetry`)
+- [x] Board domain: Dashboard metrik endpoint'leri (`/api/board/metrics`, `/api/board/machines/:id/metrics`, `/api/board/machines/:id/telemetry`, `/api/board/operations`)
 - [x] Parts domaini: model + CRUD endpointleri + RBAC izinleri ve seed verileri
 - [x] Production domaini: JobOrder + ProductionEvent modelleri, CRUD + start/pause/resume/produce endpointleri ve telemetry bağlı job-simulator scripti
 - [x] Downtime domaini v2: PlannedDowntimeRule/Run modelleri, rule CRUD + run list endpointleri ve scheduler job (feature-flag)
@@ -109,7 +109,7 @@
 - [x] Auth sayfaları (login, logout, rol yönlendirmeleri)
 - [x] Geçici localStorage tabanlı refresh token yönetimi (cookie geçişine hazırlık)
 - [x] `/api/users` listesini TanStack Table ile entegre et; aktif/pasif toggle, rol atama ve filtreleme akışlarını tamamla
-- [x] Dashboard layout ve genel metrik kartları (Board domain endpoint'leri, polling)
+- [x] Dashboard operasyon görünümü (tüm makineler, duruş listesi, kaynak + shift tarihi seçimi, polling)
 - [x] Makine kartları (durum renkleri, polling/React Query refetchInterval)
 - [x] Monitoring sayfası: Seçili makine için canlı telemetry grafikler (2sn polling, kayan pencere, Recharts)
 - [x] Monitoring source seçimi: Auto/shift-sim/data-gen toggle + shift view (07:00–18:00) ve live view ayrımı

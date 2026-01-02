@@ -165,6 +165,13 @@ Bu dosya, projede alınan mimarî ve teknolojik kararları, gerekçelerini ve be
 - **Gerekçe:** Operatör bazlı verim karşılaştırması yapmak ve OEE etkisini operatörle ilişkilendirmek.
 - **Etki:** `backend/src/domains/oee/services/oee-calculator-service.js`, `frontend/src/features/reports/pages/reports.jsx`, ilgili dokümanlar.
 
+### Dashboard Operasyon Görünümü (Board Operations)
+
+- **Domain:** Backend - board/oee, Frontend - dashboard
+- **Karar:** Dashboard sayfası supervisor odaklı "Operasyon" görünümüne evrildi. Tüm makineler için seçili shift gününde (default: seçilen kaynağın son telemetry günü) "running/downtime/idle/unknown" sayıları, duruş listesi ve makine tablosu gösterilir. Yeni endpoint: `GET /api/board/operations?source=...&shiftDate=YYYY-MM-DD`. Varsayılan kaynak: `mock-batch`.
+- **Gerekçe:** Önceki dashboard (genel ortalamalar + tek makine trendi) operasyonel karar vermek için zayıftı; mock-batch gibi geçmişe yazılan veriyle "bugün" kavramı karışıyordu. Operasyon dashboard'ı, kaynak ve tarih seçimiyle deterministik bir "as-of" bakışı sağlar.
+- **Etki:** `backend/src/domains/board/routes/board-routes.js`, `backend/src/domains/board/controllers/board-controller.js`, `backend/src/domains/board/services/board-service.js`, `backend/src/domains/oee/services/oee-dashboard-service.js`, `frontend/src/features/dashboard/pages/dashboard.jsx`, `frontend/src/features/dashboard/services/board-api.js`.
+
 ## Frontend Kararları
 
 ### Vite + React (JavaScript) SPA

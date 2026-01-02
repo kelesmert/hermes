@@ -50,11 +50,11 @@ Yeni geliştirici projeyi anlamak için bu dosyaya bakmalıdır.
 - `backend/src/domains/oee/config/oee-rules.json`: OEE/sinyal işleme domaini için downtime eşikleri, reason kod haritaları ve aggregation ayarlarının tutulduğu JSON konfigurasyonu.
 - `backend/src/domains/oee/models/oee-machine-state-model.js`: Her makine için son sinyal değerini, aktif duruş event’ini ve sıfır (0) serisinin başlangıcını tutar; OEE job’u bu tabloyu kullanır.
 - `backend/src/domains/oee/services/oee-processor.js`: Telemetry kayıtlarını batch halinde okuyup kuralları uygulayan servis; `OEE_PROCESSOR_TELEMETRY_SOURCE` ile kaynak bazlı çalıştırılabilir (tez demosunda varsayılan `shift-sim`), plansız duruş timing’ini üretir ve event yazımını downtime domain üzerinden orkestre eder.
-- `backend/src/domains/oee/services/oee-dashboard-service.js`: Telemetry/OEE verilerinden dashboard için gerekli ortalama, toplam ve trend verilerini üretir; shift view hesapları için merkezi shift penceresini kullanır.
+- `backend/src/domains/oee/services/oee-dashboard-service.js`: Telemetry/OEE verilerinden dashboard için gerekli metrikleri üretir; shift view hesapları için merkezi shift penceresini kullanır ve operasyon dashboard'ı için `getOperationsDashboard` ile as-of durum + duruş süreleri döndürür.
 - `backend/src/domains/oee/services/oee-calculator-service.js`: OEE hesaplamasını yapar; shift ve range pencereleri, job aktif interval’ları, plannedTime/operatingTime ve A/P/Q/OEE metriklerini üretir. Ayni timestamp’teki job event’lerinde `COMPLETE/CANCEL` once islenir.
 - `backend/src/jobs/oee-processor-job.js`: Sunucu açıldığında çalışan cron benzeri job; belirlenen aralıklarla OEE processor servisini tetikler.
 - `backend/src/jobs/planned-downtime-scheduler-job.js`: Planlı duruş scheduler runner; rule/run modeline göre planlı duruş başlatır/bitirir (feature-flag ile).
-- `backend/src/domains/board/`: Dashboard’a yönelik metrikleri toplayan domain; `services/board-service.js` telemetry/OEE sonuçlarını birleştirir, `routes/board-routes.js` `/api/board/metrics`, `/api/board/machines/:id/metrics` ve `/api/board/machines/:id/telemetry` endpointlerini sunar.
+- `backend/src/domains/board/`: Dashboard’a yönelik metrikleri toplayan domain; `services/board-service.js` telemetry/OEE sonuçlarını birleştirir, `routes/board-routes.js` `/api/board/metrics`, `/api/board/machines/:id/metrics`, `/api/board/machines/:id/telemetry` ve `/api/board/operations` endpointlerini sunar.
 - `backend/src/middleware/auth-guard.js`: JWT doğrulaması yaparak isteğe `req.auth` bilgisi ekler.
 - `backend/src/middleware/permission-guard.js`: İstenen izinlere göre erişim kontrolü yapan middleware.
 - `backend/src/models/index.js`: Domain modellerini preload eder (auth, machines, oee, production, downtime, simulations state).
@@ -64,7 +64,7 @@ Yeni geliştirici projeyi anlamak için bu dosyaya bakmalıdır.
 - `backend/src/utils/app-error.js`: Uygulama içinde kullanılacak özel hata sınıfı (HTTP durum kodlarıyla beraber).
 - `backend/src/utils/async-handler.js`: Promise dönen controller fonksiyonlarını sarmalayarak hata yakalamayı kolaylaştırır.
 - `backend/src/utils/to-json-transform.js`: Mongoose şemalarında `_id` → `id` dönüşümü ve gereksiz alanları temizleyen ortak JSON transform helper’ı.
-- `backend/src/constants/roles.js`: Rol isimlerini merkezi bir yerde tanımlar (`master`, `supervisor`, `maintenance`, `operator`, `viewer`).
+- `backend/src/constants/roles.js`: Rol isimlerini merkezi bir yerde tanımlar (`master`, `supervisor`, `operator`, `viewer`).
 - `backend/src/constants/permissions.js`: Sistem genelinde kullanılacak izin anahtarlarını listeler (örn. `machines.read`).
 - `backend/src/constants/machine-statuses.js`: Makine durum enum değerlerini (`running`, `idle`, `downtime`, `maintenance`, `unknown`) merkezi olarak paylaşır.
 - `backend/scripts/seed.js`: Varsayılan rol kayıtlarını ve sabit kullanıcı listesini oluşturan seed script’i (`npm run seed`).
@@ -72,6 +72,11 @@ Yeni geliştirici projeyi anlamak için bu dosyaya bakmalıdır.
 - `backend/scripts/shift-simulator.js`: Hızlandırılmış vardiya telemetry simülatörü; 07:00–18:00 aralığı için deterministik sinyal/telemetry üretir ve `simulationRunId` ile işaretler (`npm run shift:sim`). Sanal takvim `SHIFT_SIM_EPOCH_DATE` + kalıcı Simulation Clock state üzerinden ilerler; yarıda durursa kaldığı yerden devam eder, shift bitince ertesi güne geçer. Sinyal 1 yalnızca `in_progress` job varken üretilir; job `paused` ise sinyal 0 kalır. Telemetry kayıtlarında `jobOrder` etiketi yazılır. Koşu bitince OEE processor telemetry’yi işledikten sonra (maksimum `SHIFT_SIM_WAIT_FOR_PROCESSING_MS`) `shift_end` uygular: `in_progress` job’u `paused` yapar, açık event’leri vardiya bitişinde kapatır ve makineyi `idle` durumuna çeker (`currentJobOrder` korunur). Planlı duruş açıkken `SHIFT_SIM_PLANNED_STOPPED_MODE` ile signal/metrikleri 0’a kilitleyebilir. Test downtime segmentleri env ile kontrol edilebilir.
 - `backend/scripts/job-simulator.js`: Aktif JobOrder kayıtları için telemetry’ye bağlı üretim verisi üretir; explicit telemetry kaynağı (`JOB_SIM_TELEMETRY_SOURCE`, default shift-sim) seçer ve telemetry’yi `jobOrder` alanına göre filtreler. Son telemetry timestamp’lerine göre ideal çevrim süresini hesaplayıp `production_events` yazar ve shift-sim koşularında simülasyon timestamp’lerini korur (`npm run job:sim`).
 - `backend/scripts/mock-batch.js`: Tek seferlik mock veri üretim script’i; `--date` ile tek gün, `--week` ile 5 iş günü, `--month` ile 20 iş günü veri üretir ve `--random` ile deterministik seed’i kapatır. `source=mock-batch` ile telemetry + production event yazar, aynı tarih aralığında eski veriyi overwrite eder, orphan mock-batch job'ları temizler ve OEE raporları için tarih bazlı veri hazırlar.
+
+## Frontend
+
+- `frontend/src/features/dashboard/pages/dashboard.jsx`: Dashboard sayfası; supervisor odaklı "Operasyon" görünümü (tüm makineler, duruş listesi, kaynak + shift tarihi seçimi) ve `/api/board/operations` entegrasyonu.
+- `frontend/src/features/dashboard/services/board-api.js`: Board endpoint'leri için API client; `fetchOperationsDashboard` ile operasyon dashboard verisini çeker.
 
 ## Docs
 

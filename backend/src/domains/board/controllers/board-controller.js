@@ -26,8 +26,15 @@ const getMachineTelemetrySeries = asyncHandler(async (req, res) => {
   res.json(payload);
 });
 
+const getOperationsDashboard = asyncHandler(async (req, res) => {
+  const { source, shiftDate } = req.query;
+  const payload = await boardService.getOperationsDashboard({ source, shiftDate });
+  res.json(payload);
+});
+
 module.exports = {
   getBoardMetrics,
   getMachineMetrics,
   getMachineTelemetrySeries,
+  getOperationsDashboard,
 };
