@@ -345,6 +345,13 @@ Yeni kararlar alındıkça bu dosyaya tarih/başlık/gerekçe formatıyla ekleme
 - **Etki:** `backend/src/domains/oee/config/oee-rules.json` güncellendi; signal timeout kaynaklı otomatik event'ler kaldırıldı, makine durumları telemetry’nin gerçek 0 serilerine göre değişiyor.
 - **Onemlinot** sorun hala cozulemedi.
 
+### OEE Processor BatchSize Artırımı
+
+- **Domain:** Backend - oee/board
+- **Karar:** Shift-sim koşularında telemetry backlog gecikmesini azaltmak için `oee-rules.json` içindeki `aggregation.batchSize` 500’den 1000’e çıkarıldı; `pollIntervalMs` şimdilik sabit tutuldu.
+- **Gerekçe:** Shift-sim telemetry üretim hızı OEE processor işleme hızını aştığında `processedAt` geride kalıyor; MachineEvent açma/kapatma gecikiyor ve operasyon dashboard’daki duruş tablosu geç güncelleniyor. BatchSize artırımı en düşük riskli kapasite artışı.
+- **Etki:** `backend/src/domains/oee/config/oee-rules.json` güncellendi. Dashboard duruş tablosundaki gecikme azalır. `pollIntervalMs` düşürülmediği için job overlap riski artırılmadı.
+
 ### OEE Downtime Tetiklemesinde İş Emri Bilinci
 
 - **Domain:** Backend - oee/production

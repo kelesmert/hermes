@@ -79,6 +79,6 @@
   "aggregation": {
     "telemetryWindowMs": 600000,
     "pollIntervalMs": 2000,
-    "batchSize": 500
+    "batchSize": 1000
   }
 }

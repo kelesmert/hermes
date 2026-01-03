@@ -84,8 +84,9 @@
 - [x] Mock-batch durus kaydi: `MachineEvent` uret (planned_break + plansiz bloklar) ve overwrite'da sil/yeniden yaz
 - [x] OEE stats endpoint'inde sorumlu operator listesi dondur (assignedOperator bazli)
 - [x] OEE stats endpoint'inde operatör performans metrikleri dondur (`operatorStats`)
+- [x] OEE processor batchSize artırımı (oee-rules.json `aggregation.batchSize` 1000) ile shift-sim telemetry backlog gecikmesi azaltildi
 - [ ] (Opsiyonel) JobOrder silmede ilgili telemetry kayıtlarını da temizle (purge parametresi veya admin aksiyonu)
-- [ ] (İleride) OEE processor processedAt gecikmesi ve shift-sim wait süresi optimizasyonu (oee-rules.json `pollIntervalMs` + `batchSize`, `OEE_PROCESSOR_TELEMETRY_SOURCE` uyumu, `SHIFT_SIM_WAIT_FOR_PROCESSING_MS` düşürme/0, işlenmeyen telemetry için uyarı)
+- [ ] (İleride) OEE processor processedAt gecikmesi ve shift-sim wait süresi optimizasyonu (oee-rules.json `pollIntervalMs` ayari ve overlap korumasi, `OEE_PROCESSOR_TELEMETRY_SOURCE` uyumu, `SHIFT_SIM_WAIT_FOR_PROCESSING_MS` düşürme/0, işlenmeyen telemetry için uyarı)
 - [ ] (Opsiyonel) Monitoring periyot/bucket endpoint'i (vardiya görünümü için ayrı endpoint ve UI)
 - [ ] Event zamanlarının lokal timezone desteği (UTC+3 gibi) için helper/formatlama katmanı
 - [ ] Raporlama endpointleri (verimlilik, duruş süreleri vb.)

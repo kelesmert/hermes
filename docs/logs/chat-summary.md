@@ -28,22 +28,21 @@
 
 ---
 
-## 31 Aralık 2025 - Context Window #12
+## 03 Ocak 2026 - Context Window #14
 
 ### Yapılanlar
 
-- OEE trend grafiğinde tarih etiketleri `dd/MM/yyyy` formatına çekildi; rapor penceresinde tarih görünümü ortak helper’a bağlandı.
-- UI tarih formatı standardı için karar ve standart dokümantasyonu güncellendi.
-- OEE trend backend endpoint, job-sim cursor kalıcılığı ve actualDuration pause düşümü gibi öneriler checklist’e işlendi.
+- OEE processor kapasitesi için `oee-rules.json` içinde `aggregation.batchSize` 1000'e çıkarıldı (pollIntervalMs aynı kaldı).
+- Shift-sim sonrası MachineEvent gecikmesi azaldı; dashboard duruş tablosu daha erken güncelleniyor.
 
 ### Alınan Kararlar
 
-- UI tarih/saat gösterimleri tek helper üzerinden yönetilecek, API tarafında ISO format korunacak.
+- OEE processor throughput artırımı için ilk tercih batchSize artırımı, pollIntervalMs değişimi gerekirse ikinci adım.
 
 ### Sonraki Adımlar
 
-- Job-sim cursor state kalıcılığı ve actualDurationMinutes düzeltmesi.
-- OEE trend için tek endpoint tasarımı (opsiyonel).
+- Gerekirse pollIntervalMs ayarı ve overlap koruması (şimdilik gerek yok).
+- Export ve audit log geliştirmeleri.
 
 ## 01 Ocak 2026 - Context Window #13
 
@@ -62,6 +61,23 @@
 
 - Shift calendar altyapisini makine bazli hale getirmek.
 - Raporlama export ve audit log gelistirmeleri.
+
+## 31 Aralık 2025 - Context Window #12
+
+### Yapılanlar
+
+- OEE trend grafiğinde tarih etiketleri `dd/MM/yyyy` formatına çekildi; rapor penceresinde tarih görünümü ortak helper’a bağlandı.
+- UI tarih formatı standardı için karar ve standart dokümantasyonu güncellendi.
+- OEE trend backend endpoint, job-sim cursor kalıcılığı ve actualDuration pause düşümü gibi öneriler checklist’e işlendi.
+
+### Alınan Kararlar
+
+- UI tarih/saat gösterimleri tek helper üzerinden yönetilecek, API tarafında ISO format korunacak.
+
+### Sonraki Adımlar
+
+- Job-sim cursor state kalıcılığı ve actualDurationMinutes düzeltmesi.
+- OEE trend için tek endpoint tasarımı (opsiyonel).
 
 ## 31 Aralık 2025 - Context Window #11
 
