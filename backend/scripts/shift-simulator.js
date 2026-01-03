@@ -55,6 +55,7 @@ const AFTERNOON_UNPLANNED_WINDOW_START = '14:30';
 const AFTERNOON_UNPLANNED_WINDOW_END = '16:30';
 const AFTERNOON_UNPLANNED_MIN_MINUTES = 60;
 const AFTERNOON_UNPLANNED_MAX_MINUTES = 120;
+const FINAL_IDLE_INTERVAL_MS = 1;
 
 const METRIC_PROFILES = {
   active: {
@@ -426,6 +427,19 @@ const generateTelemetryPayload = (machine, timestamp, runId) => {
   };
 };
 
+const buildFinalIdleTelemetry = (machine, timestamp, runId) => {
+  const state = ensureMachineState(machine);
+  return {
+    machine: machine._id,
+    timestamp,
+    signalValue: 0,
+    metrics: computeMetrics(state, 'idle'),
+    intervalMs: FINAL_IDLE_INTERVAL_MS,
+    source: SOURCE,
+    simulationRunId: runId,
+  };
+};
+
 let currentShiftWindow = null;
 
 const formatIso = (date) => (date ? new Date(date).toISOString() : '');
@@ -645,6 +659,14 @@ const startSimulator = async () => {
 
       if (simCursorMs >= simEndMs) {
         clearInterval(intervalRef);
+        const finalTimestamp = new Date(simEndMs - 1);
+        if (finalTimestamp > currentShiftWindow.startAt) {
+          const finalDocs = machines.map((machine) =>
+            buildFinalIdleTelemetry(machine, finalTimestamp, runId),
+          );
+          await MachineTelemetry.insertMany(finalDocs, { ordered: false });
+          lastWrittenAt = finalTimestamp;
+        }
         const waitResult = await waitForProcessing(runId);
         if (!waitResult.ok) {
           console.log(

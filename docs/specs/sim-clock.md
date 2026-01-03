@@ -135,6 +135,12 @@ Shift sim’in bir gün içi vardiya koşusu. Aynı gün içinde resume yapılı
 - **Karar:** Mod değiştirirken veri silme zorunlu değil
 - **Gerekçe:** Amaç ekranda doğru kaynağı göstermek, veriyi yok etmek değil
 
+### Shift sim final idle telemetry
+
+- **Karar:** Shift bitiminde tek bir `signalValue=0` telemetry yazılır; `jobOrder` alanı boş bırakılır.
+- **Gerekçe:** Dashboard’da shift bitince makinenin idle görünmesi için son sinyalin 0 olması gerekir; job status etkilenmez.
+- **Not:** `intervalMs` çok küçük tutulur (1 ms) ve OEE etkisi ihmal edilebilir düzeydedir.
+
 ### Monitoring kaynak seçimi
 
 - **Karar:** Monitoring, shift sim için shift view, data gen için live view kullanacak

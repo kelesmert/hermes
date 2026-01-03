@@ -74,6 +74,7 @@
 - [x] Job-sim telemetry kaynağı explicit seçimi (`JOB_SIM_TELEMETRY_SOURCE`) ve job event zaman ekseni seçimi (`JOB_TIME_SOURCE`)
 - [x] Shift-sim test downtime schedule’ı env ile kontrol etme (on/off + süre)
 - [x] Shift-sim ogleden sonra plansiz durus blogu (14:30–16:30, 60–120 dk, tek blok)
+- [x] Shift-sim final idle telemetry (shift bitiminde `signalValue=0`, `jobOrder` bos, `intervalMs=1`)
 - [x] Board telemetry source seçimi: `source` paramı + shift-sim için shift view, data-gen için live view
 - [x] OEE processor telemetry source izolasyonu: `OEE_PROCESSOR_TELEMETRY_SOURCE` ile shift-sim odaklı işleme
 - [x] OEE source filtresine `mock-batch` kaynagini ekle (API `source` parametresi genisletme)

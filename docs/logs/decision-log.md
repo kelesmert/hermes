@@ -129,6 +129,13 @@ Bu dosya, projede alınan mimarî ve teknolojik kararları, gerekçelerini ve be
 - **Gerekçe:** Operasyon dashboard ve durus akisi icin gercekci, tekil ve tekrarlanabilir bir test bolgu uretmek.
 - **Etki:** `backend/scripts/shift-simulator.js`, `docs/specs/sim-clock.md`, `docs/meta/file-overview.md`, `docs/tasks/project-checklist.md`.
 
+### Shift-sim Final Idle Telemetry
+
+- **Domain:** Backend - simulations/oee/board
+- **Karar:** Shift bitiminde tek bir `signalValue=0` telemetry yazilir; `jobOrder` bos birakilir ve `intervalMs=1` kullanilir.
+- **Gerekçe:** Dashboard ve operasyon ekraninda shift sonu makinenin idle gorunmesini saglamak; OEE etkisini ihmal edilebilir tutmak.
+- **Etki:** `backend/scripts/shift-simulator.js`, `docs/specs/sim-clock.md`, `docs/meta/file-overview.md`, `docs/tasks/project-checklist.md`.
+
 ### OEE Aktif Job Interval Kaynağı Filtreli
 
 - **Domain:** Backend - oee/production
