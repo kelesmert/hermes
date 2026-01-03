@@ -49,11 +49,12 @@ Bu doküman, yeni bir geliştiricinin projeyi en kısa sürede kavraması için 
 4. **Downtime v2**: Planlı duruş scheduler (rule/run) + plansız duruş telemetry eşiği + `/downtimes` UI (sınıflandırma, 5 dk edit, split)
 5. **Yönetim UI**: Sidebar layout + izin bazlı guard’lar, kullanıcı/rol/izin yönetimi ve domain CRUD ekranları
 6. **Simülasyon Yönetimi**: `/simulations` sayfası ile `shift-sim`/`data-gen` ve `job-sim` başlat/durdur + log konsolu + shift-sim reset
+7. **AI U1 OEE Insight**: Reports ekranında AI Analizi kartı, cache + rate limit + stale uyarısı
 
 ## 5. Roadmap ve Eksikler
 
 - **Tamamlanan:** Auth, Users, Machines, Parts, Production, OEE, Board, Downtime; Dashboard, Monitoring, Production, Downtimes ve Simulations sayfaları
-- **Sıradaki:** Reports ekranı, export + audit log + AI işleri (detay: `docs/specs/project-roadmap.md`, `docs/specs/requirements.md`)
+- **Sıradaki:** Export + audit log, AI hub sayfası ve U2/U3 use case’leri (detay: `docs/specs/project-roadmap.md`, `docs/specs/requirements.md`)
 
 ## 6. Nasıl Başlanır
 

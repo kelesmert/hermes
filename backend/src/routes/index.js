@@ -13,6 +13,7 @@ const downtimeRoutes = require('../domains/downtime/routes/downtime-routes');
 const plannedDowntimeRuleRoutes = require('../domains/downtime/routes/planned-downtime-rule-routes');
 const plannedDowntimeRunRoutes = require('../domains/downtime/routes/planned-downtime-run-routes');
 const simulationsRoutes = require('../domains/simulations/routes/simulations-routes');
+const aiRoutes = require('../domains/ai/routes/ai-routes');
 
 const router = Router();
 
@@ -30,5 +31,6 @@ router.use('/downtimes', downtimeRoutes);
 router.use('/planned-downtime-rules', plannedDowntimeRuleRoutes);
 router.use('/planned-downtime-runs', plannedDowntimeRunRoutes);
 router.use('/simulations', simulationsRoutes);
+router.use('/ai', aiRoutes);
 
 module.exports = router;

@@ -4,12 +4,12 @@ Bu dokuman, projede AI entegrasyonu icin tek kaynak olacak.
 Hedef, sadece bu dosyayi okuyarak AI gelistirmesine baslayabilecek kadar net bir kilavuz tutmak.
 
 Bu asamada MVP icin hedeflenen use case seti netlestirildi.
-Implementasyon henuz baslamadi ve bu dosya gelistirme kilavuzu olarak tutulacak.
+U1 icin backend akisi tamamlandi, Reports ekraninda AI karti eklendi.
 
 ## Dokuman Meta
 
-- Versiyon 0.7
-- Son guncelleme 2026-01-03
+- Versiyon 1.1
+- Son guncelleme 2026-01-05
 - Degisiklik ozeti
   - Dokuman iskeleti guclendirildi
   - Proje baglami ve dosya haritasi eklendi
@@ -31,6 +31,14 @@ Implementasyon henuz baslamadi ve bu dosya gelistirme kilavuzu olarak tutulacak.
   - ai_usage retention TTL netlestirildi
   - Hash algoritmasi ve float yuvarlama standartlari netlestirildi
   - Uygulama oncesi crosscheck kurali eklendi
+  - Faz 0 altyapi iskeleti kodlandi (AI domain, modeller, wrapper, route)
+  - Frontend AI API client eklendi
+  - `.env.example` OpenAI degiskenleri eklendi
+  - U1 OEE Insight backend akisi eklendi (cache + rate limit + OpenAI call)
+  - AI env cache TTL degiskeni eklendi
+  - Reports ekranina AI Analizi karti eklendi (U1 UI)
+  - Latest endpoint stale kontrolu eklendi (checkStale)
+  - Reports UI stale uyarisi gosteriyor
 
 ## Dokumanin Amaci
 
@@ -116,8 +124,13 @@ AI entegrasyon hedefi icin ilgili domainler
 - [x] Bu dokumanin iskeleti olusturuldu
 - [x] Provider olarak OpenAI secildi
 - [x] MVP icin hedef use case seti netlesti
-- [ ] Backend AI domaini veya endpointleri yok
-- [ ] Frontend AI gosterimi yok
+- [x] Backend AI domaini iskeleti eklendi (model, servis, route)
+- [x] AI health endpoint eklendi
+- [x] Frontend AI API client eklendi
+- [x] U1 OEE Insight POST endpoint aktif (backend)
+- [x] Reports ekraninda AI Analizi karti eklendi
+- [x] Latest insight stale kontrolu (checkStale) eklendi
+- [x] U1 icin manuel dogrulama tamamlandi (cache hit, force refresh, stale uyarisi, rate limit)
 
 ## Okuma Haritasi
 
@@ -955,11 +968,21 @@ Crosscheck 2026-01-04
 6. Reports sayfasina entegre et
    - OEE grafiginin altina veya yanina
 
+**Durum:**
+
+- [x] Loss breakdown servisi eklendi (top 3 reason)
+- [x] OEE insight servisi eklendi (cache + rate limit + OpenAI call)
+- [x] POST /api/ai/oee-insight ve GET /api/ai/insights/latest eklendi
+- [x] Prompt template eklendi (JSON output)
+- [x] Reports sayfasina AI Analizi karti eklendi
+
 **Cikis dogrulamasi:**
 
 - Reports sayfasinda makine secince AI analizi gorunuyor
 - Yeniden analiz butonu calisiyor
 - Cache hit durumunda hizli yuklenme
+- Stale uyarisi veri degisince gorunuyor
+- Rate limit warning %80 esiginde gorunuyor
 
 **Sonraki faza gecis:** U1 uretim ortaminda test edildi
 

@@ -119,6 +119,13 @@ Bu rehber, backend ve frontend'i MVP hedefiyle nasıl kurduğumuzu öğretici ş
 
 1. `mongod` çalışıyor olsun. 2) `cp backend/.env.example backend/.env` → değerleri doldur. 3) `cd backend && npm i && npm run seed && npm run dev`. 4) Postman ile `POST /api/auth/login` ve `GET /api/users` dene.
 
+## 13) AI Insight U1 Akisi
+
+- Env hazirligi: `OPENAI_API_KEY` ve `OPENAI_MODEL` değerlerini `backend/.env` içine yaz.
+- Backend’i calistir: `npm run dev`.
+- Reports sayfasina gir, makine ve pencere sec, `AI Analizi` kartindan analiz tetikle.
+- Sistem ayni input icin cache kullanir, `forceRefresh` ile yeniden analiz eder; stale uyarisi varsa “Yeniden Analiz Et” ile guncel veri alinir.
+
 ## 13) Sıradaki Adımlar (Öneri)
 
 - Backend lint/test (ESLint + Jest/Supertest) ve Postman koleksiyonu.

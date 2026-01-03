@@ -50,6 +50,7 @@ Amaç, Node.js/Express backend, React frontend ve MongoDB veritabanı kullanarak
 8. **Downtime Domain (v2):** Planlı duruş scheduler (rule/run modeli), plansız duruş telemetry eşiği + operatör manuel başlatma, reason düzeltme/split API'leri, uzun plansız duruş “onay bekliyor” akışı ve frontend Duruşlar sayfası → **Tamamlandı**
 9. **Simülasyon Yönetimi (Ek):** UI üzerinden `data-gen` ve `job-sim` script’lerini başlat/durdur + log görüntüleme (backend `/api/simulations`) → **Tamamlandı**
 10. **Shift Simülasyonu (Ek):** `shift-sim` ile hızlandırılmış vardiya telemetry üretimi + Simulation Clock (epoch/resume/next-day) + monitoring source seçimi (shift vs live) + reset akışı → **Tamamlandı**
+11. **AI Faz 1 (U1 OEE Insight):** Backend AI domain + cache/rate-limit + stale kontrolü + Reports ekranında AI Analizi kartı ve doğrulama → **Tamamlandı**
 
 ### Devam Eden Fazlar
 

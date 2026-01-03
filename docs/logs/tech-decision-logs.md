@@ -61,6 +61,11 @@ Bu doküman projede kullanılan veya ileride kullanılacak teknolojileri, neden 
 - **Neden?** Geliştirme sırasında dosya değişikliklerinde sunucuyu otomatik yeniden başlatmak için.
 - **Görev:** `npm run dev` komutu altında dosya sistemi izlenir, değişiklikte Node süreci restart edilir; üretimde kullanılmaz.
 
+### openai
+
+- **Neden?** U1 OEE Insight için OpenAI API entegrasyonu gerekiyor; Türkçe çıktı ve maliyet/performans dengesi iyi.
+- **Görev:** `responses` API üzerinden prompt gönderip JSON formatlı analiz üretmek; timeout/retry yönetimi backend wrapper içinde yapılır.
+
 ## Genel Not
 
 - Yeni kütüphaneler/araçlar eklendikçe bu dosyaya kısa açıklama ve gerekçe eklenmelidir; böylece tez raporu ve teknik değerlendirme sırasında hangi teknolojinin neden seçildiği kolayca izah edilebilir.

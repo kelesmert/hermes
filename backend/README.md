@@ -72,6 +72,20 @@ Seed sonrası örnek hesaplar:
     - Bu script `source=mock-batch` ile telemetry + production event yazar; monitoring hedef değildir.
     - OEE rapor ekranında kaynak olarak `mock-batch` seçilerek tarih bazlı analiz yapılır.
 
+## AI Ayarlari
+
+AI U1 OEE Insight icin backend tarafinda OpenAI anahtari gerekir. Anahtar yoksa AI endpoint'leri hata döndürür.
+
+- `OPENAI_API_KEY` OpenAI API anahtari
+- `OPENAI_MODEL` varsayilan model (örnek `gpt-4o-mini`)
+- `OPENAI_TIMEOUT_MS` OpenAI cagrilari timeout suresi (ms)
+- `AI_CACHE_TTL_MS` ayni input icin cache suresi (ms)
+
+AI endpointleri
+
+- `POST /api/ai/oee-insight`
+- `GET /api/ai/insights/latest`
+
 ## Dizin Yapısı
 
 ```
@@ -90,7 +104,8 @@ backend/
 │  │   ├─ oee/            # telemetry processor + OeeMachineState
 │  │   ├─ board/          # dashboard metrikleri (board API)
 │  │   ├─ parts/          # parts CRUD + kategori sözlüğü
-│  │   └─ production/     # job orders + production events + aksiyonlar
+│  │   ├─ production/     # job orders + production events + aksiyonlar
+│  │   └─ ai/             # AI domain (OEE Insight, cache, usage log, rate limit)
 └─ scripts/ (seed.js, data-gen.js, shift-simulator.js, job-simulator.js)
 ```
 

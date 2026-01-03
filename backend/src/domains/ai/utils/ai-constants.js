@@ -1,0 +1,37 @@
+const USE_CASES = {
+  OEE_INSIGHT: 'oee-insight',
+  DOWNTIME_REASON: 'downtime-reason',
+  ANOMALY_RISK: 'anomaly-risk',
+};
+
+const USE_CASE_LABELS = {
+  [USE_CASES.OEE_INSIGHT]: 'OEE Insight',
+  [USE_CASES.DOWNTIME_REASON]: 'Downtime Reason',
+  [USE_CASES.ANOMALY_RISK]: 'Anomaly Risk',
+};
+
+const USE_CASE_TTL_DAYS = {
+  [USE_CASES.OEE_INSIGHT]: 90,
+  [USE_CASES.DOWNTIME_REASON]: 90,
+  [USE_CASES.ANOMALY_RISK]: 7,
+};
+
+const USE_CASE_RATE_LIMITS = {
+  [USE_CASES.OEE_INSIGHT]: { hourly: 5, avgCostUsd: 0.0006 },
+  [USE_CASES.DOWNTIME_REASON]: { hourly: 15, avgCostUsd: 0.0003 },
+  [USE_CASES.ANOMALY_RISK]: { hourly: 10, avgCostUsd: 0.0007 },
+};
+
+const DAILY_GLOBAL_LIMIT = 200;
+const MONTHLY_COST_CAP_USD = 10;
+const WARNING_THRESHOLD = 0.8;
+
+module.exports = {
+  USE_CASES,
+  USE_CASE_LABELS,
+  USE_CASE_TTL_DAYS,
+  USE_CASE_RATE_LIMITS,
+  DAILY_GLOBAL_LIMIT,
+  MONTHLY_COST_CAP_USD,
+  WARNING_THRESHOLD,
+};

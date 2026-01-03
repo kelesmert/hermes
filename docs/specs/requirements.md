@@ -118,7 +118,8 @@ Bu proje, Node.js/Express backend, React frontend ve MongoDB veritabanı kullana
 - `planned_downtime_runs`: planlı duruş çalıştırma kayıtları (scheduledStart/End, status, machineEventId, jobOrderId snapshot, debug).
 - `reports`: rapor tipi, filtreler, sonuç özeti, oluşturulma tarihi.
 - `audit_logs`: kullanıcı, aksiyon tipi, hedef kaynak, timestamp, ek bilgiler.
-- `ai_insights`: algoritma tipi, çıktı, güven skoru, oluşturulma zamanı.
+- `ai_insights`: use case, promptVersion, output, dataSnapshotHash, createdAt, expiresAt.
+- `ai_usage`: use case, model, token kullanımı, cacheHit, rateLimitMeta, createdAt, expiresAt.
 
 ## 7. API Taslağı
 
@@ -131,7 +132,7 @@ Bu proje, Node.js/Express backend, React frontend ve MongoDB veritabanı kullana
 - **OEE:** `GET /oee/reasons` (reason katalog).
 - **Downtime:** `GET /downtimes`, `PATCH /downtimes/:id`, `POST /downtimes/:id/split`, `GET/POST/PATCH/DELETE /planned-downtime-rules`, `GET /planned-downtime-runs`.
 - **Reports:** `GET /reports/summary`, `GET /reports/export`.
-- **AI Insights:** `GET /insights/latest`, `POST /insights/recompute` (admin).
+- **AI Insights:** `POST /api/ai/oee-insight`, `GET /api/ai/insights`, `GET /api/ai/insights/latest`, `GET /api/ai/insights/:id`.
 - **Audit:** `GET /audit?user=&action=&date=`.
 - **Simulations:** `GET /simulations`, `POST /simulations/:name/start|stop`, `GET /simulations/:name/logs`, `POST /simulations/:name/logs/clear` (dev tool, `production.manage`).
 
@@ -146,7 +147,7 @@ Bu proje, Node.js/Express backend, React frontend ve MongoDB veritabanı kullana
 - Duruşlar sayfası: Açık duruşlar, planlı duruş kural yönetimi ve run geçmişi, geçmiş duruş filtreleri, reason sınıflandırma (5 dk edit + split).
 - Simülasyonlar sayfası: `data-gen`, `shift-sim` ve `job-sim` script’lerini başlat/durdur, log konsolu.
 - Raporlama ekranı (filtreler + tablo/grafik + export butonu).
-- AI içgörü paneli.
+- AI OEE Insight karti (Reports).
 - Kullanıcı yönetimi ekranları.
 - Audit log tablosu.
 
@@ -167,7 +168,7 @@ Bu proje, Node.js/Express backend, React frontend ve MongoDB veritabanı kullana
 
 ## 11. Açık Sorular & Riskler
 
-- AI analizinin kapsamı kural tabanlı mı kalacak, yoksa dış servis kullanımı mı gerekecek? (Karar verilmedi.)
+- AI U2 ve U3 use case’leri ne zaman devreye girecek, AI hub sayfası kapsamı ne olacak.
 - WebSocket gerçek zamanlılık gerekli mi, yoksa kısa aralıklı polling yeterli mi? (Şimdilik polling planlandı.)
 - Deployment sadece lokal mi olacak yoksa basit bir bulut ortamı mı hedeflenecek? (Daha sonra kararlaştırılacak.)
 

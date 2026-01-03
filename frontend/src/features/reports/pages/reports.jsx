@@ -1,12 +1,15 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { addDays } from 'date-fns';
 import {
   Alert,
   Box,
+  Button,
   Card,
   CardContent,
+  Chip,
   CircularProgress,
+  Divider,
   FormControl,
   Grid,
   InputLabel,
@@ -35,7 +38,11 @@ import {
 } from 'recharts';
 import { fetchMachines } from '@/features/machines/services/machines-api.js';
 import { fetchOeeStats } from '@/features/reports/services/oee-api.js';
+import { createOeeInsight, fetchLatestAiInsight } from '@/lib/api/ai-api.js';
 import { formatDate, formatDateTime } from '@/lib/date-format.js';
+import { storage } from '@/lib/storage.js';
+
+const REPORTS_FILTERS_KEY = 'reports.filters';
 
 const MODE_OPTIONS = [
   { id: 'shift', label: 'Shift' },
@@ -101,13 +108,24 @@ const isWeekendDate = (date) => {
 };
 
 const ReportsPage = () => {
-  const [selectedMachineId, setSelectedMachineId] = useState('');
-  const [mode, setMode] = useState('shift');
-  const [source, setSource] = useState('shift-sim');
-  const [shiftDate, setShiftDate] = useState('');
-  const [rangeFrom, setRangeFrom] = useState('');
-  const [rangeTo, setRangeTo] = useState('');
-  const [trendScope, setTrendScope] = useState('week');
+  const storedFilters = storage.get(REPORTS_FILTERS_KEY);
+  const [selectedMachineId, setSelectedMachineId] = useState(
+    () => storedFilters?.selectedMachineId || '',
+  );
+  const [mode, setMode] = useState(() => storedFilters?.mode || 'shift');
+  const [source, setSource] = useState(() => storedFilters?.source || 'mock-batch');
+  const [shiftDate, setShiftDate] = useState(
+    () => storedFilters?.shiftDate || '2025-05-05',
+  );
+  const [rangeFrom, setRangeFrom] = useState(
+    () => storedFilters?.rangeFrom || '2025-05-05T00:00',
+  );
+  const [rangeTo, setRangeTo] = useState(
+    () => storedFilters?.rangeTo || '2025-06-11T23:59',
+  );
+  const [trendScope, setTrendScope] = useState(
+    () => storedFilters?.trendScope || 'week',
+  );
 
   const machinesQuery = useQuery({
     queryKey: ['machines', 'reports'],
@@ -116,10 +134,32 @@ const ReportsPage = () => {
   });
 
   useEffect(() => {
-    if (!selectedMachineId && machinesQuery.data?.length) {
-      setSelectedMachineId(machinesQuery.data[0].id || machinesQuery.data[0]._id);
+    if (!machinesQuery.data?.length) return;
+    if (selectedMachineId) {
+      const exists = machinesQuery.data.some(
+        (machine) => (machine.id || machine._id) === selectedMachineId,
+      );
+      if (exists) return;
     }
+    const mch001 = machinesQuery.data.find(
+      (machine) => String(machine.code || '').toLowerCase() === 'mch-001',
+    );
+    setSelectedMachineId(
+      mch001?.id || mch001?._id || machinesQuery.data[0].id || machinesQuery.data[0]._id,
+    );
   }, [machinesQuery.data, selectedMachineId]);
+
+  useEffect(() => {
+    storage.set(REPORTS_FILTERS_KEY, {
+      selectedMachineId,
+      mode,
+      source,
+      shiftDate,
+      rangeFrom,
+      rangeTo,
+      trendScope,
+    });
+  }, [mode, rangeFrom, rangeTo, selectedMachineId, shiftDate, source, trendScope]);
 
   const queryParams = useMemo(() => {
     if (!selectedMachineId) return null;
@@ -149,6 +189,91 @@ const ReportsPage = () => {
     queryFn: () => fetchOeeStats(queryParams),
     enabled: Boolean(queryParams),
   });
+
+  const resolvedShiftDate = useMemo(() => {
+    if (mode !== 'shift') return null;
+    if (shiftDate) return shiftDate;
+    if (statsQuery.data?.windowStart) {
+      const anchor = new Date(statsQuery.data.windowStart);
+      if (!Number.isNaN(anchor.getTime())) {
+        return toShiftDate(anchor);
+      }
+    }
+    return null;
+  }, [mode, shiftDate, statsQuery.data?.windowStart]);
+
+  const aiQueryParams = useMemo(() => {
+    if (!selectedMachineId) return null;
+    if (mode === 'shift') {
+      if (!resolvedShiftDate) return null;
+      return {
+        useCase: 'oee-insight',
+        machineId: selectedMachineId,
+        source,
+        mode: 'shift',
+        shiftDate: resolvedShiftDate,
+        checkStale: 1,
+      };
+    }
+    const from = toIsoString(rangeFrom);
+    const to = toIsoString(rangeTo);
+    if (!from || !to) return null;
+    return {
+      useCase: 'oee-insight',
+      machineId: selectedMachineId,
+      source,
+      mode: 'range',
+      from,
+      to,
+      checkStale: 1,
+    };
+  }, [mode, rangeFrom, rangeTo, resolvedShiftDate, selectedMachineId, source]);
+
+  const aiLatestQuery = useQuery({
+    queryKey: ['aiInsightLatest', aiQueryParams],
+    queryFn: () => fetchLatestAiInsight(aiQueryParams),
+    enabled: Boolean(aiQueryParams),
+  });
+
+  const aiMutation = useMutation({
+    mutationFn: createOeeInsight,
+  });
+
+  const aiInsight = aiMutation.data?.insight || aiLatestQuery.data;
+  const aiOutput = aiInsight?.output || {};
+  const aiActions = Array.isArray(aiOutput.actions) ? aiOutput.actions : [];
+  const aiHighlights = Array.isArray(aiOutput.highlights) ? aiOutput.highlights : [];
+  const aiWarnings = Array.isArray(aiOutput.warnings) ? aiOutput.warnings : [];
+  const aiIsStale = Boolean(aiInsight?.isStale);
+  const aiRateLimitMeta = aiMutation.data?.rateLimitMeta;
+  const aiCacheHit = aiMutation.data?.cacheHit;
+
+  const aiPayload = useMemo(() => {
+    if (!selectedMachineId) return null;
+    const payload = {
+      machineId: selectedMachineId,
+      source,
+      mode,
+    };
+    if (mode === 'shift') {
+      if (!resolvedShiftDate) return null;
+      payload.shiftDate = resolvedShiftDate;
+      return payload;
+    }
+    const from = toIsoString(rangeFrom);
+    const to = toIsoString(rangeTo);
+    if (!from || !to) return null;
+    return {
+      ...payload,
+      from,
+      to,
+    };
+  }, [mode, rangeFrom, rangeTo, resolvedShiftDate, selectedMachineId, source]);
+
+  const handleAiAnalyze = (forceRefresh = false) => {
+    if (!aiPayload || aiMutation.isLoading) return;
+    aiMutation.mutate({ ...aiPayload, forceRefresh });
+  };
 
   const trendAnchorDate = useMemo(() => {
     if (shiftDate) {
@@ -524,6 +649,134 @@ const ReportsPage = () => {
               </Grid>
             ) : (
               <Typography color="text.secondary">OEE verisi bulunamadı.</Typography>
+            )}
+          </Stack>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent>
+          <Stack spacing={2}>
+            <Stack
+              direction={{ xs: 'column', md: 'row' }}
+              spacing={2}
+              alignItems={{ xs: 'flex-start', md: 'center' }}
+            >
+              <Typography variant="h6" sx={{ flex: 1 }}>
+                AI Analizi
+              </Typography>
+              <Stack direction="row" spacing={1} alignItems="center">
+                {aiCacheHit ? <Chip size="small" label="Cache" /> : null}
+                {aiInsight?.promptVersion ? (
+                  <Chip size="small" label={`Prompt ${aiInsight.promptVersion}`} />
+                ) : null}
+                <Button
+                  size="small"
+                  variant="outlined"
+                  onClick={() => handleAiAnalyze(false)}
+                  disabled={!aiPayload || aiMutation.isLoading}
+                >
+                  Analiz Et
+                </Button>
+                <Button
+                  size="small"
+                  variant="contained"
+                  onClick={() => handleAiAnalyze(true)}
+                  disabled={!aiPayload || aiMutation.isLoading}
+                >
+                  Yeniden Analiz
+                </Button>
+              </Stack>
+            </Stack>
+
+            {aiRateLimitMeta?.isWarning ? (
+              <Alert severity="warning">
+                AI limiti %{Math.round(
+                  (aiRateLimitMeta.hourlyUsed / aiRateLimitMeta.hourlyLimit) * 100,
+                )}
+                &nbsp;kullanıldı. Limit yaklaşırken dikkatli olun.
+              </Alert>
+            ) : null}
+            {aiIsStale ? (
+              <Alert severity="warning">
+                Bu analiz eski olabilir; veri değişmiş olabilir. Yeniden analiz etmen önerilir.
+              </Alert>
+            ) : null}
+
+            {aiMutation.isLoading ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
+                <CircularProgress size={28} />
+              </Box>
+            ) : aiMutation.isError ? (
+              <Alert severity="error">
+                AI analizi alınamadı:{' '}
+                {aiMutation.error?.response?.data?.message || aiMutation.error?.message}
+              </Alert>
+            ) : aiInsight ? (
+              <Stack spacing={2}>
+                <Stack spacing={0.5}>
+                  <Typography variant="subtitle2" color="text.secondary">
+                    Son analiz
+                  </Typography>
+                  <Typography variant="body2">
+                    {formatDateTime(aiInsight.generatedAt)} • {aiInsight.model || 'model'}
+                  </Typography>
+                </Stack>
+                <Divider />
+                <Stack spacing={1}>
+                  <Typography variant="subtitle2">Özet</Typography>
+                  <Typography variant="body1">
+                    {aiOutput.summary || 'Özet bilgisi bulunamadı.'}
+                  </Typography>
+                </Stack>
+                {aiHighlights.length ? (
+                  <Stack spacing={1}>
+                    <Typography variant="subtitle2">Öne Çıkanlar</Typography>
+                    <Stack spacing={0.5}>
+                      {aiHighlights.map((item, index) => (
+                        <Typography key={`${item}-${index}`} variant="body2">
+                          • {item}
+                        </Typography>
+                      ))}
+                    </Stack>
+                  </Stack>
+                ) : null}
+                {aiActions.length ? (
+                  <Stack spacing={1}>
+                    <Typography variant="subtitle2">Aksiyonlar</Typography>
+                    <Stack spacing={0.75}>
+                      {aiActions.map((action, index) => (
+                        <Box key={`${action.title}-${index}`}>
+                          <Typography variant="body2" fontWeight={600}>
+                            {action.title}
+                          </Typography>
+                          {action.reason ? (
+                            <Typography variant="caption" color="text.secondary">
+                              {action.reason}
+                            </Typography>
+                          ) : null}
+                        </Box>
+                      ))}
+                    </Stack>
+                  </Stack>
+                ) : null}
+                {aiWarnings.length ? (
+                  <Stack spacing={1}>
+                    <Typography variant="subtitle2">Uyarılar</Typography>
+                    <Stack spacing={0.5}>
+                      {aiWarnings.map((warning, index) => (
+                        <Alert key={`${warning}-${index}`} severity="warning">
+                          {warning}
+                        </Alert>
+                      ))}
+                    </Stack>
+                  </Stack>
+                ) : null}
+              </Stack>
+            ) : (
+              <Typography color="text.secondary">
+                AI analizi için “Analiz Et” butonuna tıklayın.
+              </Typography>
             )}
           </Stack>
         </CardContent>

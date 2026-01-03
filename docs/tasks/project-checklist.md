@@ -127,6 +127,7 @@
 - [x] Simülasyonlar sayfası (`/simulations`): shift-sim/data-gen/job-sim başlat-durdur + log konsolu
 - [x] Simülasyonlar: shift-sim reset aksiyonu (sim kaynaklı telemetry ve event temizliği)
 - [x] Raporlama sayfası + filtreler
+- [x] Reports filtre varsayılanları ve son seçimleri hatırlama (localStorage)
 - [x] OEE rapor ekraninda kaynak secimi (shift-sim | data-gen | mock-batch)
 - [x] OEE rapor ozetinde sorumlu operator listesi goster
 - [x] OEE rapor ekraninda operatör performans tablosu (A/P/Q/OEE + sureler + adetler)
@@ -135,7 +136,7 @@
 - [x] UI tarih formatını tek helper ile standartlaştır (`dd/MM/yyyy`, `dd/MM/yyyy HH:mm`)
 - [ ] CSV/Excel export butonları ve kullanıcı geri bildirimi
 - [ ] Audit log görüntüleme ekranı
-- [ ] AI analiz sonuçlarını gösteren bileşen
+- [x] AI U1 OEE Insight (backend + reports UI) doğrulandı
 - [ ] Opsiyonel çok dillilik altyapısına hazırlık
 
 ## Test ve Dağıtım

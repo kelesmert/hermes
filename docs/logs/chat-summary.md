@@ -28,6 +28,24 @@
 
 ---
 
+## 04 Ocak 2026 - Context Window #15
+
+### Yapılanlar
+
+- Doc-maintenance rehberine gore AI Faz 1 dokumantasyonu gözden geçirildi ve eksikler tamamlandi.
+- Backend README’ye AI env degiskenleri ve AI endpoint notlari eklendi; dizin yapisina AI domaini yazildi.
+- Ozet ve learning-guide dokumanlari AI U1 akisini yansitacak sekilde guncellendi.
+- Requirements dokumaninda AI endpoint ve veri modeli (ai_insights, ai_usage) netlestirildi.
+- Decision log’a AI cache retention ve rate limit politikalari eklendi.
+
+### Alınan Kararlar
+
+- Yeni karar alinmadi.
+
+### Sonraki Adımlar
+
+- AI Hub sayfasi icin tasarim ve UI hazirligina baslamak.
+
 ## 03 Ocak 2026 - Context Window #14
 
 ### Yapılanlar

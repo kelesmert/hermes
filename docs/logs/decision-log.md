@@ -164,6 +164,20 @@ Bu dosya, projede alınan mimarî ve teknolojik kararları, gerekçelerini ve be
 - **Gerekçe:** OEE için “tek seferlik batch veri” üretimi ile canlı simülasyon verilerini karıştırmamak; monitoringi etkilememek.
 - **Etki:** OEE API `source` filtresi genişletilecek, Reports UI kaynak seçimi eklenecek, mock-batch script kendi source'uyla yazacak.
 
+### AI Domaini ve OpenAI Entegrasyonu
+
+- **Domain:** Backend - ai/oee
+- **Karar:** AI domaini backend’de merkezi bir katman olarak eklendi. U1 için OpenAI SDK ile OEE Insight üretiliyor; cache + rate limit + stale kontrolü uygulanıyor. AI sonuçları `ai_insights` koleksiyonunda saklanıyor, kullanım logları `ai_usage` koleksiyonuna yazılıyor.
+- **Gerekçe:** OEE verilerinin açıklanabilir hale gelmesi ve tez sunumunda “insight” üretimi; maliyet kontrolü için cache ve rate limit gerekli.
+- **Etki:** `backend/src/domains/ai/*`, `/api/ai/*` endpoint’leri, `docs/specs/ai-dev.md`, `frontend/src/features/reports/pages/reports.jsx`.
+
+### AI Insight Cache Retention ve Rate Limit Politikasi
+
+- **Domain:** Backend - ai/oee
+- **Karar:** AI analizleri kalici kaydedilir; `ai_insights` use case bazli TTL ile saklanir (U1 U2 90 gun, U3 7 gun), `ai_usage` 180 gun TTL ile tutulur. Cache `forceRefresh` ile bypass edilir; `latest` endpoint pencere bazli calisir ve `dataSnapshotHash` ile stale kontrolu yapar. Rate limit hibrit yaklasimla uygulanir (kullanici bazli saatlik + global gunluk ve aylik), %80 uyarisi ve %100 blok vardir. OpenAI timeout/retry politikasi 30s + 3 retry exponential backoff ve Retry-After uyumudur.
+- **Gerekçe:** Maliyet ve performans kontrolu, deterministic cache davranisi, stale veri uyarisi ve tez sunumu icin stabil cikti ihtiyaci.
+- **Etki:** `backend/src/domains/ai/models/*`, `backend/src/domains/ai/services/*`, `backend/src/domains/ai/controllers/ai-controller.js`, `backend/src/domains/ai/routes/ai-routes.js`, `frontend/src/features/reports/pages/reports.jsx`.
+
 ### Mock-Batch Duruş Kayıtları (MachineEvent)
 
 - **Domain:** Backend - simulations/downtime
@@ -206,6 +220,13 @@ Bu dosya, projede alınan mimarî ve teknolojik kararları, gerekçelerini ve be
 - **Karar:** UI kiti olarak MUI; veri katmanı için React Router v7, TanStack Query, axios; formlar için React Hook Form + Zod; tablolar için TanStack Table + MUI; grafikler için Recharts; bildirimler için react-hot-toast.
 - **Gerekçe:** Dashboard odaklı kurumsal UI’ler için hızlı bileşen üretimi, veri çekme/polling için hazır çözüm, formlarda performanslı validasyon, tablo/grafiklerde React-first yaklaşımlar.
 - **Etkisi:** Tutarlı tasarım dili, tekrar kullanılabilir component kütüphanesi, polling/tablo/export gereksinimleri için hazır altyapı.
+
+### Reports Filtre Varsayılanları ve Hatırlama
+
+- **Domain:** Frontend - reports
+- **Karar:** Reports ekranında filtre varsayılanları sabitlendi ve son seçimler `localStorage` içinde `reports.filters` anahtarıyla saklanıyor. Varsayılanlar: MCH-001 (varsa), mod shift, kaynak mock-batch, shift tarihi 2025-05-05, range 2025-05-05 00:00 → 2025-06-11 23:59.
+- **Gerekçe:** Demo/test akışını hızlandırmak ve kullanıcıların sayfa açılışında tekrar filtre seçmek zorunda kalmaması.
+- **Etki:** `frontend/src/features/reports/pages/reports.jsx` ve `frontend/src/lib/storage.js`.
 
 ### Uygulama Kabuk Tasarımı
 
