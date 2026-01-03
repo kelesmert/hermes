@@ -212,19 +212,32 @@ const resolveOperationsAsOf = async ({ effectiveSource, shiftStartAt, shiftEndAt
   }
 
   const sourceFilter = buildTelemetrySourceFilter(effectiveSource);
-  const latestInWindow = await MachineTelemetry.findOne({
+  const baseMatch = {
     source: { $ne: 'seed' },
     ...sourceFilter,
     timestamp: { $gte: shiftStartAt, $lt: shiftEndAt },
-  })
-    .sort({ timestamp: -1 })
-    .select({ timestamp: 1 })
-    .lean();
+  };
 
-  const asOf = clampDate(latestInWindow?.timestamp || shiftEndAt, shiftStartAt, shiftEndAt);
+  const [latestProcessed, latestInWindow] = await Promise.all([
+    MachineTelemetry.findOne({ ...baseMatch, processedAt: { $exists: true } })
+      .sort({ processedAt: -1, timestamp: -1 })
+      .select({ timestamp: 1, processedAt: 1 })
+      .lean(),
+    MachineTelemetry.findOne(baseMatch)
+      .sort({ timestamp: -1 })
+      .select({ timestamp: 1 })
+      .lean(),
+  ]);
+
+  const anchor = latestProcessed || latestInWindow;
+  const asOf = clampDate(anchor?.timestamp || shiftEndAt, shiftStartAt, shiftEndAt);
   return {
     asOf,
-    asOfSource: latestInWindow?.timestamp ? 'telemetry' : 'shiftEnd',
+    asOfSource: latestProcessed
+      ? 'processed'
+      : latestInWindow?.timestamp
+        ? 'telemetry'
+        : 'shiftEnd',
   };
 };
 
