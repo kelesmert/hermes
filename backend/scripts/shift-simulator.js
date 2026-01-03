@@ -51,6 +51,11 @@ const TEST_DOWNTIME_MINUTES = Math.max(
   Number(process.env.SHIFT_SIM_TEST_DOWNTIME_MINUTES) || 30,
 );
 
+const AFTERNOON_UNPLANNED_WINDOW_START = '14:30';
+const AFTERNOON_UNPLANNED_WINDOW_END = '16:30';
+const AFTERNOON_UNPLANNED_MIN_MINUTES = 60;
+const AFTERNOON_UNPLANNED_MAX_MINUTES = 120;
+
 const METRIC_PROFILES = {
   active: {
     temperature: { base: 60, variance: 3, smoothing: 0.25, noise: 0.4, min: 40 },
@@ -87,6 +92,23 @@ let lastMachineRefresh = 0;
 let plannedDowntimeMachines = new Set();
 let lastPlannedDowntimeRefresh = 0;
 let stopRequested = false;
+
+const parseTimeToMinutes = (hhmm) => {
+  const [hh, mm] = String(hhmm || '')
+    .split(':')
+    .map((value) => Number(value));
+  if (!Number.isFinite(hh) || !Number.isFinite(mm)) return null;
+  if (hh < 0 || hh > 23) return null;
+  if (mm < 0 || mm > 59) return null;
+  return hh * 60 + mm;
+};
+
+const randomInt = (rng, min, max) => {
+  const safeMin = Math.ceil(min);
+  const safeMax = Math.floor(max);
+  if (safeMax < safeMin) return safeMin;
+  return safeMin + Math.floor(rng() * (safeMax - safeMin + 1));
+};
 
 const hashToInt = (value) => {
   const text = String(value || '');
@@ -236,32 +258,97 @@ const ensurePlannedDowntimeUpToDate = async () => {
   }
 };
 
-const buildScheduleMinutes = (totalMinutes) => {
-  const normalizedTotal = Math.max(0, Math.round(totalMinutes));
-  if (!TEST_DOWNTIME_ENABLED || TEST_DOWNTIME_MINUTES <= 0) {
-    return [{ minutes: normalizedTotal, signal: 1 }];
+const buildScheduleSegments = ({
+  totalMinutes,
+  runId,
+  shiftStartTime,
+} = {}) => {
+  const normalizedTotalMinutes = Math.max(0, Math.round(totalMinutes));
+  const totalMs = normalizedTotalMinutes * 60 * 1000;
+
+  const intervals = [];
+  if (TEST_DOWNTIME_ENABLED && TEST_DOWNTIME_MINUTES > 0 && normalizedTotalMinutes > 0) {
+    const startMin = Math.min(TEST_DOWNTIME_AFTER_MINUTES, normalizedTotalMinutes);
+    const durationMin = Math.min(TEST_DOWNTIME_MINUTES, Math.max(0, normalizedTotalMinutes - startMin));
+    if (durationMin > 0) {
+      intervals.push({
+        startOffsetMs: startMin * 60 * 1000,
+        endOffsetMs: (startMin + durationMin) * 60 * 1000,
+        label: 'test',
+      });
+    }
   }
 
-  const before = Math.min(TEST_DOWNTIME_AFTER_MINUTES, normalizedTotal);
-  const downtime = Math.min(TEST_DOWNTIME_MINUTES, Math.max(0, normalizedTotal - before));
-  const after = Math.max(0, normalizedTotal - before - downtime);
-  const schedule = [];
-  if (before > 0) schedule.push({ minutes: before, signal: 1 });
-  if (downtime > 0) schedule.push({ minutes: downtime, signal: 0 });
-  if (after > 0) schedule.push({ minutes: after, signal: 1 });
-  return schedule.length ? schedule : [{ minutes: normalizedTotal, signal: 1 }];
-};
+  const shiftStartMinutes = parseTimeToMinutes(shiftStartTime);
+  const windowStartMinutes = parseTimeToMinutes(AFTERNOON_UNPLANNED_WINDOW_START);
+  const windowEndMinutes = parseTimeToMinutes(AFTERNOON_UNPLANNED_WINDOW_END);
 
-const buildScheduleSegments = (totalMinutes) => {
-  let cursorMs = 0;
+  if (
+    normalizedTotalMinutes > 0 &&
+    shiftStartMinutes !== null &&
+    windowStartMinutes !== null &&
+    windowEndMinutes !== null &&
+    windowEndMinutes > windowStartMinutes
+  ) {
+    const windowStartOffset = windowStartMinutes - shiftStartMinutes;
+    const windowEndOffset = windowEndMinutes - shiftStartMinutes;
+
+    if (windowStartOffset >= 0 && windowStartOffset < normalizedTotalMinutes) {
+      const maxWindowEnd = Math.min(windowEndOffset, normalizedTotalMinutes);
+      const maxPossibleDuration = Math.max(0, maxWindowEnd - windowStartOffset);
+      if (maxPossibleDuration > 0) {
+        const rng = createRng(hashToInt(`${runId || 'run'}:afternoon`));
+        const maxDuration = Math.min(AFTERNOON_UNPLANNED_MAX_MINUTES, maxPossibleDuration);
+        const minDuration = Math.min(AFTERNOON_UNPLANNED_MIN_MINUTES, maxDuration);
+        const durationMin = randomInt(rng, minDuration, maxDuration);
+        const latestStartOffset = Math.max(windowStartOffset, maxWindowEnd - durationMin);
+        const startOffsetMin = randomInt(rng, windowStartOffset, latestStartOffset);
+
+        intervals.push({
+          startOffsetMs: startOffsetMin * 60 * 1000,
+          endOffsetMs: (startOffsetMin + durationMin) * 60 * 1000,
+          label: 'afternoon',
+        });
+      }
+    }
+  }
+
+  if (!intervals.length) {
+    return [{ startOffsetMs: 0, endOffsetMs: totalMs, signal: 1 }];
+  }
+
+  const breakpoints = new Set([0, totalMs]);
+  intervals.forEach((interval) => {
+    const start = Math.max(0, Math.min(interval.startOffsetMs, totalMs));
+    const end = Math.max(0, Math.min(interval.endOffsetMs, totalMs));
+    if (end > start) {
+      breakpoints.add(start);
+      breakpoints.add(end);
+    }
+  });
+
+  const orderedPoints = Array.from(breakpoints).sort((a, b) => a - b);
   const segments = [];
-  const minutesPlan = buildScheduleMinutes(totalMinutes);
-  for (const item of minutesPlan) {
-    const durationMs = item.minutes * 60 * 1000;
-    segments.push({ startOffsetMs: cursorMs, endOffsetMs: cursorMs + durationMs, signal: item.signal });
-    cursorMs += durationMs;
+
+  const isDowntimeAt = (pointMs) => {
+    return intervals.some((interval) => pointMs >= interval.startOffsetMs && pointMs < interval.endOffsetMs);
+  };
+
+  for (let i = 0; i < orderedPoints.length - 1; i += 1) {
+    const startOffsetMs = orderedPoints[i];
+    const endOffsetMs = orderedPoints[i + 1];
+    if (endOffsetMs <= startOffsetMs) continue;
+    const mid = startOffsetMs + (endOffsetMs - startOffsetMs) / 2;
+    const signal = isDowntimeAt(mid) ? 0 : 1;
+    const prev = segments.at(-1);
+    if (prev && prev.signal === signal && prev.endOffsetMs === startOffsetMs) {
+      prev.endOffsetMs = endOffsetMs;
+    } else {
+      segments.push({ startOffsetMs, endOffsetMs, signal });
+    }
   }
-  return segments;
+
+  return segments.length ? segments : [{ startOffsetMs: 0, endOffsetMs: totalMs, signal: 1 }];
 };
 
 let scheduleSegments = [];
@@ -459,11 +546,15 @@ const startSimulator = async () => {
     throw new Error('Shift penceresi hesaplanamadı (start/end geçersiz).');
   }
 
-  scheduleSegments = buildScheduleSegments(shiftDurationMs / 60000);
-
   const speed = shiftDurationMs / (REAL_DURATION_SECONDS * 1000);
   const runId = runContext.simulationRunId;
   const resumeAt = runContext.nextCursorAt;
+
+  scheduleSegments = buildScheduleSegments({
+    totalMinutes: shiftDurationMs / 60000,
+    runId,
+    shiftStartTime: runContext.state?.shiftStart || process.env.SHIFT_SIM_SHIFT_START,
+  });
 
   console.log(`[shift-sim] --- START ${new Date().toISOString()} run=${runId} ---`);
   console.log(

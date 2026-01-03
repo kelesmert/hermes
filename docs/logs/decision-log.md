@@ -122,6 +122,13 @@ Bu dosya, projede alınan mimarî ve teknolojik kararları, gerekçelerini ve be
 - **Gerekçe:** Test senaryosu için faydalı ama demo/üretim davranışını şaşırtmamalı.
 - **Etki:** `backend/scripts/shift-simulator.js`, `backend/.env.example`, `backend/README.md`.
 
+### Shift-sim Ogleden Sonra Plansiz Durus Blogu
+
+- **Domain:** Backend - simulations
+- **Karar:** Shift-sim her kosuda 14:30–16:30 araliginda tek bir plansiz durus blogu uretir; sure 60–120 dk arasinda rastgele secilir.
+- **Gerekçe:** Operasyon dashboard ve durus akisi icin gercekci, tekil ve tekrarlanabilir bir test bolgu uretmek.
+- **Etki:** `backend/scripts/shift-simulator.js`, `docs/specs/sim-clock.md`, `docs/meta/file-overview.md`, `docs/tasks/project-checklist.md`.
+
 ### OEE Aktif Job Interval Kaynağı Filtreli
 
 - **Domain:** Backend - oee/production
@@ -171,6 +178,13 @@ Bu dosya, projede alınan mimarî ve teknolojik kararları, gerekçelerini ve be
 - **Karar:** Dashboard sayfası supervisor odaklı "Operasyon" görünümüne evrildi. Tüm makineler için seçili shift gününde (default: seçilen kaynağın son telemetry günü) "running/downtime/idle/unknown" sayıları, duruş listesi ve makine tablosu gösterilir. Yeni endpoint: `GET /api/board/operations?source=...&shiftDate=YYYY-MM-DD`. Varsayılan kaynak: `mock-batch`.
 - **Gerekçe:** Önceki dashboard (genel ortalamalar + tek makine trendi) operasyonel karar vermek için zayıftı; mock-batch gibi geçmişe yazılan veriyle "bugün" kavramı karışıyordu. Operasyon dashboard'ı, kaynak ve tarih seçimiyle deterministik bir "as-of" bakışı sağlar.
 - **Etki:** `backend/src/domains/board/routes/board-routes.js`, `backend/src/domains/board/controllers/board-controller.js`, `backend/src/domains/board/services/board-service.js`, `backend/src/domains/oee/services/oee-dashboard-service.js`, `frontend/src/features/dashboard/pages/dashboard.jsx`, `frontend/src/features/dashboard/services/board-api.js`.
+
+### Dashboard Operasyon Statü Eşleştirme (UI Only)
+
+- **Domain:** Frontend - dashboard/production
+- **Karar:** Operasyon dashboard'ında makine durumu telemetry'e ek olarak aktif job state'i ile düzeltilecek. Eğer makinede `paused` job varsa ve telemetry “running” görünüyorsa, UI bu makineyi “idle” gösterir ve “Job duraklatıldı” notu düşer. Hesaplama UI tarafında yapılır, backend statü üretimi değiştirilmez.
+- **Gerekçe:** Shift-sim bitişinde job `paused` olurken son telemetry `signal=1` kalabildiği için “çalışıyor” görseli oluşuyordu. Supervisor ekranında “şu an” algısını doğru yansıtmak için UI düzeltmesi yeterlidir.
+- **Etki:** `frontend/src/features/dashboard/pages/dashboard.jsx` (job order sorguları + statü override + machine code fallback), `frontend/src/features/production/services/job-orders-api.js` (var olan endpoint kullanımı).
 
 ## Frontend Kararları
 

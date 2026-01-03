@@ -165,6 +165,12 @@ Shift sim’in bir gün içi vardiya koşusu. Aynı gün içinde resume yapılı
 - **Gerekçe:** Test senaryoları için faydalı; ancak üretim/demo davranışıyla karışmamalıdır.
 - **Konfigürasyon:** `SHIFT_SIM_TEST_DOWNTIME_ENABLED`, `SHIFT_SIM_TEST_DOWNTIME_AFTER_MINUTES`, `SHIFT_SIM_TEST_DOWNTIME_MINUTES`
 
+### Shift-sim ogleden sonra plansiz durus blogu
+
+- **Karar:** 14:30–16:30 araliginda her koşuda tek bir plansiz durus blogu uretilir. Sure 60–120 dk araligindadir.
+- **Gerekce:** Dashboard ve durus akisi testleri icin gercekci ama deterministik bir blok saglar.
+- **Not:** Rastgelelik runId ile seedlenir, ayni kosu icinde deterministik kalir.
+
 ### OEE downtime processor izolasyonu
 
 - **Karar:** Şimdilik downtime tespiti ve event üretimi sadece shift sim telemetry’sinden yapılacak
