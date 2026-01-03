@@ -97,6 +97,7 @@ AI entegrasyon hedefi icin ilgili domainler
 - Yapilan ve yapilacak adimlar `Checklist` icinde takip edilir
 - Ornek request response bolumu taslaktan gercege tasinmis ise, kod ile birebir uyumlu tutulur
 - Kod yazmadan once `Uygulama Oncesi Crosscheck` adimlari tamamlanir ve checklistte isaretlenir
+- Her dokuman degisikliginin gerekcesi `Dokuman Meta > Degisiklik ozeti` altina kisa not olarak eklenir
 
 **Celiski durumunda oncelik**
 
@@ -802,6 +803,11 @@ Crosscheck adimlari
      - timeout retry rate limit cacheHit stale mismatch
    - Degisiklik diger ekranlari bozuyor mu kontrol edilir
 
+Kural
+
+- Her faz ve her use case icin implementasyona gecmeden once crosscheck tekrar edilir
+- Her crosscheck tamamlandiginda `Crosscheck Kayitlari` bolumune yeni kayit eklenir
+
 Crosscheck kaydi
 
 - Crosscheck tamamlandiginda bu dokumanda veya PR aciklamasinda su format kullanilir
@@ -817,6 +823,66 @@ Crosscheck
 - Riskler ve alinacak onlemler
 - Test adimlari
 ```
+
+### Crosscheck Kayitlari
+
+Crosscheck 2026-01-04
+
+- Use case U1
+- Durum adim 1-6 tamamlandi
+- Etkilenen domainler
+  - AI
+  - OEE
+  - Downtime
+  - Production
+  - Machines
+  - Access control
+- Okunan dosyalar
+  - `docs/specs/ai-dev.md`
+  - `docs/specs/oee-design.md`
+  - `backend/src/domains/oee/controllers/oee-controller.js`
+  - `backend/src/domains/oee/routes/oee-routes.js`
+  - `backend/src/domains/oee/services/oee-calculator-service.js`
+  - `backend/src/domains/oee/services/oee-rules-service.js`
+  - `backend/src/domains/oee/config/oee-rules.json`
+  - `backend/src/domains/production/models/production-event-model.js`
+  - `backend/src/domains/machines/models/machine-event-model.js`
+  - `backend/src/domains/downtime/services/downtime-service.js`
+  - `frontend/src/features/reports/pages/reports.jsx`
+- Etkilenen dosyalar
+  - `backend/src/domains/ai` (yeni domain)
+  - `backend/src/domains/ai/models/ai-insight-model.js`
+  - `backend/src/domains/ai/models/ai-usage-model.js`
+  - `backend/src/domains/ai/services/ai-insight-service.js`
+  - `backend/src/domains/ai/services/openai-client.js`
+  - `backend/src/domains/ai/controllers/ai-controller.js`
+  - `backend/src/domains/ai/routes/ai-routes.js`
+  - `backend/src/routes/index.js`
+  - `frontend/src/lib/api/ai-api.js`
+  - `frontend/src/features/reports/pages/reports.jsx`
+- Veri modeli dogrulama notlari
+  - ai_insights ve ai_usage icin TTL stratejisi `expiresAt + expireAfterSeconds 0`
+  - refresh-token modelinde `expiresAt` alani var; AI modellerinde TTL indexi explicit yazilacak
+  - windowKey `shift|YYYY-MM-DD|TZ` ve `range|fromMs|toMs|TZ` formatina sabitlenecek
+  - dataSnapshotHash SHA256 ilk 16 karakter + float toFixed(4) ile normalize edilecek
+  - windowKey unique olmayacak, history ve latest sorgusu index ile cozulacak
+- Riskler ve alinacak onlemler
+  - Cache ve stale kontrolu yanlis eslesme riski
+    - Hash standardi ve windowKey ile kontrol edilecek
+  - Loss breakdown ve OEE stats penceresi uyumsuzlugu riski
+    - MachineEvent aggregation source ve shift window ile filtrelenecek
+  - Rate limit soft warning UI uyari senkronu
+    - Response meta ile gosterilecek
+- Guvenlik ve gizlilik notlari
+  - Kod tabaninda OpenAI kullanimi yok, sadece dokuman seviyesinde karar var
+  - API key backend env ile sinirli kalacak, frontendde tutulmayacak
+  - Ham prompt saklanmayacak, sadece normalizedInput ve hash saklanacak
+- Test adimlari
+  - Yetkisiz kullanici `POST /api/ai/oee-insight` cagramamali
+  - Ayni input icin POST tekrarlandiginda cacheHit true donmeli
+  - `forceRefresh=true` yeni kayit uretmeli ve ai_usage loglanmali
+  - dataSnapshotHash degisince stale uyarisi gosterilmeli
+  - Rate limit %80 warning ve %100 block dogrulanmali
 
 ### Use Case Ozeti
 
