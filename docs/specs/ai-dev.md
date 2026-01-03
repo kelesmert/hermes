@@ -644,9 +644,230 @@ MVP icin minimum dogrulama adimlari
 - Kaynak degisince cache dogru ayrilmali
 - Prompt icinde gizli alanlar olmamali
 
-## Checklist
+## Implementasyon Workflow
 
-### Karar asamasi
+### Use Case Ozeti
+
+| ID  | Isim                 | Dahil Edilenler       | Sayfa      | Oncelik   |
+| --- | -------------------- | --------------------- | ---------- | --------- |
+| U1  | OEE Insight Asistani | U7 trend ozeti        | Reports    | 1         |
+| U2  | Durus Reason Onerisi | -                     | Downtimes  | 2         |
+| U3  | Anomali Risk Uyarisi | U6 kalite korelasyonu | Monitoring | 3         |
+| U4  | Serbest Soru Cevap   | -                     | Hub        | Opsiyonel |
+
+### Faz 0 Altyapi Hazirlik
+
+**Amac:** AI domain icin temel yapiyi kurmak, OpenAI baglantisini test etmek
+
+**Giris kosulu:** Yok, ilk faz
+
+**Workflow:**
+
+1. Backend AI domain klasor yapisini olustur
+   - `domains/ai/` altinda models, services, controllers, routes, utils, prompts
+2. OpenAI SDK kur ve wrapper yaz
+   - `npm install openai`
+   - Timeout 30s, retry 3, exponential backoff
+3. AI Insight modelini olustur
+   - useCase, userId, machineId, source, window
+   - normalizedInput, dataSnapshotHash, output
+   - promptVersion, model, tokenUsage
+   - generatedAt, expiresAt ile TTL index
+4. Route entegrasyonunu yap
+   - `routes/index.js` e ai route ekle
+5. Frontend AI client olustur
+   - `lib/api/ai-api.js` post ve get metodlari
+
+**Cikis dogrulamasi:**
+
+- Backend `/api/ai/health` 200 donuyor
+- OpenAI client test prompt ile calisiyor
+
+**Sonraki faza gecis:** OpenAI baglantisi dogrulandi
+
+---
+
+### Faz 1 U1 OEE Insight
+
+**Amac:** Reports sayfasinda OEE verisi icin AI destekli aciklama ve oneri gostermek
+
+**Giris kosulu:** Faz 0 tamamlandi, OpenAI baglantisi calisiyor
+
+**Workflow:**
+
+1. Veri toplama servislerini yaz
+   - Loss breakdown servisi: MachineEvent aggregation ile top 3 reason
+   - Trend servisi: Onceki donem OEE karsilastirmasi
+2. Ana insight servisini yaz
+   - OEE stats + loss breakdown + trend verilerini topla
+   - Prompt olustur ve OpenAI cagir
+   - Response validate et ve kaydet
+   - dataSnapshotHash hesapla
+3. Controller ve route ekle
+   - POST `/api/ai/oee-insight`
+   - GET `/api/ai/insights/latest`
+   - Permission: reports.read
+4. Prompt template olustur
+   - System message + user message
+   - JSON output schema
+5. Frontend component yaz
+   - OeeInsightCard: summary, highlights, actions, warnings
+   - Loading, error, stale data durumlari
+   - Yeniden analiz butonu
+6. Reports sayfasina entegre et
+   - OEE grafiginin altina veya yanina
+
+**Cikis dogrulamasi:**
+
+- Reports sayfasinda makine secince AI analizi gorunuyor
+- Yeniden analiz butonu calisiyor
+- Cache hit durumunda hizli yuklenme
+
+**Sonraki faza gecis:** U1 uretim ortaminda test edildi
+
+---
+
+### Faz 2 U2 Durus Reason Onerisi
+
+**Amac:** Plansiz durus modalinda AI destekli reason onerisi sunmak
+
+**Giris kosulu:** Faz 1 tamamlandi, temel AI akisi calisiyor
+
+**Workflow:**
+
+1. Veri toplama servislerini yaz
+   - Telemetry summary servisi: Son N dakika ozet featurelar
+   - Downtime history servisi: Makine bazli son 20 durus
+2. Reason oneri servisini yaz
+   - Durus + telemetry + gecmis + reason katalog
+   - Prompt olustur ve OpenAI cagir
+   - Confidence band hesapla high medium low
+3. Controller ve route ekle
+   - POST `/api/ai/downtime-reason`
+   - Permission: machines.read
+4. Prompt template olustur
+   - Reason katalog listesi dahil
+   - Confidence band cikti
+5. Frontend component yaz
+   - ReasonSuggestion: Chip gorunum
+   - Tiklaninca dropdown a sec
+   - Confidence badge
+6. Durus modalina entegre et
+   - Sadece reasonCode unplanned_stop ise goster
+   - Lazy yukleme modal acilinca
+
+**Cikis dogrulamasi:**
+
+- Plansiz durus modalinda AI onerisi gorunuyor
+- Oneri tiklayinca dropdown a seciliyor
+- Planli duruslarda AI gorunmuyor
+
+**Sonraki faza gecis:** U2 uretim ortaminda test edildi
+
+---
+
+### Faz 3 U3 Anomali Risk Uyarisi
+
+**Amac:** Monitoring sayfasinda anormal telemetry icin risk uyarisi gostermek
+
+**Giris kosulu:** Faz 2 tamamlandi
+
+**Workflow:**
+
+1. Baseline servisini yaz
+   - Memory cache makine ve source bazli
+   - TTL 1 saat, N 500 sample
+   - Mean ve stddev hesapla
+2. Anomali tespit servisini yaz
+   - Z score hesapla
+   - Esik: 2.5 en az 2 metrik veya 3.5 tek metrik
+   - Anormal metrik listesi dondur
+3. Kalite korelasyon servisini yaz
+   - Telemetry defect iliskisi
+   - Son N uretim eventi analizi
+4. Risk uyari servisini yaz
+   - Anomali + kalite korelasyonu
+   - Prompt olustur ve OpenAI cagir
+   - Risk seviyesi low medium high
+5. Controller ve route ekle
+   - POST `/api/ai/anomaly-risk`
+   - Permission: machines.read
+6. Frontend component yaz
+   - AnomalyAlert: Banner gorunum
+   - Renk kodlu risk seviyesi
+   - Detay modal
+7. Monitoring sayfasina entegre et
+   - Grafiklerin ustunde banner
+   - Polling veya manuel tetikleme
+
+**Cikis dogrulamasi:**
+
+- Monitoring sayfasinda anomali banner gorunuyor
+- Banner tikla detay aciliyor
+- mock batch ile retrospektif analiz calisiyor
+
+**Sonraki faza gecis:** U3 uretim ortaminda test edildi
+
+---
+
+### Faz 4 Hub Sayfasi ve Polish
+
+**Amac:** Tum AI ozelliklerini tek sayfada toplamak, rate limiting ve kullanim izleme eklemek
+
+**Giris kosulu:** Faz 1 2 3 tamamlandi
+
+**Workflow:**
+
+1. Rate limiting middleware yaz
+   - `npm install express-rate-limit`
+   - Use case bazli hourly limit
+   - Global daily ve monthly limit
+   - Soft warning %80, hard block %100
+2. Kullanim izleme modeli olustur
+   - ai_usage koleksiyonu
+   - Her AI cagrisinda kaydet
+3. Hub sayfasi olustur
+   - Use case kartlari filtered list
+   - Son analizler listesi
+   - Kullanim istatistikleri
+4. Navigation entegrasyonu
+   - permission array: reports.read OR machines.read
+5. Frontend soft warning UI
+   - Limite yaklasinca uyari goster
+
+**Cikis dogrulamasi:**
+
+- Hub sayfasi aciliyor
+- Yetkiye gore use case kartlari filtreleniyor
+- Rate limit asiminda uyari gorunuyor
+
+**Sonraki faza gecis:** MVP tamamlandi
+
+---
+
+### Faz Bagimliliklari
+
+```text
+Faz 0 (Altyapi)
+    |
+    v
+Faz 1 (U1 OEE Insight)
+    |
+    v
+Faz 2 (U2 Durus Reason)
+    |
+    v
+Faz 3 (U3 Anomali Risk)
+    |
+    v
+Faz 4 (Hub + Polish)
+```
+
+Not: Faz 1 2 3 siralama zorunlu degil ama onerilen sira budur cunku ortak altyapi kodlari once yazilmis olur.
+
+---
+
+### Karar Asamasi Tamamlandi
 
 - [x] Ilk AI use case karari
 - [x] Kullanilacak ekran ve akis karari
@@ -659,14 +880,8 @@ MVP icin minimum dogrulama adimlari
 - [x] U3 baseline N ve source ayrimi karari
 - [x] Hub sayfasi permission karari
 - [x] Rate limiting ve maliyet politikalari karari
-
-### Implementasyon asamasi
-
-- [ ] Backend AI domain taslagi
-- [ ] Endpoint ve response semasi
-- [ ] Frontend gosterim ve hata akisi
-- [ ] Guvenlik loglama ve maliyet kontrolu
-- [ ] Basit dogrulama testleri
+- [x] U6 U7 merge kararlari
+- [x] Mock batch kisiti karari
 
 ## Notlar ve Parking Lot
 
