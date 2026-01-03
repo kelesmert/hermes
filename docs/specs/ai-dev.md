@@ -8,7 +8,7 @@ Implementasyon henuz baslamadi ve bu dosya gelistirme kilavuzu olarak tutulacak.
 
 ## Dokuman Meta
 
-- Versiyon 0.5
+- Versiyon 0.7
 - Son guncelleme 2026-01-03
 - Degisiklik ozeti
   - Dokuman iskeleti guclendirildi
@@ -27,6 +27,10 @@ Implementasyon henuz baslamadi ve bu dosya gelistirme kilavuzu olarak tutulacak.
   - Rate limit soft warning ve hard block netlestirildi
   - Rate limit scope hibrit netlestirildi
   - OpenAI timeout retry politikalari netlestirildi
+  - ai_insights ai_usage semalari ve indexler netlestirildi
+  - ai_usage retention TTL netlestirildi
+  - Hash algoritmasi ve float yuvarlama standartlari netlestirildi
+  - Uygulama oncesi crosscheck kurali eklendi
 
 ## Dokumanin Amaci
 
@@ -92,6 +96,7 @@ AI entegrasyon hedefi icin ilgili domainler
 - Cevaplanmamis konular `Acik Sorular ve Opsiyonlar` altinda tutulur
 - Yapilan ve yapilacak adimlar `Checklist` icinde takip edilir
 - Ornek request response bolumu taslaktan gercege tasinmis ise, kod ile birebir uyumlu tutulur
+- Kod yazmadan once `Uygulama Oncesi Crosscheck` adimlari tamamlanir ve checklistte isaretlenir
 
 **Celiski durumunda oncelik**
 
@@ -375,6 +380,113 @@ OpenAI timeout ve retry politikalari
   - 503
   - Network timeout gibi gecici hatalar
 
+Rate limit response meta formati
+
+```json
+{
+  "rateLimitMeta": {
+    "hourlyUsed": 4,
+    "hourlyLimit": 5,
+    "dailyUsed": 120,
+    "dailyLimit": 200,
+    "monthlyCostUsd": 4.12,
+    "monthlyCapUsd": 10,
+    "isWarning": true,
+    "isBlocked": false
+  }
+}
+```
+
+### Hash ve sayisal standartlar
+
+Hash algoritmasi
+
+- SHA256 kullanilacak
+- Hash output ilk 16 karakter olarak saklanacak
+  - Okunabilir ve collision riski dusuk
+
+Float yuvarlama
+
+- Hash input uretirken float degerler 4 ondalik basamak ile normalize edilecek
+  - Ornek `toFixed 4`
+
+### Veri saklama semalari
+
+Bu bolum implementasyon rehberi icin tek kaynaktir.
+Alanlar ve indexler MVP icin onaylanmis hedeftir.
+
+#### ai_insights
+
+Amaç
+
+- Uretilen AI insight ciktilarini kalici tutmak
+- Latest cache stale ve history davranisini desteklemek
+
+Ana alanlar
+
+- `useCase` oee insight downtime reason anomaly risk
+- `createdBy` userId
+- `machineId` U1 U3 icin
+- `downtimeId` U2 icin
+- `source` shift sim data gen mock batch
+- `window`
+  - `mode` shift range
+  - `shiftDateYmd` shift ise
+  - `fromMs` `toMs` range ise
+  - `timezone`
+- `windowKey` kanonik pencere anahtari
+  - shift icin `shift|YYYY-MM-DD|Europe/Istanbul`
+  - range icin `range|fromMs|toMs|Europe/Istanbul`
+- `dataSnapshotHash` ana alanlardan uretilmis hash
+- `hashVersion` integer
+- `promptVersion`
+- `provider` openai
+- `model`
+- `normalizedInput` ozet ve guvenli alanlar
+- `output` LLM JSON cikti
+- `generatedAt`
+- `expiresAt` TTL icin
+
+Indexler
+
+- TTL `expiresAt` `expireAfterSeconds 0`
+- Listeleme `createdBy + generatedAt desc`
+- Latest `createdBy + useCase + machineId + source + windowKey + generatedAt desc`
+- Cache arama `createdBy + useCase + dataSnapshotHash + generatedAt desc`
+
+#### ai_usage
+
+Amaç
+
+- Her AI denemesi icin event log
+- Maliyet ve limit gorunurlugu
+- Cache davranisini ve hatalari debug edebilmek
+
+Ana alanlar
+
+- `createdAt`
+- `createdBy`
+- `useCase`
+- `source`
+- `machineId` `downtimeId` opsiyonel
+- `windowKey`
+- `promptVersion` `model`
+- `forceRefresh`
+- `cacheHit`
+- `insightId` basarili ise
+- `latencyMs`
+- `status` success error blocked
+- `errorType` timeout rate limit validation openai
+- `tokensIn` `tokensOut` `tokensTotal`
+- `estimatedCostUsd` cacheHit ise 0 olabilir
+- `rateLimitState` snapshot
+
+Retention
+
+- ai_usage icin 180 gun TTL uygulanacak
+  - `expiresAt = createdAt + 180 gun`
+  - TTL index `expiresAt` `expireAfterSeconds 0`
+
 ### U1 OEE Insight Asistani
 
 - Amac OEE verisini dogal dile cevirmek ve aksiyon onerisi vermek
@@ -645,6 +757,66 @@ MVP icin minimum dogrulama adimlari
 - Prompt icinde gizli alanlar olmamali
 
 ## Implementasyon Workflow
+
+### Uygulama Oncesi Crosscheck
+
+Bu bolum zorunludur.
+Amaç, yeni AI ozelliklerinin mevcut domainleri yanlis sekilde etkilemesini engellemek ve regresyon riskini azaltmaktir.
+
+Crosscheck adimlari
+
+1 Karar dogrulamasi
+   - Yapilacak degisiklik bu dokumandaki `Net Kararlar` ile uyumlu mu
+   - Eksik karar varsa once dokumanda netlestirilir, sonra implementasyona gecilir
+
+2 Kod tabani okuma
+   - Bu use case icin `Okuma Haritasi` altindaki dosyalar gercekten okunur
+   - Varsayimlar koddan dogrulanir
+     - Model alanlari var mi
+     - Endpoint pathleri ve response semalari uyumlu mu
+     - Permission kontrolu nerede yapiliyor
+
+3 Etki analizi
+   - Etkilenen domainler listelenir
+     - OEE Downtime Production Machines Access control Simulations
+   - Etkilenen dosyalar listelenir
+   - Yeni ozellik baska ozellikleri etkiliyor mu kontrol edilir
+     - source filtreleri
+     - window semantigi
+     - cache ve TTL davranisi
+     - rate limit ve soft warning meta
+
+4 Veri modeli ve index dogrulamasi
+   - Yeni koleksiyonlarin indexleri net mi
+   - TTL index davranisi beklenen mi
+   - Unique index veya upsert riskleri var mi
+
+5 Guvenlik ve gizlilik kontrolu
+   - OpenAI API key sadece backendde mi
+   - Prompt input icinde gereksiz hassas veri var mi
+   - Ham prompt saklanmiyor mu
+
+6 Test plani
+   - Minimum manuel test adimlari yazilir
+   - Basarisiz senaryolar kontrol edilir
+     - timeout retry rate limit cacheHit stale mismatch
+   - Degisiklik diger ekranlari bozuyor mu kontrol edilir
+
+Crosscheck kaydi
+
+- Crosscheck tamamlandiginda bu dokumanda veya PR aciklamasinda su format kullanilir
+
+```text
+Crosscheck
+
+- Tarih YYYY-MM-DD
+- Use case U1 U2 U3
+- Etkilenen domainler
+- Okunan dosyalar
+- Etkilenen dosyalar
+- Riskler ve alinacak onlemler
+- Test adimlari
+```
 
 ### Use Case Ozeti
 
