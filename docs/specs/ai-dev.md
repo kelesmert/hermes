@@ -3,18 +3,30 @@
 Bu dokuman, projede AI entegrasyonu icin tek kaynak olacak.
 Hedef, sadece bu dosyayi okuyarak AI gelistirmesine baslayabilecek kadar net bir kilavuz tutmak.
 
-Bu asamada use case secimi yapilmadi.
-Bu dosya, kararlar netlestikce doldurulecek bir iskelet olarak basladi.
+Bu asamada MVP icin hedeflenen use case seti netlestirildi.
+Implementasyon henuz baslamadi ve bu dosya gelistirme kilavuzu olarak tutulacak.
 
 ## Dokuman Meta
 
-- Versiyon 0.1
+- Versiyon 0.5
 - Son guncelleme 2026-01-03
 - Degisiklik ozeti
   - Dokuman iskeleti guclendirildi
   - Proje baglami ve dosya haritasi eklendi
   - Karar kaydi sablonu eklendi
   - Teknik tasarim ve test iskeleti eklendi
+  - Net kararlar detaylandirildi
+  - U1 loss breakdown veri kaynagi netlestirildi
+  - Use case bazli TTL ve expiresAt karari eklendi
+  - POST cache ve forceRefresh semantigi eklendi
+  - Latest endpoint semantigi pencere bazli netlestirildi
+  - Ham prompt saklamama karari eklendi
+  - U3 baseline N ve source ayrimi karari eklendi
+  - Hub yetki modeli filtered list olarak netlestirildi
+  - Rate limit ve aylik maliyet limiti netlestirildi
+  - Rate limit soft warning ve hard block netlestirildi
+  - Rate limit scope hibrit netlestirildi
+  - OpenAI timeout retry politikalari netlestirildi
 
 ## Dokumanin Amaci
 
@@ -97,7 +109,7 @@ AI entegrasyon hedefi icin ilgili domainler
 
 - [x] Bu dokumanin iskeleti olusturuldu
 - [x] Provider olarak OpenAI secildi
-- [ ] Ilk AI use case secimi yapilmadi
+- [x] MVP icin hedef use case seti netlesti
 - [ ] Backend AI domaini veya endpointleri yok
 - [ ] Frontend AI gosterimi yok
 
@@ -176,57 +188,240 @@ Karar
 - OpenAI API key sadece backend tarafinda `.env` icinde tutulacak
 - Frontend tarafina API key asla gonderilmeyecek
 
-## Acik Sorular ve Opsiyonlar
+### Mimari yaklasim
 
-### Ilk use case hangisi olacak
+- Backend tarafinda tek bir AI domain olacak
+  - OpenAI client yonetimi tek noktada
+  - Prompt template ve versiyonlama tek noktada
+  - Diger domainlerden deterministik veri toplama
+  - Cache rate limiting maliyet kontrolu
+- Frontend tarafinda use case bazli componentler olacak
+  - OeeInsightCard ReasonSuggestion AnomalyAlert gibi
+  - Ortak AI API client `ai-api.js`
+- AI icin ayrica bir hub sayfasi olacak
+  - Ama ana kullanim ilgili sayfalardaki kartlar uzerinden olacak
 
-- Opsiyon U1 OEE aciklama asistani
-  - Artisi OEE ve durus verilerini insan diline cevirir demo icin etkisi yuksek
-  - Eksisi Dogru bir aciklama icin loss breakdown verisi gerekebilir
-- Opsiyon U2 Durus reason onerisi
-  - Artisi Reason kalitesini artirir OEE aciklanabilirligi guclenir
-  - Eksisi Yanlis oneriler operatorde guven kaybi yaratabilir onay akisi gerektirir
-- Opsiyon U3 Anomali tespiti ve aciklama
-  - Artisi Tez icin yenilik algisi yuksek
-  - Eksisi Ham telemetry uzerinden yanlis pozitif riski daha yuksek
-- Opsiyon U4 Serbest soru cevap yardimcisi
-  - Artisi Kullaniciya sohbet deneyimi verir
-  - Eksisi Yetki veri sizarma ve dogruluk riski en yuksek
+### Endpoint tasarimi
 
-### Nerede gosterilecek
+- API sekli use case basina endpoint olacak
+- POST ile analiz uretilecek, GET ile gecmis analizler gosterilecek
 
-- Opsiyon G1 Reports icinde AI karti veya modal
-- Opsiyon G2 Dashboard icinde kisa ozet karti
-- Opsiyon G3 Downtimes icinde reason ve etkiler icin ozet
-- Opsiyon G4 Ayrı AI sayfasi
+POST endpointleri taslagi
 
-Karar kriteri
+- `POST /api/ai/oee-insight`
+- `POST /api/ai/downtime-reason`
+- `POST /api/ai/anomaly-risk`
 
-- MVP icin en az riskli yer genelde Reports olur
-- Operasyon ekrani icin gecikme ve dogruluk daha kritiktir
+GET endpointleri taslagi
 
-### Veri kaynagi ve kapsam
+- `GET /api/ai/insights`
+- `GET /api/ai/insights/latest`
+- `GET /api/ai/insights/:id`
 
-- Prompt icine hangi domain verileri girecek
-  - OEE stats mi downtime list mi production events mi
-- Ham telemetry modele gonderilecek mi
-  - MVP onerisi ham telemetry gonderme
-- Cikti semasi ne olacak
-  - Serbest metin mi yoksa JSON semasi mi
+Latest endpoint semantigi
+
+- `latest` pencere bazli calisacak
+- UI hangi pencereyi kullaniyorsa ayni parametrelerle `latest` sorgulanacak
+- Amaç kesin eslesme ve debug edilebilirlik
+
+Ornek sorgular
+
+```text
+GET /api/ai/insights/latest?useCase=oee-insight&machineId=...&source=shift-sim&mode=shift&shiftDate=2026-01-03
+```
+
+```text
+GET /api/ai/insights/latest?useCase=oee-insight&machineId=...&source=shift-sim&mode=range&from=2026-01-01T00:00:00.000Z&to=2026-01-07T00:00:00.000Z
+```
+
+POST tekrar analiz ve cache davranisi
+
+- Ayni input icin tekrar analiz istendiginde backend cache kontrolu yapacak
+- UI `forceRefresh` ile cache bypass edebilecek
+
+Davranis ozeti
+
+- Varsayilan `forceRefresh false`
+- Backend
+  - Son 1 saat icinde ayni input icin kayit var mi bakar
+  - `dataSnapshotHash` eslesiyor mu kontrol eder
+  - Eslesiyorsa cached sonucu `cacheHit true` ile dondurur
+  - Yoksa veya stale ise yeni analiz uretir, kaydeder ve `cacheHit false` dondurur
+- `forceRefresh true` ise her zaman yeni analiz uretilir ve yeni dokuman olusur
+
+### Kalici kayit ve retention
+
+- AI analizleri MongoDB icinde `ai_insights` koleksiyonunda kalici saklanacak
+- Her yeniden analiz yeni bir dokuman olusturacak
+- Retention politikasi
+  - U1 U2 icin 90 gun
+  - U3 icin 7 gun
+- Kullanici basina son 50 analiz limiti uygulanacak, eskiler silinecek
+
+Use case bazli TTL icin yontem
+
+- `expiresAt` alani + TTL index
+  - Index `expireAfterSeconds 0` olacak
+  - Silme davranisi `expiresAt` tarihine gore olur
+- U1 U2 icin `expiresAt = generatedAt + 90 gun`
+- U3 icin `expiresAt = generatedAt + 7 gun`
+
+Ham prompt saklama karari
+
+- Ham prompt metni DB ye kaydedilmeyecek
+- Sadece normalized input ozetleri ve output saklanacak
+- Prompt hangi template ile calisti `promptVersion` ile izlenebilir
+
+### Prompt versiyonlama
+
+- Prompt versiyonu kod icinde sabit tutulacak
+- Response icinde `promptVersion` donulecek
 
 ### Yetki modeli
 
-- Hangi izin ile korunacak
-  - `reports.read` ile mi yoksa yeni bir permission mi
-- Viewer rolu AI sonucunu gorebilir mi
+- Yeni permission eklenmeyecek
+- Mevcut permissionlar ile korunacak
 
-### Loglama ve gizlilik
+Use case permission mapping
 
-- Prompt response kaydi tutulacak mi
-  - Opsiyon L1 Kapali
-  - Opsiyon L2 Sadece metadata
-  - Opsiyon L3 Tam icerik
-- PII ve token alanlari prompttan kesinlikle cikacak mi
+- U1 OEE Insight reports.read
+- U2 Reason Suggestion machines.read
+- U2 Reason Onay machines.write
+- U3 Anomaly machines.read
+- Hub sayfasi filtered list olarak calisacak
+  - Navigation tarafinda permission array patterni kullanilacak
+  - Kullanici hub a girebiliyorsa sadece erisebildigi use caseleri gorecek
+
+### Stale veri uyarisi
+
+- Her kayitta input verisinin ozet hash degeri `dataSnapshotHash` saklanacak
+- UI mevcut veri ile hash karsilastiracak
+  - Eslesmezse uyari gosterilecek
+  - Yeniden analiz et aksiyonu sunulacak
+
+dataSnapshotHash ana alanlari
+
+- U1 availability performance quality oee plannedTimeMs operatingTimeMs goodCount defectCount top3Reasons
+- U2 machineId downtimeId durationMinutes reasonCode
+- U3 machineId affectedMetrics riskLevel
+
+### AI SDK secimi
+
+- MVP implementasyonda OpenAI SDK + kendi wrapper kullanilacak
+- LangChain CommonJS , ECMAjs uyumu daha sonra kararlasirilacak
+- Langchain kullanabilmek icin ECMA refactoru dusunulecek.
+- LangGraph kullanilmayacak
+
+### Hub sayfasi yetkisi
+
+- Hub sayfasi tek bir permission ile korunmayacak
+- Hub sayfasi navigation da permission array ile gorunur olacak
+- Kullanici sadece erisebildigi use caseleri gorecek
+  - UI `hasPermission` ile use case kartlarini filtreleyecek
+  - API tarafinda da list response kullanicinin erisebildigi use case ler ile filtrelenecek
+
+### Rate limiting ve maliyet kontrolu
+
+Genel karar
+
+- Rate limit icin memory store yeterli
+- Bu tez projesi tek instance oldugu icin memory store kabul edilir
+- Mongo tabanli rate limit kutuphaneleri kullanilmayacak
+  - Ornek rate limit mongo kutuphaneleri uzun suredir guncellenmiyor
+
+Maliyet ve kullanim izleme
+
+- Kullanim kaydi icin `ai_usage` koleksiyonu olacak
+  - Rate limit icin zorunlu degil
+  - Ama maliyet ve raporlama icin faydali
+
+Limit profili
+
+- Varsayilan profil A Conservative olacak
+- Limitler env ile ayarlanabilir olacak
+- Limit e yaklasinca UI soft warning gosterecek
+
+Varsayilan limitler
+
+- Saatlik limitler
+  - U1 5 per hour
+  - U2 15 per hour
+  - U3 10 per hour
+- Gunluk global limit 200
+- Aylik maliyet limiti 10 dolar
+
+Rate limit scope
+
+- Hibrit
+  - Hourly limit per user
+  - Daily ve monthly limit global
+
+Soft warning ve hard block
+
+- Soft warning esigi yuzde 80
+  - UI tarafinda uyari goster
+- Hard block yuzde 100
+  - Limit asildiginda yeni AI cagrisi yapma
+
+OpenAI timeout ve retry politikalari
+
+- Timeout 30 saniye
+- Max retry 3
+- Backoff exponential 1 saniye 2 saniye 4 saniye
+- 429 rate limit durumunda Retry After header varsa ona uy
+- Sadece gecici hata siniflarinda retry
+  - 429
+  - 500
+  - 503
+  - Network timeout gibi gecici hatalar
+
+### U1 OEE Insight Asistani
+
+- Amac OEE verisini dogal dile cevirmek ve aksiyon onerisi vermek
+- U7 trend ozeti bu use case icine dahil edildi
+  - Haftalik veya aylik gorunumde onceki doneme gore karsilastirma yapilacak
+  - AI gecen haftaya veya aya gore degisimi yorumlayacak
+- Prompt stratejisi tek prompt ve JSON cikti olacak
+- Loss breakdown verisi top 3 reason ve kategori toplam seklinde gelecek
+  - Kaynak AI domain icinde deterministik MachineEvent aggregation olacak
+  - OEE calculator degistirilmeden ayri bir fonksiyon ile hesaplanacak
+  - affectsOee false olan planli reasonlar top 3 listesine dahil edilmeyecek
+- Operator karsilastirma deterministik siralama ile yapilacak, AI sadece yorum yazacak
+
+### U2 Durus Reason Onerisi
+
+- Tetikleyici modal acilinca lazy olacak
+- reasonCode unplanned_stop degilse AI cagrisi yapilmayacak
+- Telemetry ham veri gonderilmeyecek, sadece ozet featurelar gonderilecek
+- Confidence format band olacak high medium low
+
+### U3 Anomali Risk Uyarisi
+
+- U6 kalite korelasyonu bu use case icine dahil edildi
+  - Telemetry metrikleri ile defect orani arasindaki iliski raporlanacak
+  - Ornegin sicaklik X ustunde defect orani artiyor gibi
+- mock batch kaynagi opsiyonel olarak dusunulecek
+  - Hazir uretilmis veriden de AI analizi yapilabilir
+  - Canli izleme senaryosunda baseline hesabi farkli olabilir
+  - Onemli kisit mock batch anlik veri uretmedigi icin gercek zamanli uyari alamaz
+    - Ornegin 14 00 de durus olabilir gibi proaktif uyari yapilamaz
+    - Ama gecmis veri uzerinden pattern analizi ve retrospektif insight yapilabilir
+- Baseline memory + TTL 1 saat olacak
+  - Restart sonrasi baseline sifirlanmasi kabul
+- Baseline ornek sayisi `N 500` olacak
+- Baseline source bazli ayri tutulacak
+  - shift sim ve data gen farkli baseline ile izlenecek
+- Metrikler temperatureC torqueNm energyKwh
+- Esik z score 2.5 ustu
+  - Ek kosul en az 2 metrik anormal veya tek metrik z 3.5 ustu
+
+## Acik Sorular ve Opsiyonlar
+
+### Opsiyonel use case
+
+- U4 Serbest soru cevap yardimcisi
+  - Ama tez demo etkisi yuksek
+  - Ama yetki ve veri sizdirma riski en yuksek
 
 ### Teknik entegrasyon sekli
 
@@ -280,11 +475,14 @@ Frontend UI
 
 ### Endpoint taslagi
 
-Not Use case secilince path ve schema netlesecek
+Bu bolum taslaktir, net kararlar bolumundeki endpoint listesi referanstir
 
-- `POST /api/ai/analyze`
-  - Request useCase source window machineId payload
-  - Response schema versioned JSON
+- `POST /api/ai/oee-insight`
+- `POST /api/ai/downtime-reason`
+- `POST /api/ai/anomaly-risk`
+- `GET /api/ai/insights`
+- `GET /api/ai/insights/latest`
+- `GET /api/ai/insights/:id`
 
 ### Response semasi taslagi
 
@@ -293,18 +491,14 @@ Not Use case secilince path ve schema netlesecek
   "useCase": "replace_me",
   "generatedAt": "2026-01-03T20:00:00.000Z",
   "summary": "replace_me",
-  "highlights": [
-    "replace_me"
-  ],
+  "highlights": ["replace_me"],
   "actions": [
     {
       "title": "replace_me",
       "reason": "replace_me"
     }
   ],
-  "warnings": [
-    "replace_me"
-  ]
+  "warnings": ["replace_me"]
 }
 ```
 
@@ -313,11 +507,10 @@ Not Use case secilince path ve schema netlesecek
 Not Bu ornekler taslaktir ve su anki kod ile birebir uyum garantisi vermez.
 Use case secilince ve endpoint gercekten yazilinca bu bolum guncellenir.
 
-Ornek request
+Ornek request U1 OEE Insight
 
 ```json
 {
-  "useCase": "oee_explain",
   "source": "mock-batch",
   "window": {
     "mode": "shift",
@@ -339,25 +532,23 @@ Ornek request
 }
 ```
 
-Ornek response
+Ornek response U1 OEE Insight
 
 ```json
 {
-  "useCase": "oee_explain",
+  "useCase": "oee_insight",
+  "promptVersion": "replace_me",
+  "dataSnapshotHash": "replace_me",
   "generatedAt": "2026-01-03T20:00:00.000Z",
   "summary": "replace_me",
-  "highlights": [
-    "replace_me"
-  ],
+  "highlights": ["replace_me"],
   "actions": [
     {
       "title": "replace_me",
       "reason": "replace_me"
     }
   ],
-  "warnings": [
-    "replace_me"
-  ]
+  "warnings": ["replace_me"]
 }
 ```
 
@@ -386,6 +577,7 @@ Kurallar
 - Maksimum 3 cumle
 - En kritik nedeni vurgula
 - 1 adet uygulanabilir aksiyon oner
+- JSON formatinda cikti uret
 
 Veri
 - Makine {{machineName}}
@@ -413,6 +605,22 @@ Veri
 - Sure {{durationMinutes}}
 - Mevcut reason {{currentReason}}
 - Makine durumu {{machineState}}
+- Sadece katalogdan sec
+- Cikti confidence band olacak
+```
+
+### U3 Anomali risk uyarisi taslagi
+
+```text
+Asagidaki ozet featurelara gore risk seviyesini yorumla.
+Tahmin degil uyari yaz, kanit olarak hangi metriklerin anormal oldugunu belirt.
+
+Veri
+- Makine {{machineName}}
+- Kaynak {{source}}
+- Anormal metrikler {{affectedMetrics}}
+- Z score degerleri {{zScores}}
+- Risk seviyesi {{riskLevel}}
 ```
 
 ## Taslak Env Degiskenleri
@@ -440,11 +648,17 @@ MVP icin minimum dogrulama adimlari
 
 ### Karar asamasi
 
-- [ ] Ilk AI use case karari
-- [ ] Kullanilacak ekran ve akis karari
-- [ ] Yetki modeli karari
-- [ ] Prompt input ve output semasi karari
-- [ ] Loglama ve maliyet politikalari karari
+- [x] Ilk AI use case karari
+- [x] Kullanilacak ekran ve akis karari
+- [x] Yetki modeli karari
+- [x] Prompt input ve output semasi karari
+- [x] Use case bazli TTL expiresAt karari
+- [x] POST cache ve forceRefresh semantigi karari
+- [x] Latest endpoint semantigi karari
+- [x] Ham prompt saklamama karari
+- [x] U3 baseline N ve source ayrimi karari
+- [x] Hub sayfasi permission karari
+- [x] Rate limiting ve maliyet politikalari karari
 
 ### Implementasyon asamasi
 
