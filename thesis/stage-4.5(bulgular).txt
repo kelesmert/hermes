@@ -1,0 +1,20 @@
+# prompt:
+
+ROL:
+Bu repo için tezde kullanılacak “Çalışmanın Bulguları ve Değerlendirme” bölümüne ham içerik üreten analizcisin.
+
+KURALLAR:
+- Bu bölüm “ne yaptık” değil, “ne gösterdik / hangi çıktıyı elde ettik” odaklı.
+- Metin iddiası varsa kanıtla (docs veya UI ekranları).
+- Sayısal performans metriği yoksa uydurma; bunun yerine “senaryo çıktısı” anlat.
+- En az 6–10 bulgu maddesi çıkar; her birinde gözlemlenebilir çıktı olsun.
+
+ÇIKTI:
+1) Senaryo Tanımı (tez demosu): veri üretimi → izleme → duruş → OEE → rapor
+2) Bulgular (madde madde):
+   Bulgu | Ne gözlemlendi | Hangi ekranda/çıktıda | Tezde eklenecek görsel önerisi | Kanıt
+3) Kısıtlar ve Gözlemler (ölçek, gerçek cihaz yok, vb.)
+4) Kısa Değerlendirme: Tutarlılık/izlenebilirlik/tekrar üretilebilirlik
+
+KANIT: docs/* (project-report, summary), frontend ekranları, decision-log, requirements
+

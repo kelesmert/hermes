@@ -115,6 +115,20 @@ Bu dosya, projede alınan mimarî ve teknolojik kararları, gerekçelerini ve be
 - **Gerekçe:** Aynı makinede ardışık job’ların üretiminin birbirine karışmasını önlemek ve doğru üretim sayımı sağlamak.
 - **Etki:** `backend/src/domains/machines/models/machine-telemetry-model.js`, `backend/scripts/data-gen.js`, `backend/scripts/shift-simulator.js`, `backend/scripts/job-simulator.js`.
 
+### U2 Duruş Analizi Post Mortem Mode
+
+- **Domain:** Backend - ai/downtime
+- **Karar:** U2 use case’i “reason tahmini” yerine post mortem pattern analizi yapar; yalnızca kapanmış duruşlar için çalışır. Analiz, operatörün seçtiği reason’a göre “bu tip duruşların hangi koşullarda sık yaşandığını” açıklar.
+- **Gerekçe:** Canlı öneri yerine kapanmış duruşlar üzerinden güvenilir ve savunulabilir analiz isteniyor; reason tahmini değil, koşul analizi hedefleniyor.
+- **Etki:** `docs/specs/ai-dev.md`, `backend/src/domains/ai/services/downtime-reason-service.js`, `backend/src/domains/ai/prompts/downtime-reason.js`, `frontend/src/features/downtime`, AI Hub kartları.
+
+### U2 Telemetry Penceresi ve Feature Seti
+
+- **Domain:** Backend - ai/downtime
+- **Karar:** Post mortem analizde iki pencere kullanılır: duruş öncesi 10 dk (avg + last) ve duruş boyunca (avg + min + max + last). Metrikler `temperatureC`, `torqueNm`, `energyKwh` olur.
+- **Gerekçe:** Duruş öncesi tetikleyici pattern’i, duruş boyunca ise davranış doğrulamasını verir; last değeri anlık sapmaları yakalamaya yardımcı olur.
+- **Etki:** `docs/specs/ai-dev.md`, `backend/src/domains/ai/services/downtime-reason-service.js`, `backend/src/domains/ai/prompts/downtime-reason.js`.
+
 ### Shift-sim Test Downtime Segmentleri Env Kontrollü
 
 - **Domain:** Backend - simulations
@@ -234,6 +248,14 @@ Bu dosya, projede alınan mimarî ve teknolojik kararları, gerekçelerini ve be
 - **Karar:** `/ai` rotasında “AI Asistanı” hub sayfası eklendi. Sidebar’da görünür; permission modeli `reports.read` veya `machines.read` olan kullanıcılar erişebilir. Hub’da U1/U2/U3 use case kartları, son 20 analiz listesi ve “Kullanım İstatistikleri (Yakında)” placeholder bölümü bulunur.
 - **Gerekçe:** U2/U3 öncesi ortak giriş noktası oluşturmak ve mevcut AI analiz geçmişini tek yerden görmek.
 - **Etki:** `frontend/src/features/ai/pages/ai-hub.jsx`, `frontend/src/constants/navigation.js`, `frontend/src/App.jsx`.
+
+### U2 Duruş AI Analizi UI Entegrasyonu
+
+- **Tarih:** 2026-01-05
+- **Domain:** Frontend - downtime/ai
+- **Karar:** U2 post mortem analizi, duruş detay modalı ve geçmiş liste satırından “AI Analiz” dialogu ile tetiklenir; açık duruşlarda analiz çalışmaz.
+- **Gerekçe:** Duruş kapandıktan sonra reason’a bağlı pattern analizi hedefleniyor; aktif duruşlarda tahmin yerine açıklama istendi.
+- **Etki:** `frontend/src/features/downtime/components/downtime-ai-dialog.jsx`, `frontend/src/features/downtime/components/downtime-edit-dialog.jsx`, `frontend/src/features/downtime/pages/downtimes.jsx`, `frontend/src/features/ai/pages/ai-hub.jsx`.
 
 ### Uygulama Kabuk Tasarımı
 

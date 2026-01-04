@@ -6,7 +6,7 @@ const USE_CASES = {
 
 const USE_CASE_LABELS = {
   [USE_CASES.OEE_INSIGHT]: 'OEE Insight',
-  [USE_CASES.DOWNTIME_REASON]: 'Downtime Reason',
+  [USE_CASES.DOWNTIME_REASON]: 'Durus Pattern',
   [USE_CASES.ANOMALY_RISK]: 'Anomaly Risk',
 };
 

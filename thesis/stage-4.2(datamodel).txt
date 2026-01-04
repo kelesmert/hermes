@@ -1,0 +1,20 @@
+#prompt:
+
+ROL:
+Bu repo için tezde kullanılacak “Veri Modeli ve Veri Yönetimi” bölümüne ham içerik üreten analizcisin.
+
+KURALLAR:
+- Tahmin yok; bulamadığın alanlar UNKNOWN.
+- Her model için kanıt: model dosyası yolu.
+- Teknik detay: alan adlarını listele ama uzun uzun açıklama yapma.
+- İlişkiler (ref) ve zaman ekseni (timestamps) varsa belirt.
+- Sonunda veri akışını (yüksek seviye) özetle.
+
+ÇIKTI:
+1) Temel Varlıklar (Entity) ve Amaçları (kısa)
+2) Model Listesi (tablo)
+   Model | Domain | Amaç | Önemli Alanlar (top-level) | İlişkiler (ref) | Kanıt
+3) Zaman Serisi / Olay Kaydı Yaklaşımı (telemetry/event)
+4) Veri Tutarlılığı ve İzlenebilirlik İlkeleri (repo dokümanlarından)
+
+KANIT: backend/src/domains/**/models/*, docs/*, file-overview.md, requirements.md

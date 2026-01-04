@@ -20,7 +20,7 @@ const isEditableWithinWindow = (downtime, windowMinutes = 5) => {
   return new Date() <= deadline;
 };
 
-const DowntimeEditDialog = ({ open, downtime, reasons, onClose, onSubmit, isSubmitting }) => {
+const DowntimeEditDialog = ({ open, downtime, reasons, onClose, onSubmit, isSubmitting, onOpenAnalysis }) => {
   const plannedReasons = useMemo(() => reasons.filter((r) => r.category === 'planned'), [reasons]);
   const unplannedReasons = useMemo(() => reasons.filter((r) => r.category === 'unplanned'), [reasons]);
 
@@ -29,7 +29,6 @@ const DowntimeEditDialog = ({ open, downtime, reasons, onClose, onSubmit, isSubm
   const fallbackOptions = reasons;
 
   const [form, setForm] = useState({ reasonCode: '', notes: '' });
-
   const isClosed = Boolean(downtime?.endedAt);
   const canPatch = downtime ? isEditableWithinWindow(downtime, 5) : false;
   const canSplit = Boolean(downtime) && !isClosed && !canPatch;
@@ -106,6 +105,13 @@ const DowntimeEditDialog = ({ open, downtime, reasons, onClose, onSubmit, isSubm
         </Stack>
       </DialogContent>
       <DialogActions>
+        <Button
+          onClick={() => onOpenAnalysis?.(downtime)}
+          disabled={!downtime}
+          color="inherit"
+        >
+          AI Analiz
+        </Button>
         <Button onClick={onClose} disabled={isSubmitting}>
           Vazgeç
         </Button>
@@ -134,6 +140,7 @@ DowntimeEditDialog.propTypes = {
   onClose: PropTypes.func.isRequired,
   onSubmit: PropTypes.func.isRequired,
   isSubmitting: PropTypes.bool,
+  onOpenAnalysis: PropTypes.func,
 };
 
 export default DowntimeEditDialog;

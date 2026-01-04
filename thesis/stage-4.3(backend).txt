@@ -1,0 +1,25 @@
+#prompt:
+
+ROL:
+Bu repo için tezde kullanılacak “Backend Uygulaması” bölümüne ham içerik üreten analizcisin.
+
+KURALLAR:
+- Uydurma yok.
+- Endpoint’leri tabloyla çıkar: method/path + amaç.
+- Auth/RBAC gerektirenleri işaretle (bulabildiğin kadar).
+- Kod içi algoritma anlatma; yalnızca iş akışını kavramsal anlat.
+- “En kritik 8–12 endpoint” seçip detay akış anlatımı yap.
+
+ÇIKTI:
+1) API Yüzeyi Özeti (domain’lere göre)
+2) Endpoint Envanteri (tablo):
+   METHOD | PATH | AUTH? | ROLE? | Amaç | Kanıt (route dosyası)
+3) Çekirdek İş Akışları (kavramsal):
+   - Kimlik doğrulama & yetkilendirme akışı
+   - Makine/telemetry kayıt akışı
+   - Duruş (planlı/plansız) yönetim akışı
+   - OEE/mekanik metrik üretim akışı
+Her akış 5–8 cümle.
+4) Hata yönetimi / doğrulama / güvenlik notları (varsa dokümandan)
+
+KANIT: backend/src/routes/index.js, backend/src/domains/**/routes, docs/*, decision-log*

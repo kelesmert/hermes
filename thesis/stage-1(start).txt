@@ -1,0 +1,71 @@
+# prompt:
+
+ROL:
+Sen bu repo için bitirme tezinde kullanılacak GİRİŞ bölümüne ham içerik üreten bir analizcisin.
+Tez yazmıyorsun; doğrulanabilir, akademik anlatıya uygun girdi üretiyorsun.
+
+TEMEL HEDEF:
+Endüstriyel problemi, bu problemin önemini ve projenin amacını
+— yüksek seviye, okunabilir ama teknik olarak doğru —
+şekilde ortaya koymak.
+
+ZORUNLU KURALLAR:
+
+- Tahmin, uydurma, yorum ekleme YOK.
+- Kod satırı, fonksiyon adı, dosya içi algoritma detayı GİRİŞ için KULLANILMAZ.
+- Teknik mekanizmalar (OEE hesaplama, telemetry processing vb.)
+  sadece KAVRAMSAL seviyede anlatılır.
+- Her bölüm sonunda KANIT: dosya adları listelenir (satır numarası gerekmez).
+- Çıktı dili: Türkçe.
+- Ton: akademik, sade, tez jürisine yönelik.
+- AI konusu “tasarlanan / hedeflenen” olarak ele alınır, merkez yapılmaz.
+
+ÇIKTI YAPISI (BAŞLIKLAR AYNEN KORUNACAK):
+
+1. Çözülen Problem (Endüstriyel Bağlamda)
+
+- Üretim ortamlarında izlenebilirlik, duruşlar, performans ve metrik tutarlılığı
+  problemini açıkla.
+- “Hafif MES MVP” yaklaşımının neden tercih edildiğini belirt.
+- Simülasyon tabanlı yaklaşımın bu problemi tez bağlamında nasıl ele aldığına değin.
+  (4–6 cümle)
+
+2. Problemin Önemi (Neden Bu Çalışma Gerekli?)
+
+- OEE, downtime ve anlık görünürlük kavramlarının üretim verimliliği açısından
+  neden kritik olduğunu açıkla.
+- Tutarlı sınıflandırma (reasonCode vb.) ve açıklanabilir metrik ihtiyacını vurgula.
+- Tez kapsamında ölçülebilir ve tekrar üretilebilir veri üretmenin önemini belirt.
+  (4–6 cümle)
+
+3. Projenin Genel Amacı
+
+- Projenin mezuniyet çalışması olarak temel hedefini tek paragrafta açıkla.
+- Kullanılan ana teknoloji yaklaşımını (backend/frontend/veri) genel seviyede belirt.
+- Simülasyonla veri üretip uçtan uca bir MES akışının gösterilmesini amaçladığını ifade et.
+- AI bileşenini yalnızca “deterministik hesapları açıklayıcı bir katman” olarak konumlandır.
+  (5–7 cümle, tek paragraf)
+
+4. Projenin Kapsamı
+
+- Dahil edilen ana fonksiyonel alanları listele (auth, izleme, üretim, duruş, raporlama vb.).
+- “Tamamlanan” ve “tasarlanan” kavramlarını net ayır.
+- Frontend ve backend’in kapsadığı sorumlulukları genel seviyede belirt.
+  (4–6 cümle)
+
+5. Projenin Sınırları
+
+- Bilerek kapsam dışı bırakılan alanları açıkça belirt.
+- Gerçek cihaz entegrasyonu, ölçekleme ve kurumsal entegrasyonların neden dışarıda
+  tutulduğunu tez bağlamında gerekçelendir.
+  (3–5 cümle)
+
+6. Çalışmanın Katkısı (Mezuniyet Projesi Düzeyinde)
+
+- Modüler mimari, deterministik simülasyon ve izlenebilir metrik üretimi katkılarını vurgula.
+- Çalışmanın tez değerlendirmesi için neden anlamlı ve ölçülebilir çıktılar sunduğunu belirt.
+- AI yaklaşımını “genişletilebilir çerçeve” olarak tanımla, iddialı sonuçlar ekleme.
+  (4–6 cümle)
+
+Her başlığın sonunda:
+KANIT: ilgili README / docs / design dosyalarının adlarını listele.

@@ -5,10 +5,11 @@ Hedef, sadece bu dosyayi okuyarak AI gelistirmesine baslayabilecek kadar net bir
 
 Bu asamada MVP icin hedeflenen use case seti netlestirildi.
 U1 icin backend akisi tamamlandi, Reports ekraninda AI karti eklendi.
+U2 icin post mortem analiz akisi backend ve downtime UI tarafinda uygulanmaya baslandi.
 
 ## Dokuman Meta
 
-- Versiyon 1.1
+- Versiyon 1.2
 - Son guncelleme 2026-01-05
 - Degisiklik ozeti
   - Dokuman iskeleti guclendirildi
@@ -39,6 +40,10 @@ U1 icin backend akisi tamamlandi, Reports ekraninda AI karti eklendi.
   - Reports ekranina AI Analizi karti eklendi (U1 UI)
   - Latest endpoint stale kontrolu eklendi (checkStale)
   - Reports UI stale uyarisi gosteriyor
+  - U2 icin post mortem pattern analizi karari netlestirildi
+  - U2 icin telemetry pencereleri (oncesi 10 dk + durus boyunca) ve feature seti netlestirildi (durus boyunca last dahil)
+  - U2 post mortem backend servisi ve promptu tamamlandi
+  - Downtime UI icinde U2 AI Analiz dialogu eklendi (kapali durus)
 
 ## Dokumanin Amaci
 
@@ -132,6 +137,8 @@ AI entegrasyon hedefi icin ilgili domainler
 - [x] Latest insight stale kontrolu (checkStale) eklendi
 - [x] U1 icin manuel dogrulama tamamlandi (cache hit, force refresh, stale uyarisi, rate limit)
 - [x] AI Hub sayfasi iskeleti eklendi (use case kartlari + son 20 analiz listesi + kullanim istatistikleri placeholder)
+- [x] U2 post mortem pattern analizi (kapali durus) backend servisi tamamlandi
+- [x] U2 AI Analiz dialogu downtime detay modalinda ve gecmis listesinde aktif
 
 ## Okuma Haritasi
 
@@ -171,10 +178,12 @@ Use case bazli okuma
   - `docs/specs/oee-design.md`
   - `backend/src/domains/oee/services/oee-calculator-service.js`
   - `frontend/src/features/reports/pages/reports.jsx`
-- U2 Durus reason onerisi
+- U2 Durus pattern analizi (post mortem)
   - `docs/specs/downtime-design-v2.md`
   - `backend/src/domains/downtime`
+  - `backend/src/domains/ai/services/downtime-reason-service.js`
   - `frontend/src/features/downtime`
+  - `frontend/src/features/downtime/components/downtime-ai-dialog.jsx`
 - U3 Anomali tespiti ve aciklama
   - `backend/src/domains/machines`
   - `backend/src/domains/oee/services/oee-processor.js`
@@ -216,7 +225,7 @@ Karar
   - Diger domainlerden deterministik veri toplama
   - Cache rate limiting maliyet kontrolu
 - Frontend tarafinda use case bazli componentler olacak
-  - OeeInsightCard ReasonSuggestion AnomalyAlert gibi
+  - OeeInsightCard DowntimePatternInsight AnomalyAlert gibi
   - Ortak AI API client `ai-api.js`
 - AI icin ayrica bir hub sayfasi olacak
   - Ama ana kullanim ilgili sayfalardaki kartlar uzerinden olacak
@@ -305,8 +314,7 @@ Ham prompt saklama karari
 Use case permission mapping
 
 - U1 OEE Insight reports.read
-- U2 Reason Suggestion machines.read
-- U2 Reason Onay machines.write
+- U2 Pattern Analizi machines.read
 - U3 Anomaly machines.read
 - Hub sayfasi filtered list olarak calisacak
   - Navigation tarafinda permission array patterni kullanilacak
@@ -322,7 +330,7 @@ Use case permission mapping
 dataSnapshotHash ana alanlari
 
 - U1 availability performance quality oee plannedTimeMs operatingTimeMs goodCount defectCount top3Reasons
-- U2 machineId downtimeId durationMinutes reasonCode
+- U2 downtimeId durationMinutes currentReason telemetrySummary
 - U3 machineId affectedMetrics riskLevel
 
 ### AI SDK secimi
@@ -515,12 +523,27 @@ Retention
   - affectsOee false olan planli reasonlar top 3 listesine dahil edilmeyecek
 - Operator karsilastirma deterministik siralama ile yapilacak, AI sadece yorum yazacak
 
-### U2 Durus Reason Onerisi
+### U2 Durus Pattern Analizi (Post Mortem)
 
-- Tetikleyici modal acilinca lazy olacak
-- reasonCode unplanned_stop degilse AI cagrisi yapilmayacak
-- Telemetry ham veri gonderilmeyecek, sadece ozet featurelar gonderilecek
-- Confidence format band olacak high medium low
+- Tetikleyici: **durus kapandiktan sonra** (endedAt var) analiz edilir
+  - AI Hub karti uzerinden
+  - Durus detay modalinda (kapali durus)
+  - Gecmis liste satiri uzerinden
+- Reason tahmini **yapilmaz**
+  - Operatörün secmis oldugu reason uzerinden "bu tip duruslar hangi kosullarda sik olur" analizi verilir
+- Sorumlu operatör kaynagi: **job order assignedOperator**
+- Telemetry ham veri gonderilmez, ozet feature seti kullanilir
+  - **Duruş oncesi 10 dk:** avg + last
+  - **Duruş boyunca:** avg + min + max + last
+  - Telemetry window: `telemetryWindowMs = 600000` (10 dk) ile uyumlu
+  - Metrikler: temperatureC, torqueNm, energyKwh
+- Gecmis karsilastirma:
+  - Son 30 gun ayni makine + ayni reason
+  - Her olay icin: gun/saat, sure, telemetry ozeti, operatör (varsa)
+  - Genel reason dagilimi (son 30 gun) eklenir
+- Hash payload:
+  - `downtimeId + durationMinutes + currentReason + telemetrySummary`
+  - Gecmis durus dagilimi hash'e girmez (cache hit oranini dusurmemek icin)
 
 ### U3 Anomali Risk Uyarisi
 
@@ -720,20 +743,31 @@ Veri
 - Defect {{defectCount}}
 ```
 
-### U2 Durus reason onerisi taslagi
+### U2 Durus pattern analizi taslagi
 
 ```text
-Asagidaki durus bilgisine gore en uygun reason oner.
-Oneri bir tahmindir ve operator onayi olmadan kaydedilemez.
+Asagidaki kapanmis durus icin post mortem pattern analizi yap.
+Reason tahmini yapma. Amac, secilmis reason icin "bu tip duruslar hangi kosullarda sik yasaniyor"
+sorusuna veri temelli cevap vermek.
+
+Kurallar
+- Kisa ozet + 3-5 maddelik pattern listesi uret
+- Telemetry oncesi (10 dk) ve durus boyunca farklarini vurgula
+- Telemetry durus boyunca avg min max last verilerini dikkate al
+- Veri eksikse UNKNOWN yaz
+- JSON formatinda cikti uret
 
 Veri
 - Makine {{machineName}}
+- Reason {{currentReason}}
 - Baslangic {{startedAt}}
+- Bitis {{endedAt}}
 - Sure {{durationMinutes}}
-- Mevcut reason {{currentReason}}
-- Makine durumu {{machineState}}
-- Sadece katalogdan sec
-- Cikti confidence band olacak
+- Operator {{assignedOperator}}
+- TelemetryOnceki10dk {{telemetryBefore}}
+- TelemetryDurusBoyu {{telemetryDuring}}
+- Son30GunAyniReason {{recentSameReason}}
+- Son30GunReasonDagilimi {{reasonBreakdown}}
 ```
 
 ### U3 Anomali risk uyarisi taslagi
@@ -903,7 +937,7 @@ Crosscheck 2026-01-04
 | ID  | Isim                 | Dahil Edilenler       | Sayfa      | Oncelik   |
 | --- | -------------------- | --------------------- | ---------- | --------- |
 | U1  | OEE Insight Asistani | U7 trend ozeti        | Reports    | 1         |
-| U2  | Durus Reason Onerisi | -                     | Downtimes  | 2         |
+| U2  | Durus Pattern Analizi (Post Mortem) | -         | Downtimes + Hub | 2  |
 | U3  | Anomali Risk Uyarisi | U6 kalite korelasyonu | Monitoring | 3         |
 | U4  | Serbest Soru Cevap   | -                     | Hub        | Opsiyonel |
 
@@ -989,42 +1023,51 @@ Crosscheck 2026-01-04
 
 ---
 
-### Faz 2 U2 Durus Reason Onerisi
+### Faz 2 U2 Durus Pattern Analizi (Post Mortem)
 
-**Amac:** Plansiz durus modalinda AI destekli reason onerisi sunmak
+**Amac:** Kapanmis duruslar icin reason bazli pattern analizi sunmak (tahmin degil, aciklama)
 
 **Giris kosulu:** Faz 1 tamamlandi, temel AI akisi calisiyor
 
 **Workflow:**
 
 1. Veri toplama servislerini yaz
-   - Telemetry summary servisi: Son N dakika ozet featurelar
-   - Downtime history servisi: Makine bazli son 20 durus
-2. Reason oneri servisini yaz
-   - Durus + telemetry + gecmis + reason katalog
-   - Prompt olustur ve OpenAI cagir
-   - Confidence band hesapla high medium low
+   - Telemetry summary servisi
+     - Duruş oncesi 10 dk: avg + last
+     - Duruş boyunca: avg + min + max + last
+   - Gecmis durus servisi
+     - Son 30 gun, ayni makine + ayni reason
+     - Genel reason dagilimi
+2. Pattern analiz servisini yaz
+   - Durus + telemetry + gecmis verileri ile prompt olustur
+   - Reason tahmini yok; post mortem pattern aciklamasi uret
 3. Controller ve route ekle
-   - POST `/api/ai/downtime-reason`
+   - POST `/api/ai/downtime-reason` (mevcut endpoint ismi korunur)
    - Permission: machines.read
 4. Prompt template olustur
-   - Reason katalog listesi dahil
-   - Confidence band cikti
+   - Reason + telemetry + gecmis duruslar odakli
 5. Frontend component yaz
-   - ReasonSuggestion: Chip gorunum
-   - Tiklaninca dropdown a sec
-   - Confidence badge
-6. Durus modalina entegre et
-   - Sadece reasonCode unplanned_stop ise goster
-   - Lazy yukleme modal acilinca
+   - Downtime detay modalinda (kapali durus)
+   - Gecmis liste satirinda
+   - AI Hub kartinda
 
 **Cikis dogrulamasi:**
 
-- Plansiz durus modalinda AI onerisi gorunuyor
-- Oneri tiklayinca dropdown a seciliyor
-- Planli duruslarda AI gorunmuyor
+- Kapali durus icin AI analizi gorunuyor
+- Acik duruslarda AI analizi gorunmuyor
+- Reason tahmini yok; sadece pattern analizi metni donuyor
 
-**Sonraki faza gecis:** U2 uretim ortaminda test edildi
+**Sonraki faza gecis:** U2 implementasyonu ve dogrulamasi tamamlandi
+
+**Durum:**
+
+- [x] Telemetry ozet servisi (oncesi 10 dk avg+last, durus boyunca avg+min+max+last)
+- [x] Gecmis durus verisi ve reason dagilimi toplaniyor
+- [x] POST `/api/ai/downtime-reason` aktif
+- [x] Prompt template post mortem odakli
+- [x] Downtime detay modalinda AI Analiz dialogu
+- [x] Gecmis durus listesinden AI Analiz acilabiliyor
+- [x] AI Hub karti U2 linki aktif
 
 ---
 
@@ -1109,7 +1152,7 @@ Crosscheck 2026-01-04
 - [ ] Kullanim istatistikleri (ai_usage) karti aktif edilecek
 - [ ] Rate limit soft warning UI entegre edilecek
 
-Not: Hub iskeleti Faz 2 ve Faz 3 tamamlanmadan once eklendi. U2 ve U3 kartlari "Hazirlaniyor" olarak gosteriliyor.
+Not: Hub iskeleti Faz 2 ve Faz 3 tamamlanmadan once eklendi. U2 karti aktif, U3 karti "Hazirlaniyor" olarak gosteriliyor.
 
 **Sonraki faza gecis:** MVP tamamlandi
 
@@ -1124,7 +1167,7 @@ Faz 0 (Altyapi)
 Faz 1 (U1 OEE Insight)
     |
     v
-Faz 2 (U2 Durus Reason)
+Faz 2 (U2 Durus Pattern Analizi)
     |
     v
 Faz 3 (U3 Anomali Risk)

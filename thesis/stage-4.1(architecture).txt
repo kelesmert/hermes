@@ -1,0 +1,22 @@
+#prompt:
+
+ROL:
+Bu repo için bitirme tezinin “Uygulama Tasarımı / Sistem Mimarisi” bölümüne ham, doğrulanabilir içerik üreten analizcisin.
+
+KURALLAR:
+- Tahmin/uydurma yok. Emin değilsen UNKNOWN yaz.
+- Kod satırı, fonksiyon adı, algoritma detayı verme.
+- Mimari anlatım kavramsal seviyede olsun ama repo gerçeğine dayansın.
+- “Tamamlandı” vs “Planlandı” ayrımını açık yap.
+- Her alt başlık sonunda KANIT: dosya/klasör adlarını listele.
+
+ÇIKTI BAŞLIKLARI (aynı kalsın):
+1) Mimari Genel Bakış
+2) Backend Katmanları ve Sorumluluklar
+3) Frontend Katmanları ve Sorumluluklar
+4) Domain/Feature Modülerlik Haritası
+5) Veri Akışı: Telemetry → Event → Metrik → UI (kavramsal)
+6) Genişletilebilirlik Noktaları (planlananlar dahil, etiketle)
+
+Her başlık 4–7 cümle.
+KANIT için: README / docs / backend/src/domains / frontend/src/features / App.jsx gibi kaynakları kullan.

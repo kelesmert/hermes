@@ -25,7 +25,7 @@ import { formatDate, formatDateTime } from '@/lib/date-format.js';
 
 const USE_CASE_LABELS = {
   'oee-insight': 'OEE Insight',
-  'downtime-reason': 'Durus Reason',
+  'downtime-reason': 'Durus Pattern',
   'anomaly-risk': 'Anomali Risk',
 };
 
@@ -112,7 +112,7 @@ const UseCaseCard = ({ title, description, statusLabel, route, icon: Icon, tone 
 
 const InsightCard = ({ insight, machineLabel }) => {
   const summary = insight?.output?.summary || 'Ozet bulunamadi.';
-  const highlight = insight?.output?.highlights?.[0];
+  const highlight = insight?.output?.highlights?.[0] || insight?.output?.patterns?.[0];
   const actionTitle = insight?.output?.actions?.[0]?.title;
   return (
     <Card
@@ -190,12 +190,12 @@ const AiHubPage = () => {
           </Grid>
           <Grid item xs={12} md={4}>
             <UseCaseCard
-              title="U2 - Durus Reason"
-              description="Plansiz duruslar icin reason onerileri."
-              statusLabel="Hazirlaniyor"
+              title="U2 - Durus Pattern"
+              description="Kapanmis duruslar icin post mortem pattern analizi."
+              statusLabel="Aktif"
               route="/downtimes"
               icon={PauseCircleOutlineIcon}
-              tone="warning"
+              tone="success"
             />
           </Grid>
           <Grid item xs={12} md={4}>

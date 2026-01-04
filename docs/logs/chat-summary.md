@@ -28,6 +28,24 @@
 
 ---
 
+## 05 Ocak 2026 - Context Window #16
+
+### Yapılanlar
+
+- U2 post mortem duruş analizi backend akışı tamamlandı; kapalı duruşlarda telemetry özeti (öncesi 10 dk avg+last, duruş boyunca avg+min+max+last), reason breakdown ve geçmiş karşılaştırma kullanılıyor.
+- Duruşlar UI’da AI Analiz dialogu eklendi; duruş detay modalı ve geçmiş liste satırından analiz açılabiliyor.
+- AI Hub sayfasında U2 kartı “Aktif” olarak güncellendi.
+- AI dokümantasyonu ve checklist güncellendi; file-overview ve decision-log’a U2 entegrasyon notları işlendi.
+
+### Alınan Kararlar
+
+- Yeni karar alınmadı (U2 kararları mevcut dokümana uygun şekilde uygulandı).
+
+### Sonraki Adımlar
+
+- U3 Anomali Risk use case’i için tasarım ve altyapı hazırlığı.
+- AI Hub kullanım istatistikleri (ai_usage) kartını aktive etme.
+
 ## 04 Ocak 2026 - Context Window #15
 
 ### Yapılanlar

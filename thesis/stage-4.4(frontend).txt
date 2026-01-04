@@ -1,0 +1,24 @@
+#prompt:
+
+ROL:
+Bu repo için tezde kullanılacak “Frontend Uygulaması / Kullanıcı Arayüzü” bölümüne ham içerik üreten analizcisin.
+
+KURALLAR:
+- Route listesi çıkar; her sayfanın amacını yaz.
+- Her sayfa için: hangi backend domain/endpoint’leri kullandığını bulabildiğin kadar ilişkilendir.
+- UI bileşeni anlatımı (MUI component listesi) yapma; sadece işlevsel akış.
+- Role göre erişim varsa belirt.
+
+ÇIKTI:
+1) Sayfa Haritası (route’lar)
+2) Sayfa Amaçları (tablo):
+   Route | Sayfa | Amaç | Temel İşlemler | Backend Etkileşimi | Kanıt
+3) Kullanıcı Akışları (3–5 akış):
+   - Login → Dashboard
+   - Monitoring → detay/istatistik
+   - Production/Job order yönetimi
+   - Downtime yönetimi (reason/split/confirm varsa)
+   - Simulation çalıştırma & sonuç görüntüleme
+Her akış 6–10 cümle.
+
+KANIT: frontend/src/App.jsx, frontend/src/features/**, frontend/src/pages/**

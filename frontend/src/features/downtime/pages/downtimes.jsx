@@ -25,6 +25,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import CheckIcon from '@mui/icons-material/Check';
+import AutoAwesomeOutlinedIcon from '@mui/icons-material/AutoAwesomeOutlined';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
 import { useSearchParams } from 'react-router-dom';
@@ -45,6 +46,7 @@ import {
   updatePlannedDowntimeRule,
 } from '@/features/downtime/services/downtime-api.js';
 import DowntimeEditDialog from '@/features/downtime/components/downtime-edit-dialog.jsx';
+import DowntimeAiDialog from '@/features/downtime/components/downtime-ai-dialog.jsx';
 import ManualUnplannedDowntimeDialog from '@/features/downtime/components/manual-unplanned-downtime-dialog.jsx';
 import PlannedDowntimeRuleDialog from '@/features/downtime/components/planned-downtime-rule-dialog.jsx';
 import { formatDateTime } from '@/lib/date-format.js';
@@ -82,6 +84,7 @@ const DowntimesPage = () => {
   const [tab, setTab] = useState('open');
   const [plannedSubTab, setPlannedSubTab] = useState('rules');
   const [editingDowntime, setEditingDowntime] = useState(null);
+  const [analysisDowntime, setAnalysisDowntime] = useState(null);
   const [plannedDialog, setPlannedDialog] = useState(null);
   const [manualDialog, setManualDialog] = useState(null);
   const [historyFilters, setHistoryFilters] = useState(() => ({
@@ -735,6 +738,15 @@ const DowntimesPage = () => {
                             </span>
                           </Tooltip>
                         )}
+                        {dt.endedAt && (
+                          <Tooltip title="AI Analiz">
+                            <span>
+                              <IconButton size="small" onClick={() => setAnalysisDowntime(dt)}>
+                                <AutoAwesomeOutlinedIcon fontSize="small" />
+                              </IconButton>
+                            </span>
+                          </Tooltip>
+                        )}
                         {dt.metadata?.confirmationRequired && !dt.metadata?.confirmedAt && (
                           <Tooltip title="Onayla">
                             <span>
@@ -872,6 +884,12 @@ const DowntimesPage = () => {
         onClose={() => setEditingDowntime(null)}
         onSubmit={handleDowntimeSubmit}
         isSubmitting={updateDowntimeMutation.isLoading || splitDowntimeMutation.isLoading}
+        onOpenAnalysis={(downtime) => setAnalysisDowntime(downtime)}
+      />
+      <DowntimeAiDialog
+        open={Boolean(analysisDowntime)}
+        downtime={analysisDowntime}
+        onClose={() => setAnalysisDowntime(null)}
       />
 
       <ManualUnplannedDowntimeDialog

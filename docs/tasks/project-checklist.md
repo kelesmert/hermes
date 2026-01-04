@@ -95,7 +95,7 @@
 - [ ] (Opsiyonel) OEE trend için tek endpoint (T2 toplam + coverage) tasarla
 - [ ] CSV/Excel export servisi
 - [ ] Audit log middleware’i ve kayıt koleksiyonu
-- [ ] AI analiz modülü (kural tabanlı veya model entegrasyonu)
+- [x] AI analiz modülü (OpenAI entegrasyonu + ai_insights/ai_usage altyapısı)
 - [ ] Dashboard/rapor veri kaynaklarını gerçek makine/event akışıyla besleyecek polling/push servisleri _(Board domain ile kısmen tamamlandı; raporlama beklemede)_
 - [ ] Auth akışı için refresh/logout endpoint testleri ve Postman senaryoları
 - [ ] (İleride) Data-gen sinyal/metrik profillerini saha verisine göre ince ayarla (ramp-up/down parametreleri)
@@ -138,6 +138,8 @@
 - [ ] Audit log görüntüleme ekranı
 - [x] AI U1 OEE Insight (backend + reports UI) doğrulandı
 - [x] AI Hub sayfası (/ai): use case kartları + son 20 analiz + kullanım istatistikleri placeholder
+- [x] AI U2 Post Mortem Duruş Pattern Analizi (backend servis + prompt + endpoint davranışı)
+- [x] U2 UI entegrasyonu: duruş geçmiş satırı + duruş detay modalı + AI Hub kartı
 - [ ] Opsiyonel çok dillilik altyapısına hazırlık
 
 ## Test ve Dağıtım
