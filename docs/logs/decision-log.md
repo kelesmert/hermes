@@ -228,6 +228,13 @@ Bu dosya, projede alınan mimarî ve teknolojik kararları, gerekçelerini ve be
 - **Gerekçe:** Demo/test akışını hızlandırmak ve kullanıcıların sayfa açılışında tekrar filtre seçmek zorunda kalmaması.
 - **Etki:** `frontend/src/features/reports/pages/reports.jsx` ve `frontend/src/lib/storage.js`.
 
+### AI Hub Sayfası (UI İskeleti)
+
+- **Domain:** Frontend - ai/reports/downtime/monitoring
+- **Karar:** `/ai` rotasında “AI Asistanı” hub sayfası eklendi. Sidebar’da görünür; permission modeli `reports.read` veya `machines.read` olan kullanıcılar erişebilir. Hub’da U1/U2/U3 use case kartları, son 20 analiz listesi ve “Kullanım İstatistikleri (Yakında)” placeholder bölümü bulunur.
+- **Gerekçe:** U2/U3 öncesi ortak giriş noktası oluşturmak ve mevcut AI analiz geçmişini tek yerden görmek.
+- **Etki:** `frontend/src/features/ai/pages/ai-hub.jsx`, `frontend/src/constants/navigation.js`, `frontend/src/App.jsx`.
+
 ### Uygulama Kabuk Tasarımı
 
 - **Karar:** Sol sidebar + üst header düzeni kullanılacak; sidebar tüm modül menülerini barındıracak, header’da kullanıcı menüsü, genel arama ve notifications dropdown bulunacak. Breadcrumbs her korumalı sayfada zorunlu.

@@ -137,6 +137,7 @@
 - [ ] CSV/Excel export butonları ve kullanıcı geri bildirimi
 - [ ] Audit log görüntüleme ekranı
 - [x] AI U1 OEE Insight (backend + reports UI) doğrulandı
+- [x] AI Hub sayfası (/ai): use case kartları + son 20 analiz + kullanım istatistikleri placeholder
 - [ ] Opsiyonel çok dillilik altyapısına hazırlık
 
 ## Test ve Dağıtım

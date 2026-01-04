@@ -131,6 +131,7 @@ AI entegrasyon hedefi icin ilgili domainler
 - [x] Reports ekraninda AI Analizi karti eklendi
 - [x] Latest insight stale kontrolu (checkStale) eklendi
 - [x] U1 icin manuel dogrulama tamamlandi (cache hit, force refresh, stale uyarisi, rate limit)
+- [x] AI Hub sayfasi iskeleti eklendi (use case kartlari + son 20 analiz listesi + kullanim istatistikleri placeholder)
 
 ## Okuma Haritasi
 
@@ -1101,6 +1102,14 @@ Crosscheck 2026-01-04
 - Hub sayfasi aciliyor
 - Yetkiye gore use case kartlari filtreleniyor
 - Rate limit asiminda uyari gorunuyor
+
+**Durum:**
+
+- [x] Hub sayfasi iskeleti eklendi (kartlar + son 20 analiz + placeholder)
+- [ ] Kullanim istatistikleri (ai_usage) karti aktif edilecek
+- [ ] Rate limit soft warning UI entegre edilecek
+
+Not: Hub iskeleti Faz 2 ve Faz 3 tamamlanmadan once eklendi. U2 ve U3 kartlari "Hazirlaniyor" olarak gosteriliyor.
 
 **Sonraki faza gecis:** MVP tamamlandi
 

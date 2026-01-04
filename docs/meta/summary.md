@@ -50,11 +50,12 @@ Bu doküman, yeni bir geliştiricinin projeyi en kısa sürede kavraması için 
 5. **Yönetim UI**: Sidebar layout + izin bazlı guard’lar, kullanıcı/rol/izin yönetimi ve domain CRUD ekranları
 6. **Simülasyon Yönetimi**: `/simulations` sayfası ile `shift-sim`/`data-gen` ve `job-sim` başlat/durdur + log konsolu + shift-sim reset
 7. **AI U1 OEE Insight**: Reports ekranında AI Analizi kartı, cache + rate limit + stale uyarısı
+8. **AI Hub**: AI Asistanı sayfası (U1/U2/U3 kartları + son analiz listesi + kullanım placeholder)
 
 ## 5. Roadmap ve Eksikler
 
 - **Tamamlanan:** Auth, Users, Machines, Parts, Production, OEE, Board, Downtime; Dashboard, Monitoring, Production, Downtimes ve Simulations sayfaları
-- **Sıradaki:** Export + audit log, AI hub sayfası ve U2/U3 use case’leri (detay: `docs/specs/project-roadmap.md`, `docs/specs/requirements.md`)
+- **Sıradaki:** Export + audit log, AI U2/U3 use case’leri (detay: `docs/specs/project-roadmap.md`, `docs/specs/requirements.md`)
 
 ## 6. Nasıl Başlanır
 

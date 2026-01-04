@@ -7,6 +7,7 @@ import CategoryOutlinedIcon from '@mui/icons-material/CategoryOutlined';
 import AssignmentTurnedInOutlinedIcon from '@mui/icons-material/AssignmentTurnedInOutlined';
 import PauseCircleOutlineIcon from '@mui/icons-material/PauseCircleOutline';
 import ScienceOutlinedIcon from '@mui/icons-material/ScienceOutlined';
+import AutoAwesomeOutlinedIcon from '@mui/icons-material/AutoAwesomeOutlined';
 
 export const NAV_ITEMS = [
   {
@@ -20,6 +21,12 @@ export const NAV_ITEMS = [
     path: '/reports',
     icon: AssessmentOutlinedIcon,
     permission: 'reports.read',
+  },
+  {
+    label: 'AI Asistani',
+    path: '/ai',
+    icon: AutoAwesomeOutlinedIcon,
+    permission: ['reports.read', 'machines.read'],
   },
   {
     label: 'İş Emirleri',
