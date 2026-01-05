@@ -10,7 +10,7 @@ Kullanıcı ve erişim yönetimi modülü, sistemin güvenli kullanımını sağ
 
 Kimlik doğrulama süreci, kullanıcının sisteme erişmeden önce kimliğinin doğrulanmasını sağlayan ilk adımdır. Bu projede giriş ekranı üzerinden kullanıcı adı ve şifre bilgileri alınır; doğrulama başarılı olduğunda kullanıcı oturumu başlatılır ve kullanıcı uygulama içinde yetkili olduğu alanlara yönlendirilir. Bu akış, kullanıcıların sisteme kontrollü bir biçimde erişmesini sağlarken, kimlik doğrulaması yapılmamış erişim denemelerini de engeller.
 
-Oturum yönetimi, kısa ömürlü erişim belirteci ve daha uzun ömürlü yenileme belirteci yaklaşımıyla ele alınmıştır. Erişim belirteci isteklerde kimlik doğrulama amacıyla kullanılırken, yenileme belirteci oturumun devamlılığını sağlamak için devreye alınır. Bu sayede kullanıcı, uygulama içinde gezinirken oturum durumunun merkezi biçimde yönetilmesi ve yetkisiz bir durumda oturumun güvenli şekilde sonlandırılması hedeflenmiştir.
+Oturum yönetimi, kısa ömürlü `accessToken` ve daha uzun ömürlü `refreshToken` yaklaşımıyla ele alınmıştır. `accessToken` isteklerde kimlik doğrulama amacıyla kullanılırken, `refreshToken` oturumun devamlılığını sağlamak için devreye alınır. Bu sayede kullanıcı, uygulama içinde gezinirken oturum durumunun merkezi biçimde yönetilmesi ve yetkisiz bir durumda oturumun güvenli şekilde sonlandırılması hedeflenmiştir.
 
 ### 4.1.2 Rol Tabanlı Erişim Kontrolü (RBAC)
 
@@ -50,9 +50,9 @@ Detay inceleme, bu projede ayrı bir sayfa yerine “durum kayıtları” üzeri
 
 ### 4.2.3 Canlı İzleme (Monitoring)
 
-Canlı izleme ekranı, makineye ait telemetri verilerinin ve operasyonel özet metriklerin görselleştirilerek izlenmesini amaçlar. Kullanıcı, izlemek istediği makineyi seçerek anlık durum göstergelerini ve zaman serisi grafiklerini aynı bağlamda takip edebilir. Böylece üretim ortamında oluşabilecek sapmaların erken fark edilmesi ve değerlendirilmesi için uygulama içinde bütünleşik bir izleme deneyimi sağlanır.
+Canlı izleme ekranı, makineye ait telemetry verilerinin ve operasyonel özet metriklerin görselleştirilerek izlenmesini amaçlar. Kullanıcı, izlemek istediği makineyi seçerek anlık durum göstergelerini ve time series grafiklerini aynı bağlamda takip edebilir. Böylece üretim ortamında oluşabilecek sapmaların erken fark edilmesi ve değerlendirilmesi için uygulama içinde bütünleşik bir izleme deneyimi sağlanır.
 
-İzleme tasarımında, veri kaynağı seçimi ve zaman penceresi yaklaşımı önemlidir. Bu projede kullanıcı, canlı veri ile vardiya penceresine göre özetlenmiş veri gibi farklı görünümler arasında geçiş yaparak hem anlık tepkiselliği hem de vardiya bazlı değerlendirmeyi birlikte yürütebilir. Ayrıca arayüzde hata ve bağlantı problemlerinin açık biçimde raporlanması, izleme sürecinin güvenilirliğini artırmak ve kullanıcıyı belirsizlikten uzak tutmak açısından bilinçli bir tercih olarak ele alınmıştır.
+İzleme tasarımında, veri kaynağı seçimi ve time window yaklaşımı önemlidir. Bu projede kullanıcı, live data ile shift window'a göre özetlenmiş veri gibi farklı görünümler arasında geçiş yaparak hem anlık tepkiselliği hem de vardiya bazlı değerlendirmeyi birlikte yürütebilir. Ayrıca arayüzde hata ve bağlantı problemlerinin açık biçimde raporlanması, izleme sürecinin güvenilirliğini artırmak ve kullanıcıyı belirsizlikten uzak tutmak açısından bilinçli bir tercih olarak ele alınmıştır.
 
 **Görsel Önerileri**
 
@@ -60,7 +60,7 @@ Canlı izleme ekranı, makineye ait telemetri verilerinin ve operasyonel özet m
 - Resim 4.5: Makine listesi ekranı (durum etiketleri, aktif/pasif anahtarı, etiketler)
 - Resim 4.6: Makine oluşturma/düzenleme penceresi (kod/ad alanları, etiketler, sorumlu ataması)
 - Resim 4.7: Makine durum kayıtları penceresi (son kayıtlar, başlangıç/bitiş bilgileri)
-- Resim 4.8: Canlı izleme ekranı (makine seçimi + telemetri grafikleri + özet metrik kartları)
+- Resim 4.8: Canlı izleme ekranı (makine seçimi + telemetry grafikleri + özet metric card'ları)
 
 ## 4.3 Üretim Takibi Modülü
 
@@ -82,58 +82,58 @@ Bu modülde duraklatma davranışı, duruş yönetimiyle birlikte ele alınmış
 
 ### 4.3.3 Üretim Panosu (Board)
 
-Üretim panosu, üretim takibinin yönetsel görünürlüğünü artırmak amacıyla tasarlanmış özet bir izleme ekranıdır. Bu ekran, seçili zaman penceresi içinde tüm makinelerin mevcut durumunu, duruşları ve devam eden iş emirlerini tek bir sayfada birleştirerek “sahada şu an ne oluyor?” sorusuna hızlı bir yanıt üretmeyi amaçlar. Bu nedenle pano, detaylı işlem ekranlarının yerine geçmekten ziyade; yönlendirme ve erken uyarı rolü üstlenir.
+Üretim Panosu (Board), üretim takibinin yönetsel görünürlüğünü artırmak amacıyla tasarlanmış özet bir izleme ekranıdır. Bu ekran, seçili time window içinde tüm makinelerin mevcut durumunu, duruşları ve devam eden iş emirlerini tek bir sayfada birleştirerek “sahada şu an ne oluyor?” sorusuna hızlı bir yanıt üretmeyi amaçlar. Bu nedenle Board, detaylı işlem ekranlarının yerine geçmekten ziyade; yönlendirme ve erken uyarı rolü üstlenir.
 
-Pano tasarımında iki boyut öne çıkar: zaman penceresi ve veri kaynağı seçimi. Kullanıcı, vardiya penceresine göre özetlenen bir görünüm üzerinden duruşların süresini ve etkisini değerlendirebilir; makine durum dağılımını grafiksel olarak izleyebilir ve arama/filtreleme ile sorunlu noktalara odaklanabilir. Bu yaklaşım, üretim takibini tekil kayıtlar üzerinden değil, “operasyon fotoğrafı” üzerinden okumayı mümkün kılarak karar verme süreçlerini destekler.
+Board tasarımında iki boyut öne çıkar: time window ve veri kaynağı seçimi. Kullanıcı, shift window'a göre özetlenen bir görünüm üzerinden duruşların süresini ve etkisini değerlendirebilir; makine durum dağılımını grafiksel olarak izleyebilir ve arama/filtreleme ile sorunlu noktalara odaklanabilir. Bu yaklaşım, üretim takibini tekil kayıtlar üzerinden değil, “operasyon fotoğrafı” üzerinden okumayı mümkün kılarak karar verme süreçlerini destekler.
 
 **Görsel Önerileri**
 
-- Şekil 4.3 (genel): Üretim takibi veri akışı (Parça -> İş Emri -> Üretim Kaydı -> Pano/Raporlama)
+- Şekil 4.3 (genel): Üretim takibi veri akışı (Parça -> İş Emri -> Üretim Kaydı -> Board/Reporting)
 - Resim 4.9: Parça listesi ekranı (kategori, birim, ideal çevrim, uyumlu makineler)
 - Resim 4.10: Parça oluşturma/düzenleme penceresi (kategoriye bağlı alanlar ve varsayılan ayarlar)
 - Resim 4.11: İş emri listesi ekranı (durum, hedef/gerçekleşen üretim, operatör ataması)
 - Resim 4.12: İş emri oluşturma/düzenleme penceresi (parça-makine eşleşmesi ve hedef miktar)
 - Resim 4.13: Üretim kaydı penceresi (miktar + kalite seçimi, hatalı ürün sınıflandırması)
 - Resim 4.14: İş emri olay geçmişi penceresi (başlatma/üretim/duraklatma vb. zaman çizelgesi)
-- Resim 4.15: Üretim panosu ekranı (durum dağılımı, duruş listesi, makine listesi)
+- Resim 4.15: Board ekranı (durum dağılımı, duruş listesi, makine listesi)
 
 ## 4.4 OEE Hesaplama ve Raporlama Modülü
 
-OEE (Overall Equipment Effectiveness) modülü, üretim performansının tek bir göstergede özetlenebilmesini ve bu göstergenin alt bileşenleri üzerinden yorumlanabilmesini amaçlar. Bu modülde temel hedef, yalnızca “bir yüzde üretmek” değil; hesaplamanın hangi zaman penceresi için yapıldığını, hangi verilerle beslendiğini ve hangi koşullarda anlamlı hale geldiğini kullanıcıya açık biçimde gösterebilmektir. Bu nedenle modül, hesaplama mantığı ile raporlama/görselleştirme katmanını birlikte ele alan bütünleşik bir yapıda tasarlanmıştır.
+OEE (Overall Equipment Effectiveness) modülü, üretim performansının tek bir göstergede özetlenebilmesini ve bu göstergenin alt bileşenleri üzerinden yorumlanabilmesini amaçlar. Bu modülde temel hedef, yalnızca “bir yüzde üretmek” değil; hesaplamanın hangi time window için yapıldığını, hangi verilerle beslendiğini ve hangi koşullarda anlamlı hale geldiğini kullanıcıya açık biçimde gösterebilmektir. Bu nedenle modül, hesaplama mantığı ile raporlama/görselleştirme katmanını birlikte ele alan bütünleşik bir yapıda tasarlanmıştır.
 
 ### 4.4.1 OEE Hesaplama Algoritması
 
-Bu projede OEE hesaplaması, vardiya penceresi temelli bir üretim zaman modeli üzerine kurulmuştur. Yaklaşımın merkezinde “planlı üretim süresi” kavramı yer alır: hesaplama, yalnızca vardiya zamanları içinde ve üretimin aktif olduğu kabul edilen aralıklar için anlamlıdır. Böyle bir kısıtlama, üretim yapılmayan zamanların metrikleri yapay olarak düşürmesini engelleyerek, değerlendirmenin üretim bağlamına bağlı kalmasını sağlar.
+Bu projede OEE hesaplaması, shift window temelli bir üretim zaman modeli üzerine kurulmuştur. Yaklaşımın merkezinde “planlı üretim süresi” kavramı yer alır: hesaplama, yalnızca vardiya zamanları içinde ve üretimin aktif olduğu kabul edilen aralıklar için anlamlıdır. Böyle bir kısıtlama, üretim yapılmayan zamanların metrikleri yapay olarak düşürmesini engelleyerek, değerlendirmenin üretim bağlamına bağlı kalmasını sağlar.
 
-Hesaplamada üç ana veri kaynağı birlikte kullanılır: (i) makine telemetrisinden elde edilen çalışma sinyali, (ii) üretim kayıtlarından türetilen gerçekleşen adet bilgileri ve (iii) duruş kayıtları üzerinden planlı/plansız kayıp süreleri. Bu kaynakların birlikte ele alınması, OEE’nin tek bir katmandan “tahmin” edilmesi yerine, üretimdeki gerçek operasyon akışını yansıtan bir bileşik metrik olarak üretilmesini hedefler. Ayrıca planlı duruşların OEE’ye etkisinin “etkiler/etkilemez” ayrımıyla yönetilmesi, metriklerin işletme pratiğine daha yakın bir biçimde yorumlanabilmesini mümkün kılar.
+Hesaplamada üç ana veri kaynağı birlikte kullanılır: (i) makine telemetry'sinden elde edilen çalışma sinyali, (ii) üretim kayıtlarından türetilen gerçekleşen adet bilgileri ve (iii) duruş kayıtları üzerinden planlı/plansız kayıp süreleri. Bu kaynakların birlikte ele alınması, OEE’nin tek bir katmandan “tahmin” edilmesi yerine, üretimdeki gerçek operasyon akışını yansıtan bir bileşik metrik olarak üretilmesini hedefler. Ayrıca planlı duruşların OEE’ye etkisinin “etkiler/etkilemez” ayrımıyla yönetilmesi, metriklerin işletme pratiğine daha yakın bir biçimde yorumlanabilmesini mümkün kılar.
 
 ### 4.4.2 Availability, Performance, Quality Hesaplamaları
 
-OEE, kullanılabilirlik (Availability), performans (Performance) ve kalite (Quality) bileşenlerinin çarpımı olarak ele alınır. Kullanılabilirlik, planlı üretim süresi içinde makinenin gerçekten çalıştığı zamanın oranını temsil eder. Bu bileşen, üretimin aktif olduğu aralıklarda telemetri üzerinden gözlenen çalışma sinyalinin süreye dönüştürülmesiyle elde edilerek “gerçek çalışma” vurgusunu öne çıkarır.
+OEE, kullanılabilirlik (Availability), performans (Performance) ve kalite (Quality) bileşenlerinin çarpımı olarak ele alınır. Kullanılabilirlik, planlı üretim süresi içinde makinenin gerçekten çalıştığı zamanın oranını temsil eder. Bu bileşen, üretimin aktif olduğu aralıklarda telemetry üzerinden gözlenen çalışma sinyalinin süreye dönüştürülmesiyle elde edilerek “gerçek çalışma” vurgusunu öne çıkarır.
 
 Performans bileşeni, gerçekleşen üretimin ideal çevrim süresi üzerinden beklenen teorik süre ile fiili çalışma süresi arasındaki ilişkiyi ifade eder. Bu yaklaşımda ideal çevrim süresi parça tanımından alınır ve üretim kayıtlarıyla birlikte değerlendirilir. Kalite bileşeni ise, sağlam ürün adedinin toplam üretim adedine oranı olarak hesaplanır. Bu üç bileşenin birlikte ele alınması, kayıpların yalnızca duruşlardan değil; hız düşüşleri ve kalite kayıplarından da kaynaklanabileceği varsayımıyla uyumlu, daha dengeli bir performans okuması sunar.
 
 ### 4.4.3 OEE Dashboard
 
-OEE dashboard ekranı, seçili makine ve zaman penceresi için hesaplanan metrikleri özetleyen bir görünüm sunar. Bu ekranın temel katkısı, OEE değerini tek başına vermek yerine; Availability/Performance/Quality bileşenlerini aynı bağlamda görünür kılarak “hangi tür kayıp baskın?” sorusuna hızlı bir cevap üretmesidir. Böylece kullanıcı, tek bir yüzde değer yerine, karar vermeyi destekleyen bir bileşen ayrıştırmasıyla karşılaşır.
+OEE dashboard ekranı, seçili makine ve time window için hesaplanan metrikleri özetleyen bir görünüm sunar. Bu ekranın temel katkısı, OEE değerini tek başına vermek yerine; Availability/Performance/Quality bileşenlerini aynı bağlamda görünür kılarak “hangi tür kayıp baskın?” sorusuna hızlı bir cevap üretmesidir. Böylece kullanıcı, tek bir yüzde değer yerine, karar vermeyi destekleyen bir bileşen ayrıştırmasıyla karşılaşır.
 
-Ekran tasarımında öne çıkan nokta, hesaplamanın bağlamının açık biçimde sunulmasıdır. Seçilen tarih/shift penceresi ve makine bilgisi metriklerle birlikte gösterilerek, farklı günlerin veya farklı veri kaynaklarının birbiriyle karıştırılmasının önüne geçilir. Ayrıca kullanıcı, aynı ekranda operatör bazlı kırılımları da görebildiği için, performansın yalnız makine değil süreç/rol dağılımı üzerinden de değerlendirilebilmesi hedeflenmiştir.
+Ekran tasarımında öne çıkan nokta, hesaplamanın bağlamının açık biçimde sunulmasıdır. Seçilen tarih/shift window ve makine bilgisi metriklerle birlikte gösterilerek, farklı günlerin veya farklı veri kaynaklarının birbiriyle karıştırılmasının önüne geçilir. Ayrıca kullanıcı, aynı ekranda operatör bazlı kırılımları da görebildiği için, performansın yalnız makine değil süreç/rol dağılımı üzerinden de değerlendirilebilmesi hedeflenmiştir.
 
 ### 4.4.4 OEE Raporları ve Grafikler
 
-Raporlama bileşeni, OEE ölçümünü tek bir anlık değer olmaktan çıkarıp eğilim analizi yapılabilir hale getirmeyi amaçlar. Bu projede raporlar, iki temel kullanım senaryosunu destekler: (i) belirli bir vardiya gününe odaklanarak ayrıntılı metrik incelemesi yapmak ve (ii) tarih aralığı veya periyot perspektifiyle metriklerin değişimini izlemek. Özellikle trend grafikleri, zaman içinde oluşan iyileşme/bozulma davranışlarının daha erken fark edilmesine katkı sağlar.
+Raporlama bileşeni, OEE ölçümünü tek bir anlık değer olmaktan çıkarıp eğilim analizi yapılabilir hale getirmeyi amaçlar. Bu projede raporlar, iki temel kullanım senaryosunu destekler: (i) belirli bir vardiya gününe odaklanarak ayrıntılı metrik incelemesi yapmak ve (ii) tarih aralığı veya periyot perspektifiyle metriklerin değişimini izlemek. Özellikle trend charts, zaman içinde oluşan iyileşme/bozulma davranışlarının daha erken fark edilmesine katkı sağlar.
 
-Trend üretiminde “kapsama” (coverage) kavramının görünür kılınması, raporlamanın güvenilirliğini artıran önemli bir tasarım kararıdır. Çünkü üretim yapılmayan günler veya veri bulunmayan pencereler, metriklerin ortalamasını doğrudan temsil etmeyebilir. Bu nedenle raporlar, yalnızca hesaplanabilir günleri hesaba katıp bunu kullanıcıya açık biçimde göstererek, sonuçların yanlış yorumlanma riskini azaltmayı hedefler.
+Trend üretiminde coverage kavramının görünür kılınması, raporlamanın güvenilirliğini artıran önemli bir tasarım kararıdır. Çünkü üretim yapılmayan günler veya veri bulunmayan time window'lar, metriklerin ortalamasını doğrudan temsil etmeyebilir. Bu nedenle raporlar, yalnızca hesaplanabilir günleri hesaba katıp bunu kullanıcıya açık biçimde göstererek, sonuçların yanlış yorumlanma riskini azaltmayı hedefler.
 
 **Görsel Önerileri**
 
 - Şekil 4.4 (genel): OEE hesap akışı (Vardiya penceresi + üretim aktif aralıklar -> A/P/Q -> OEE)
 - Şekil 4.5 (genel): A/P/Q bileşenlerinin formül şeması (oran ilişkileri ve veri kaynakları)
-- Resim 4.16: OEE rapor ekranı filtreleri (makine seçimi + zaman penceresi + kaynak)
+- Resim 4.16: OEE rapor ekranı filtreleri (makine seçimi + time window + kaynak)
 - Resim 4.17: OEE özeti kartları (OEE, kullanılabilirlik, performans, kalite)
 - Resim 4.18: Operatör kırılımı tablosu (operatör bazlı A/P/Q/OEE ve adetler)
 - Resim 4.19: Trend özeti + coverage göstergesi
-- Resim 4.20: Trend grafiği (OEE ve alt bileşenlerin zaman serisi)
+- Resim 4.20: Trend chart (OEE ve alt bileşenlerin time series)
 
 ## 4.5 Duruş Yönetimi Modülü
 
@@ -143,7 +143,7 @@ Modül tasarımında iki temel duruş türü ayrımı yapılır: planlı duruşl
 
 ### 4.5.1 Planlı Duruş Tanımlama
 
-Planlı duruşlar, tekrarlayan veya tek seferlik zaman pencereleri üzerinden önceden tanımlanabilen duruşlardır. Bu projede planlı duruş tanımı, belirli makineler için bir plan kuralı oluşturma yaklaşımıyla ele alınmıştır. Böylece plan, yalnızca bir “hatırlatma” olarak değil; üretim akışında otomatik olarak devreye giren ve tutarlı kayıt üreten bir mekanizma olarak değerlendirilir.
+Planlı duruşlar, tekrarlayan veya tek seferlik time window'lar üzerinden önceden tanımlanabilen duruşlardır. Bu projede planlı duruş tanımı, belirli makineler için bir plan kuralı oluşturma yaklaşımıyla ele alınmıştır. Böylece plan, yalnızca bir “hatırlatma” olarak değil; üretim akışında otomatik olarak devreye giren ve tutarlı kayıt üreten bir mekanizma olarak değerlendirilir.
 
 Planlı duruş yönetiminde iki ayrı ihtiyaç öne çıkar: (i) planların kolay oluşturulup güncellenebilmesi ve (ii) planların sahada gerçekten ne şekilde uygulandığının izlenebilmesi. Bu nedenle arayüz, kural tanımları ile kuralın çalıştırma geçmişini birbirinden ayırır. Çalıştırma geçmişi, planların fiili yürütümünü görünür kılarak beklenen ile gerçekleşen arasındaki farkların takip edilebilmesini hedefler.
 
@@ -176,32 +176,32 @@ Analiz katmanında ikinci odak, sınıflandırma kalitesini güçlendirmektir. B
 
 ## 4.6 Simülasyon Sistemi
 
-Simülasyon sistemi, gerçek saha verisine ihtiyaç duymadan sistemin uçtan uca davranışının gözlemlenebilmesini amaçlayan yardımcı bir bileşendir. Bu bileşen sayesinde izleme (telemetri), üretim kayıtları ve bu kayıtların raporlama metriklerine etkisi kontrollü biçimde üretilebilir; böylece geliştirme, demo ve doğrulama süreçlerinde tekrarlanabilir senaryolar elde edilir. Tasarımın temel prensibi, “gerçeği birebir taklit etmek” yerine; üretim ortamında beklenen veri akışlarını temsil eden, ayarlanabilir ve denetlenebilir bir davranış uzayı sunmaktır.
+Simülasyon sistemi, gerçek saha verisine ihtiyaç duymadan sistemin uçtan uca davranışının gözlemlenebilmesini amaçlayan yardımcı bir bileşendir. Bu bileşen sayesinde izleme (telemetry), üretim kayıtları ve bu kayıtların raporlama metriklerine etkisi kontrollü biçimde üretilebilir; böylece geliştirme, demo ve doğrulama süreçlerinde tekrarlanabilir senaryolar elde edilir. Tasarımın temel prensibi, “gerçeği birebir taklit etmek” yerine; üretim ortamında beklenen veri akışlarını temsil eden, ayarlanabilir ve denetlenebilir bir davranış uzayı sunmaktır.
 
-Simülasyon iki ana katmanda ele alınmıştır. Birinci katman, zamanın simülasyon bağlamında tutarlı biçimde ilerlemesini sağlayan simülasyon saati yaklaşımıdır. İkinci katman ise vardiya ve üretim akışlarını besleyen veri üreticileridir: telemetri üretimi ve bu telemetriye bağlı üretim olaylarının oluşturulması. Bu ayrım, zaman senkronizasyonu ile veri üretimini bağımsız tasarlamayı mümkün kılarak, senaryoların hem hızlandırılabilir hem de tekrar oynatılabilir olmasını destekler.
+Simülasyon iki ana katmanda ele alınmıştır. Birinci katman, zamanın simülasyon bağlamında tutarlı biçimde ilerlemesini sağlayan simülasyon saati yaklaşımıdır. İkinci katman ise vardiya ve üretim akışlarını besleyen veri üreticileridir: telemetry üretimi ve bu telemetry'ye bağlı üretim olaylarının oluşturulması. Bu ayrım, zaman senkronizasyonu ile veri üretimini bağımsız tasarlamayı mümkün kılarak, senaryoların hem hızlandırılabilir hem de tekrar oynatılabilir olmasını destekler.
 
 ### 4.6.1 Simülasyon Saati (Simulation Clock)
 
 Bu projede simülasyon saatinin amacı, hızlandırılmış senaryolarda “gerçek zaman” ile “simülasyon zamanı” arasındaki farkı yönetilebilir hale getirmektir. Özellikle bir vardiya senaryosunun kısa sürede oynatılması istendiğinde, sistemin diğer modülleri (ör. raporlama ve analiz) tutarlı bir zaman ekseni üzerinden çalışmak zorundadır. Simülasyon saati, bu tutarlılığı sağlayan ortak referans noktası olarak ele alınmıştır.
 
-Yaklaşım, bir başlangıç günü (epoch) ve vardiya zaman penceresi üzerinden ilerleyen bir “sanal gün” kavramına dayanır. Senaryo çalışırken zaman imleci (cursor) telemetri örnekleriyle birlikte ilerler; senaryo durdurulup tekrar başlatıldığında ise kaldığı noktadan devam edebilmesi hedeflenir. Böylece senaryonun yarıda kesilmesi, simülasyonun zaman çizelgesini belirsiz hale getirmez; zaman durumu korunur ve tekrarlanabilirlik güçlenir.
+Yaklaşım, bir başlangıç günü (epoch) ve shift time window üzerinden ilerleyen bir “sanal gün” kavramına dayanır. Senaryo çalışırken zaman imleci (cursor) telemetry örnekleriyle birlikte ilerler; senaryo durdurulup tekrar başlatıldığında ise kaldığı noktadan devam edebilmesi hedeflenir. Böylece senaryonun yarıda kesilmesi, simülasyonun zaman çizelgesini belirsiz hale getirmez; zaman durumu korunur ve tekrarlanabilirlik güçlenir.
 
 Simülasyon saati aynı zamanda güvenli “reset” ihtiyacını da karşılar. Bazı senaryolarda, daha önce üretilen simülasyon verilerinin temizlenip aynı vardiyanın yeniden oynatılması gerekebilir. Bu durumda saat, yalnızca bir sayaç değil; senaryonun veri bütünlüğünü koruyan bir kontrol noktası olarak değerlendirilir. Reset işlemi, simülasyon kaynaklı verilerin temizlenmesi ve zaman durumunun başlangıç koşullarına alınmasıyla, yeni bir koşunun tutarlı biçimde başlatılmasını sağlar.
 
 ### 4.6.2 Vardiya ve Üretim Simülasyonu
 
-Bu projede simülasyon, veri akışını iki düzeyde üretir: (i) makine davranışını temsil eden telemetri sinyali ve metrikleri, (ii) telemetri sinyaline bağlı olarak oluşan üretim olayları (sağlam/hatalı adet). Bu iki düzeyin ayrıştırılması, “makine çalışıyor mu?” bilgisinin ayrı bir kaynak olarak ele alınmasını ve üretim hesaplarının bu kaynaktan türetilmesini sağlar. Böylece üretim çıktısı, rastgele bir sayı üretiminden ziyade; çalışma sinyali ile ilişkilendirilmiş tutarlı bir akış olarak modellenir.
+Bu projede simülasyon, veri akışını iki düzeyde üretir: (i) makine davranışını temsil eden telemetry sinyali ve metrikleri, (ii) telemetry sinyaline bağlı olarak oluşan üretim olayları (sağlam/hatalı adet). Bu iki düzeyin ayrıştırılması, “makine çalışıyor mu?” bilgisinin ayrı bir kaynak olarak ele alınmasını ve üretim hesaplarının bu kaynaktan türetilmesini sağlar. Böylece üretim çıktısı, rastgele bir sayı üretiminden ziyade; çalışma sinyali ile ilişkilendirilmiş tutarlı bir akış olarak modellenir.
 
-Telemetri üretimi için iki farklı çalışma modu vardır. Birinci mod, gerçek zamanla ilerleyen ve makine sinyalinin olasılıksal geçişlerle (çalışma–bekleme gibi) değiştirildiği veri üretim modudur. Bu mod, sistemin genel dayanıklılığını ve ekranların “canlı veri” altında davranışını gözlemlemek için uygundur. İkinci mod ise vardiya penceresi üzerinde hızlandırılmış biçimde çalışan vardiya simülasyonudur; burada amaç, bir vardiyanın kısa sürede oynatılarak raporlama ve metrik hesaplarının uçtan uca sınanabilmesidir. Vardiya simülasyonunda tekrarlanabilirlik ön planda tutulduğundan, aynı koşullarda benzer örüntülerin üretilebilmesi hedeflenir.
+Telemetry üretimi için iki farklı çalışma modu vardır. Birinci mod, gerçek zamanla ilerleyen ve makine sinyalinin olasılıksal geçişlerle (çalışma–bekleme gibi) değiştirildiği veri üretim modudur. Bu mod, sistemin genel dayanıklılığını ve ekranların live data altında davranışını gözlemlemek için uygundur. İkinci mod ise shift window üzerinde hızlandırılmış biçimde çalışan vardiya simülasyonudur; burada amaç, bir vardiyanın kısa sürede oynatılarak raporlama ve metrik hesaplarının uçtan uca sınanabilmesidir. Vardiya simülasyonunda tekrarlanabilirlik ön planda tutulduğundan, aynı koşullarda benzer örüntülerin üretilebilmesi hedeflenir.
 
-Üretim simülasyonu (job simülasyonu), telemetri sinyali “çalışıyor” durumundayken üretim olayları üretir ve bu üretimi parça tanımındaki ideal çevrim süresi etrafında değişkenlik gösterecek biçimde modeller. Buradaki değişkenlik, sahadaki doğal dalgalanmayı temsil etmek üzere ideal çevrim süresi etrafında üçgen (triangular) dağılım benzeri bir örnekleme ile ele alınır; ayrıca belirli bir hata oranı üzerinden hatalı üretim olayları da oluşturulur. Bu sayede OEE gibi metriklerde yalnızca duruşların değil, hız ve kalite kayıplarının da simülasyon senaryosuna yansıtılması mümkün olur. Üretilen toplam miktar, hedeflenen üretim adedini aşmayacak şekilde sınırlandırılarak senaryonun “kontrollü” kalması sağlanır.
+Üretim simülasyonu (job simulation), telemetry sinyali “çalışıyor” durumundayken üretim olayları üretir ve bu üretimi parça tanımındaki ideal cycle time etrafında değişkenlik gösterecek biçimde modeller. Buradaki değişkenlik, sahadaki doğal dalgalanmayı temsil etmek üzere ideal cycle time etrafında üçgen (triangular) dağılım benzeri bir örnekleme ile ele alınır; ayrıca belirli bir defect rate üzerinden hatalı üretim olayları da oluşturulur. Bu sayede OEE gibi metriklerde yalnızca duruşların değil, hız ve kalite kayıplarının da simülasyon senaryosuna yansıtılması mümkün olur. Üretilen toplam miktar, hedeflenen üretim adedini aşmayacak şekilde sınırlandırılarak senaryonun “kontrollü” kalması sağlanır.
 
-Operasyonel güvenilirlik açısından, telemetri üreten modların aynı anda çalıştırılmaması önemli bir tasarım kısıtıdır. Aksi durumda aynı makine için birden fazla kaynaktan sinyal üretilmesi, sistemde çelişkili durumlara yol açabilir. Benzer biçimde üretim simülasyonu, telemetri kaynağına bağımlı olduğu için, önce telemetri akışının başlatılması beklenir. Bu bağımlılıkların açık biçimde yönetilmesi, simülasyonun diğer modüllere “gerçekçi ama kontrollü” veri sağlaması açısından kritik görülmüştür.
+Operasyonel güvenilirlik açısından, telemetry üreten modların aynı anda çalıştırılmaması önemli bir tasarım kısıtıdır. Aksi durumda aynı makine için birden fazla kaynaktan sinyal üretilmesi, sistemde çelişkili durumlara yol açabilir. Benzer biçimde üretim simülasyonu, telemetry kaynağına bağımlı olduğu için, önce telemetry akışının başlatılması beklenir. Bu bağımlılıkların açık biçimde yönetilmesi, simülasyonun diğer modüllere “gerçekçi ama kontrollü” veri sağlaması açısından kritik görülmüştür.
 
 **Görsel Önerileri**
 
-- Şekil 4.8 (genel): Simülasyon mimarisi (simülasyon saati → telemetri üretimi → üretim olayları → raporlama akışı)
-- Şekil 4.9 (genel): Gerçek zaman / simülasyon zamanı eşlemesi (vardiya penceresinin hızlandırılmış oynatımı)
+- Şekil 4.8 (genel): Simülasyon mimarisi (simülasyon saati → telemetry üretimi → üretim olayları → raporlama akışı)
+- Şekil 4.9 (genel): Gerçek zaman / simülasyon zamanı eşlemesi (shift window'un hızlandırılmış oynatımı)
 - Resim 4.29: Simülasyonlar ekranı (durum kartları ve genel görünüm)
 - Resim 4.30: Simülasyon kontrolü kapalı uyarısı (yetkilendirme/ortam kısıtı görünümü)
 - Resim 4.31: Vardiya simülasyonu reset onayı (veri temizleme uyarısı)
@@ -212,29 +212,29 @@ Operasyonel güvenilirlik açısından, telemetri üreten modların aynı anda �
 
 AI destekli analiz modülü, raporlama çıktılarının yorumlanabilirliğini artırmak ve kullanıcıya karar destek niteliğinde özetler sunmak amacıyla sisteme eklenmiştir. Bu modülün odağında “otomatik karar verme” değil; kullanıcıya mevcut verinin kısa bir özetini, öne çıkan bulguları ve uygulanabilir aksiyon önerilerini tutarlı bir formatta sunmak yer alır. Dolayısıyla üretilen içerikler, kullanıcı arayüzünde açık biçimde “analiz çıktısı” olarak konumlandırılmış ve kullanıcı onayı olmadan iş akışını değiştiren bir otomasyon kurgulanmamıştır.
 
-Modül, belirli kullanım senaryoları (use case) etrafında tasarlanmıştır. Her senaryoda analiz; sistemin zaten ürettiği metriklerin, seçilen zaman penceresi ve veri kaynağı bağlamında derlenmesiyle başlar; ardından elde edilen özet veri, metin üretim modeli ile yapılandırılmış bir çıktıya dönüştürülür. Bu yapı, aynı altyapının farklı modüllerde (ör. raporlar ve duruş analizi) yeniden kullanılabilmesini ve analiz çıktılarının tek bir merkezden izlenebilmesini sağlar.
+Modül, belirli use case'ler etrafında tasarlanmıştır. Her senaryoda analiz; sistemin zaten ürettiği metriklerin, seçilen time window ve veri kaynağı bağlamında derlenmesiyle başlar; ardından elde edilen özet veri, metin üretim modeli ile yapılandırılmış bir çıktıya dönüştürülür. Bu yapı, aynı altyapının farklı modüllerde (ör. raporlar ve duruş analizi) yeniden kullanılabilmesini ve analiz çıktılarının tek bir merkezden izlenebilmesini sağlar.
 
 ### 4.7.1 LLM Entegrasyonu
 
 Bu projede LLM entegrasyonu, sunucu tarafında merkezi bir servis yaklaşımı ile ele alınmıştır. Analiz talebi geldiğinde sistem, ilgili ekranın bağlamına uygun şekilde gerekli metrikleri ve özet verileri hazırlar; modelden ise serbest metin yerine önceden tanımlı bir JSON şemasına uyan çıktı bekler. Böylece kullanıcı arayüzünde özet, bulgular, aksiyonlar ve uyarılar gibi alanlar tutarlı bir biçimde gösterilebilir; ayrıca farklı analiz türleri arasında ortak bir sunum dili korunur.
 
-Operasyonel açıdan iki mekanizma öne çıkar. Birincisi, aynı veri anlık görüntüsü (snapshot) için tekrarlı model çağrılarını azaltmak üzere önbellekleme yaklaşımıdır; ikincisi ise kullanımın kontrol altında tutulması için oran sınırlama (rate limit) ve gözlemlenebilirlik amaçlı kullanım kaydı tutma yaklaşımıdır. Bu sayede analiz talebi hem yönetilebilir bir maliyet profili içinde kalır hem de kullanıcı “yeniden analiz” gibi kontrollü aksiyonlarla çıktıyı güncelleyebilir. Ayrıca OEE analizlerinde, veri değiştiğinde mevcut analizin “eski” olabileceğini işaretleyen bir tazelik (stale) kontrolü bulunur; böylece kullanıcıya yeniden analiz önerisi sunulabilir.
+Operasyonel açıdan iki mekanizma öne çıkar. Birincisi, aynı snapshot için tekrarlı model çağrılarını azaltmak üzere caching yaklaşımıdır; ikincisi ise kullanımın kontrol altında tutulması için rate limiting ve gözlemlenebilirlik amaçlı usage logging yaklaşımıdır. Bu sayede analiz talebi hem yönetilebilir bir maliyet profili içinde kalır hem de kullanıcı “yeniden analiz” gibi kontrollü aksiyonlarla çıktıyı güncelleyebilir. Ayrıca OEE analizlerinde, veri değiştiğinde mevcut analizin eski olabileceğini işaretleyen bir stale check bulunur; böylece kullanıcıya yeniden analiz önerisi sunulabilir.
 
-LLM entegrasyonunun kullanıcı tarafındaki karşılığı, merkezi bir “AI Asistanı” sayfasıdır. Bu sayfada kullanım senaryoları kartlar halinde özetlenir ve geçmiş analizler filtrelenebilir bir liste üzerinden incelenebilir. Böylece AI çıktıları, tek bir modüle gömülü kalmak yerine, sistem genelinde izlenebilir bir yardımcı katman olarak konumlandırılmıştır.
+LLM entegrasyonunun kullanıcı tarafındaki karşılığı, merkezi bir “AI Asistanı” sayfasıdır. Bu sayfada use case'ler card'lar halinde özetlenir ve geçmiş analizler filtrelenebilir bir liste üzerinden incelenebilir. Böylece AI çıktıları, tek bir modüle gömülü kalmak yerine, sistem genelinde izlenebilir bir yardımcı katman olarak konumlandırılmıştır.
 
-Not olarak, canlı izleme için “anomali risk” türünde bir analiz prototipi bulunmakla birlikte, bu senaryo henüz tamamlanmış bir ürünleşme kapsamına alınmamış ve ana anlatımda değerlendirme dışı tutulmuştur.
+Not olarak, canlı izleme için “anomaly risk” türünde bir analiz prototipi bulunmakla birlikte, bu senaryo henüz tamamlanmış bir ürünleşme kapsamına alınmamış ve ana anlatımda değerlendirme dışı tutulmuştur.
 
 ### 4.7.2 OEE Insight Özelliği (U1)
 
-OEE Insight özelliği, rapor ekranında hesaplanan OEE metriklerinin kullanıcı tarafından daha hızlı yorumlanabilmesini amaçlar. Kullanıcı, makine ve zaman penceresi seçiminden sonra AI analizini tetikleyerek, OEE’nin hangi bileşenlerden etkilendiğini, hangi kayıp türlerinin baskın olduğunu ve hangi aksiyonların önceliklendirilebileceğini özetleyen bir çıktı elde eder. Bu çıktı; kısa bir özet, birkaç madde halinde öne çıkan bulgular, uygulanabilir aksiyon önerileri ve gerektiğinde uyarılar şeklinde yapılandırılmıştır.
+OEE Insight özelliği, rapor ekranında hesaplanan OEE metriklerinin kullanıcı tarafından daha hızlı yorumlanabilmesini amaçlar. Kullanıcı, makine ve time window seçiminden sonra AI analizini tetikleyerek, OEE’nin hangi bileşenlerden etkilendiğini, hangi loss type'ların baskın olduğunu ve hangi aksiyonların önceliklendirilebileceğini özetleyen bir çıktı elde eder. Bu çıktı; kısa bir özet, birkaç madde halinde öne çıkan bulgular, uygulanabilir aksiyon önerileri ve gerektiğinde uyarılar şeklinde yapılandırılmıştır.
 
-Bu özellikte iki kullanım biçimi bulunmaktadır. “Analiz Et” aksiyonu, uygun olduğunda önbellekten faydalanarak hızlı bir geri dönüş sunmayı hedefler. “Yeniden Analiz” aksiyonu ise, kullanıcı isteğiyle önbelleği aşarak güncel veri ile yeni bir analiz üretir. Ek olarak, rapor verisi değiştiğinde (ör. aynı pencere için yeni üretim/duruş verileri oluştuğunda) sistem, mevcut analizin güncelliğini sorgulayarak kullanıcıyı uyarabilir; bu da rapor yorumunun yanlış bağlama taşınmasını azaltmaya yönelik bir önlemdir.
+Bu özellikte iki kullanım biçimi bulunmaktadır. “Analiz Et” aksiyonu, uygun olduğunda cache'den faydalanarak hızlı bir geri dönüş sunmayı hedefler. “Yeniden Analiz” aksiyonu ise, kullanıcı isteğiyle cache'i bypass ederek güncel veri ile yeni bir analiz üretir. Ek olarak, rapor verisi değiştiğinde (ör. aynı time window için yeni üretim/duruş verileri oluştuğunda) sistem, mevcut analizin güncelliğini sorgulayarak kullanıcıyı uyarabilir; bu da rapor yorumunun yanlış bağlama taşınmasını azaltmaya yönelik bir önlemdir.
 
 ### 4.7.3 Duruş Post-Mortem Analizi (U2)
 
-Bu projede U2 senaryosu, kapatılmış plansız duruş kayıtlarının daha anlamlı biçimde yorumlanabilmesini desteklemek amacıyla eklenmiştir. Bu senaryoda sistem, duruşun seçilmiş nedeni üzerinden “neden tahmini” yapmaz; bunun yerine, kapanmış duruşun öncesi ve duruş süresince gözlemlenen telemetri özetlerini ve son dönem benzer duruş örüntülerini kullanarak kısa bir post-mortem değerlendirme üretir. Böylece kullanıcı, tekil bir kaydı yalnızca “süre” veya “reason” alanlarıyla değil; bağlamsal ipuçları ve tekrar eden örüntüler üzerinden değerlendirebilir.
+Bu projede U2 senaryosu, kapatılmış plansız duruş kayıtlarının daha anlamlı biçimde yorumlanabilmesini desteklemek amacıyla eklenmiştir. Bu senaryoda sistem, duruşun seçilmiş nedeni üzerinden “neden tahmini” yapmaz; bunun yerine, kapanmış duruşun öncesi ve duruş süresince gözlemlenen telemetry özetlerini ve son dönem benzer duruş örüntülerini kullanarak kısa bir post-mortem değerlendirme üretir. Böylece kullanıcı, tekil bir kaydı yalnızca “süre” veya “reason” alanlarıyla değil; bağlamsal ipuçları ve tekrar eden örüntüler üzerinden değerlendirebilir.
 
-Uygulama akışında analiz, duruş detay/düzenleme penceresinden tetiklenir ve sonuçlar ayrı bir diyalog penceresinde özet, patternlar, aksiyon önerileri ve uyarılar biçiminde sunulur. Veri kalitesini korumak amacıyla açık (kapanmamış) duruşlarda analiz çalıştırılmaz; ayrıca planlı duruşlar veya reason seçilmemiş kayıtlar için analiz devre dışı bırakılır. Bu sınırlar, AI çıktısının yanlış bağlamda yorumlanmasını azaltmaya yönelik bir tasarım tercihidir.
+Uygulama akışında analiz, duruş detay/düzenleme penceresinden tetiklenir ve sonuçlar ayrı bir dialog penceresinde özet, patternlar, aksiyon önerileri ve uyarılar biçiminde sunulur. Veri kalitesini korumak amacıyla açık (kapanmamış) duruşlarda analiz çalıştırılmaz; ayrıca planlı duruşlar veya reason seçilmemiş kayıtlar için analiz devre dışı bırakılır. Bu sınırlar, AI çıktısının yanlış bağlamda yorumlanmasını azaltmaya yönelik bir tasarım tercihidir.
 
 **Görsel Önerileri**
 
@@ -245,3 +245,18 @@ Uygulama akışında analiz, duruş detay/düzenleme penceresinden tetiklenir ve
 - Resim 4.37: OEE Insight çıktısı (özet + bulgular + aksiyonlar + uyarı alanları)
 - Resim 4.38: Duruş detay/düzenleme penceresi (AI Analiz aksiyonu)
 - Resim 4.39: AI Duruş Analizi diyaloğu (özet + patternlar + aksiyonlar)
+
+## Simgeler ve Kısaltmalar
+
+- A = Availability (Kullanılabilirlik)
+- AI = Artificial Intelligence (Yapay Zekâ)
+- API = Application Programming Interface (Uygulama Programlama Arayüzü)
+- JSON = JavaScript Object Notation (Veri değişim formatı)
+- LLM = Large Language Model (Büyük Dil Modeli)
+- OEE = Overall Equipment Effectiveness (Toplam Ekipman Etkinliği)
+- P = Performance (Performans)
+- Q = Quality (Kalite)
+- RBAC = Role-Based Access Control (Rol Tabanlı Erişim Kontrolü)
+- U1/U2 = Use Case 1/2 (Kullanım Senaryosu)
+- accessToken = Access Token (Erişim token'i)
+- refreshToken = Refresh Token (Yenileme token'i)
