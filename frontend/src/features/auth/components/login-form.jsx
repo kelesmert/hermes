@@ -2,7 +2,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Alert, Box, Button, CircularProgress, Stack, TextField } from '@mui/material';
+import { Box, Button, CircularProgress, Stack, TextField } from '@mui/material';
 import useSession from '@/features/auth/hooks/use-session.js';
 import toast from 'react-hot-toast';
 import authApi from '@/features/auth/services/auth-api.js';
@@ -56,10 +56,6 @@ const LoginForm = () => {
           helperText={errors.password?.message}
           fullWidth
         />
-
-        <Alert severity="info" variant="outlined">
-          Demo kullanıcı: `admin` / `ChangeMe123!`
-        </Alert>
 
         <Button
           type="submit"
