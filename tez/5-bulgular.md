@@ -4,21 +4,21 @@ Bu bölümde, çalışmada geliştirilen sistemin ürettiği somut çıktılar �
 
 ## 5.1 OEE Metrikleri ve Örnek Hesaplamalar
 
-**Girdi:** Seçili bir makine için belirli bir zaman penceresinde oluşmuş üretim kayıtları (sağlam/hatalı adet) ve aynı pencereyi kapsayan çalışma sinyali/duruş kayıtları.
+**Girdi:** Seçili bir makine için belirli bir time window içinde oluşmuş üretim kayıtları (sağlam/hatalı adet) ve aynı time window'u kapsayan çalışma sinyali/duruş kayıtları.
 
-**İşlem:** Sistem, seçili pencere için OEE bileşenlerini (Availability, Performance, Quality) hesaplar ve bu bileşenleri çarpım ilişkisi içinde OEE değerine dönüştürür. Hesaplama bağlamı (makine, pencere, veri kaynağı) rapor kartları üzerinde görünür şekilde sunulur.
+**İşlem:** Sistem, seçili time window için OEE bileşenlerini (Availability, Performance, Quality) hesaplar ve bu bileşenleri çarpım ilişkisi içinde OEE değerine dönüştürür. Hesaplama bağlamı (makine, time window, veri kaynağı) rapor kartları üzerinde görünür şekilde sunulur.
 
-**Çıktı:** OEE ve alt bileşen değerleri; ayrıca seçili pencere için özet adet bilgileri (toplam üretim, sağlam, hatalı). Değerler rapor ekranından okunarak Çizelge 5.1’e aktarılır.
+**Çıktı:** OEE ve alt bileşen değerleri; ayrıca seçili time window için özet adet bilgileri (toplam üretim, sağlam, hatalı). Değerler rapor ekranından okunarak Çizelge 5.1’e aktarılır.
 
 **Görsel:** Resim 5.1 (OEE rapor ekranı özet kartları), Resim 5.2 (filtreler ve pencere seçimi), Çizelge 5.1 (OEE sonuç özeti).
 
-**Girdi:** Aynı makine için birden fazla gün/shift penceresi (en az 7 iş günü) ve bu pencerelerde hesaplanmış OEE sonuçları.
+**Girdi:** Aynı makine için birden fazla gün/shift window (en az 7 iş günü) ve bu window'larda hesaplanmış OEE sonuçları.
 
-**İşlem:** Sistem, her pencere için OEE hesaplayarak bir zaman serisi (trend) üretir; veri bulunmayan pencereler “kapsama” (coverage) yaklaşımı ile görünür kılınır.
+**İşlem:** Sistem, her time window için OEE hesaplayarak bir time series (trend) üretir; veri bulunmayan window'lar coverage yaklaşımı ile görünür kılınır.
 
-**Çıktı:** OEE trend grafiği ve gün bazlı özet tablo. Trend grafiği ve kapsama göstergesi ekran görüntüsü olarak alınır.
+**Çıktı:** OEE trend grafiği ve gün bazlı özet tablo. Trend grafiği ve coverage göstergesi ekran görüntüsü olarak alınır.
 
-**Görsel:** Resim 5.3 (OEE trend grafiği), Resim 5.4 (kapsama/özet alanı), Çizelge 5.2 (trend özet tablosu).
+**Görsel:** Resim 5.3 (OEE trend grafiği), Resim 5.4 (coverage/özet alanı), Çizelge 5.2 (trend özet tablosu).
 
 ## 5.2 Duruş Analizi Örneği
 
@@ -32,7 +32,7 @@ Bu bölümde, çalışmada geliştirilen sistemin ürettiği somut çıktılar �
 
 **Girdi:** Kapanmış tekil bir plansız duruş kaydı ve aynı makine için önceki benzer kayıtlar (son 30 gün).
 
-**İşlem:** Sistem, duruş kaydına ait bağlamsal bilgileri (başlangıç/bitiş, duration, seçili reason) temel alarak post-mortem analiz çıktısını üretir ve ayrı bir diyalog penceresinde sunar (U2).
+**İşlem:** Sistem, duruş kaydına ait bağlamsal bilgileri (başlangıç/bitiş, duration, seçili reason) temel alarak post-mortem analiz çıktısını üretir ve ayrı bir dialog içinde sunar (U2).
 
 **Çıktı:** Özet + patternlar + aksiyon önerileri (+ varsa uyarılar) şeklinde yapılandırılmış analiz çıktısı.
 
@@ -40,19 +40,19 @@ Bu bölümde, çalışmada geliştirilen sistemin ürettiği somut çıktılar �
 
 ## 5.3 Simülasyon Çıktıları
 
-**Girdi:** Başlangıçta boş veya sınırlı veri içeren bir çalışma ortamı; simülasyon bileşeninin çalıştırılması ile üretilecek telemetri ve üretim akışına yönelik senaryo.
+**Girdi:** Başlangıçta boş veya sınırlı veri içeren bir çalışma ortamı; simulation bileşeninin çalıştırılması ile üretilecek telemetry ve üretim akışına yönelik senaryo.
 
-**İşlem:** Telemetri ve üretim akışını temsil eden simülasyon süreçleri başlatılır; sistem, izleme ekranlarında telemetri serisini ve raporlama ekranlarında metrikleri oluşturacak veri akışını üretir.
+**İşlem:** Telemetry ve üretim akışını temsil eden simulation süreçleri başlatılır; sistem, izleme ekranlarında telemetry serisini ve raporlama ekranlarında metrikleri oluşturacak veri akışını üretir.
 
 **Çıktı:** İzleme ekranında sinyal ve metrik trend serileri; rapor ekranında ilgili pencere için hesaplanabilir OEE çıktısı. Bu senaryo, “veri üretimi → izleme → rapor” zincirinin uçtan uca çalıştığını gösterir.
 
-**Görsel:** Resim 5.8 (simülasyon kontrol ekranı), Resim 5.9 (izleme ekranı sinyal grafiği), Resim 5.10 (telemetri metrik grafikleri).
+**Görsel:** Resim 5.8 (simulation kontrol ekranı), Resim 5.9 (izleme ekranı sinyal grafiği), Resim 5.10 (telemetry metrik grafikleri).
 
 ## 5.4 AI Modülü Çıktıları
 
-**Girdi:** Seçili bir makine için raporlama ekranında hesaplanmış OEE çıktısı (zaman penceresi ve veri kaynağı belirli) ve AI analizinin tetiklenmesi.
+**Girdi:** Seçili bir makine için raporlama ekranında hesaplanmış OEE çıktısı (time window ve veri kaynağı belirli) ve AI analizinin tetiklenmesi.
 
-**İşlem:** Sistem, rapor bağlamını özetleyen bir veri anlık görüntüsü (snapshot) oluşturur; bu girdi üzerinden LLM’den yapılandırılmış (JSON şemasına uyan) bir açıklama çıktısı alınır. Uygun durumda aynı veri için önbellekten yararlanılabilir; veri değiştiğinde ise analiz “eski olabilir” uyarısı ile işaretlenebilir.
+**İşlem:** Sistem, rapor bağlamını özetleyen bir snapshot oluşturur; bu girdi üzerinden LLM’den yapılandırılmış (JSON şemasına uyan) bir açıklama çıktısı alınır. Uygun durumda aynı veri için cache'den yararlanılabilir; veri değiştiğinde ise analiz stale uyarısı ile işaretlenebilir.
 
 **Çıktı:** OEE Insight (U1) çıktısı: kısa özet, öne çıkanlar, aksiyon önerileri ve uyarılar. Çıktı, rapor ekranındaki AI kartından ekran görüntüsü olarak alınır.
 
@@ -72,3 +72,14 @@ Bu bölümde, çalışmada geliştirilen sistemin ürettiği somut çıktılar �
 - Çizelge 5.2: OEE trend özet tablosu (gün/shift bazlı)
 - Çizelge 5.3: Duruş dağılımı özeti (kategori/reason + toplam süre)
 - Şekil 5.1 (genel): “Simülasyon → izleme → rapor → AI” veri akışı zinciri
+
+## Simgeler ve Kısaltmalar
+
+- A = Availability (Kullanılabilirlik)
+- AI = Artificial Intelligence (Yapay Zekâ)
+- JSON = JavaScript Object Notation (Veri değişim formatı)
+- LLM = Large Language Model (Büyük Dil Modeli)
+- OEE = Overall Equipment Effectiveness (Toplam Ekipman Etkinliği)
+- P = Performance (Performans)
+- Q = Quality (Kalite)
+- U1/U2 = Use Case 1/2 (Kullanım Senaryosu)
