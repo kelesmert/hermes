@@ -329,4 +329,4 @@ Bu dosya, tez raporunda kullanılacak ekran görüntülerinin hangi bölüm alt�
 | 4.7.3 | Duruş AI Analizi (U2)     | 2             | Orta    |
 | Ek    | Layout                    | 3             | Düşük   |
 
-**Toplam tahmini görsel sayısı: ~50 adet**
+**Toplam tahmini görsel sayısı: ~50+ adet**

@@ -260,13 +260,13 @@ cd backend && npm run shift:sim
 | 1. Giriş            | ⏳ Bekliyor | -     |
 | 2. Kuramsal Çerçeve | ⏳ Bekliyor | -     |
 | 3. Sistem Tasarımı  | ⏳ Bekliyor | -     |
-| 4. Uygulama         | ✅ Başladı  | `tez/4-uygulama.md` |
-| 5. Bulgular         | ⏳ Bekliyor | -     |
-| 6. Sonuç            | ⏳ Bekliyor | -     |
+| 4. Uygulama         | ✅ Yazıldı  | `tez/4-uygulama.md` |
+| 5. Bulgular         | ✅ Başladı  | `tez/5-bulgular.md` |
+| 6. Sonuç            | ✅ Başladı  | `tez/6-sonuc-ve-oneriler.md` |
 
 ### Sonraki Adım
 
-Mevcut akış: **4. Uygulama** bölümünden ilerleniyor. Bir sonraki adım olarak `ekranlar.md` rehberine göre **4.2 Makine Yönetimi Modülü** yazılabilir.
+Öncelik: **1–3. bölümler** (Giriş + Kuramsal Çerçeve + Sistem Tasarımı). 4. bölüm yazımı tamamlandı; 5. bölüm senaryo şablonu hazır, 6. bölüm taslaklandı.
 
 ---
 
@@ -285,4 +285,4 @@ Mevcut akış: **4. Uygulama** bölümünden ilerleniyor. Bir sonraki adım olar
 
 **Tarih:** 2026-01-05  
 **Durum:** Hazırlık tamamlandı, yazıma başlandı  
-**Son İşlem:** `tez/4-uygulama.md` içinde 4.1 modülü yazıldı
+**Son İşlem:** `tez/4-uygulama.md` 4.6–4.7 eklendi; `tez/5-bulgular.md` ve `tez/6-sonuc-ve-oneriler.md` oluşturuldu
