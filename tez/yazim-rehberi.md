@@ -60,10 +60,14 @@ Bu dosya, tez bölümlerini yazarken uyulacak kuralları ve tavsiyeleri içerir.
 
 ```
 Şekil 3.1. Genel sistem mimarisi diyagramı
+Resim 4.1. Giriş ekranı
+Çizelge 2.1. Teknoloji karşılaştırması
 ```
 
-- Açıklama şeklin/çizelgenin altında
-- İlk harf büyük, sonunda nokta yok
+- Açıklama görselin altında
+- Numara sonrası nokta VAR (örn: `Şekil 3.1.`)
+- Açıklama sonunda nokta YOK (örn: `...diyagramı`)
+- İlk harf büyük
 
 ---
 
@@ -121,9 +125,22 @@ Her alt başlık için:
 ### 5. BULGULAR
 
 - Sadece somut çıktılar
-- OEE hesaplama örneği (gerçek verilerle)
-- AI çıktısı örneği
 - Ekran değerlendirmesi YOK (ölçüm yoksa)
+- Her alt madde için senaryo formatı:
+
+```
+**Girdi:** [Başlangıç durumu/verisi]
+**İşlem:** [Sistemin yaptığı hesaplama/işlem]
+**Çıktı:** [Sonuç/metrik]
+**Görsel:** Resim X.Y / Şekil X.Y
+```
+
+Örnekler:
+
+- 5.1: OEE hesaplama örneği (girdi: üretim verileri → işlem: A×P×Q → çıktı: %85)
+- 5.2: Duruş analizi (girdi: 10 duruş kaydı → işlem: reason gruplama → çıktı: dağılım)
+- 5.3: Simülasyon (girdi: boş DB → işlem: shift-sim → çıktı: 8 saat veri)
+- 5.4: AI çıktısı (girdi: OEE verisi → işlem: LLM analizi → çıktı: insight)
 
 ### 6. SONUÇ VE ÖNERİLER
 
@@ -134,16 +151,57 @@ Her alt başlık için:
 
 ## Kaynak Gösterimi
 
-APA formatı kullanılacak:
+**Sistem:** Numaralı kaynak gösterimi (IEEE tarzı)
 
-```
-[1] Yazar, A. (Yıl). Başlık. Dergi, Cilt(Sayı), sayfa.
-```
+### Metin İçinde
 
-Metin içinde:
+Kaynak numarası köşeli parantez içinde verilir:
 
 ```
 ... bu yaklaşım tercih edilmiştir [1].
+... literatürde belirtildiği gibi [2, 3].
+... birçok çalışmada incelenmiştir [4-7].
+```
+
+**Kurallar:**
+
+- Tek kaynak: `[1]`
+- Birden fazla kaynak (ayrı): `[2, 5, 8]`
+- Ardışık kaynaklar: `[4-7]`
+- Nokta parantez dışında: `... belirtilmiştir [1].`
+
+### Kaynakça Sayfasında
+
+Kaynaklar metin içinde geçiş sırasına göre numaralandırılır:
+
+**Makale:**
+
+```
+[1] Mirza S., Bakshi S.Z., "Introduction to MANET", International Research Journal of Engineering and Technology, Vol. 5, No. 1, pp. 17-20, 2018.
+```
+
+**Kitap:**
+
+```
+[2] McAdams W.H., "Heat Transmission", 2nd ed., McGraw Hill, New York, pp. 278-292, 1942.
+```
+
+**Tez:**
+
+```
+[3] Sarıca İ., "Yapay Sinir Ağı Kullanarak Farklı Kategoriler İle Süt İneklerinde Kızgınlık Tahmini", Yüksek Lisans Tezi, Muğla Sıtkı Koçman Üniversitesi Fen Bilimleri Enstitüsü, Muğla, pp. 40-65, 2020.
+```
+
+**Konferans:**
+
+```
+[4] Amin M.S., Rizvi S.T.H., Malik S., "Smart Wheelchair", in 2021 International Conference on Digital Futures (ICoDT2), pp. 1-6, 2021.
+```
+
+**Web Kaynağı:**
+
+```
+[5] MongoDB Inc., "MongoDB Documentation", https://docs.mongodb.com, Erişim tarihi: 15.01.2025.
 ```
 
 ---
@@ -156,3 +214,4 @@ Metin içinde:
 - [ ] Görsel gerekli mi? Önerildi mi?
 - [ ] Üniversite format kurallarına uygun mu?
 - [ ] Gereksiz tekrar var mı?
+- [ ] Kaynaklar numaralı sistemde [1] formatında mı?

@@ -1070,6 +1070,11 @@ Crosscheck 2026-01-04
 - [x] Gecmis durus listesinden AI Analiz acilabiliyor
 - [x] AI Hub karti U2 linki aktif
 
+**Not (UX iyilestirme backlog):**
+
+- Duruş detayinda "Son 30 gun benzer reason ornekleri" bolumunu daha gorunur hale getir
+- Gecmis liste satirinda AI analiz ozetini daha kisa ve belirgin goster
+
 ---
 
 ### Faz 3 U3 Anomali Risk Uyarisi
@@ -1153,6 +1158,11 @@ Crosscheck 2026-01-04
 - [ ] Kullanim istatistikleri (ai_usage) karti aktif edilecek
 - [ ] Rate limit soft warning UI entegre edilecek
 
+**Not (Polish backlog):**
+
+- AI Hub "Kullanim Istatistikleri" kartini ai_usage ile canlandir
+- Rate limit soft warning gosterimini hub ve rapor kartlarinda uyumlu hale getir
+
 Not: Hub MVP Faz 2 tamamlandiktan sonra genislendi. U2 karti aktif, U3 karti "Hazirlaniyor" olarak gosteriliyor.
 
 **Sonraki faza gecis:** MVP tamamlandi
@@ -1201,3 +1211,5 @@ Not: Faz 1 2 3 siralama zorunlu degil ama onerilen sira budur cunku ortak altyap
 
 - Model secimi benchmark ile netlestirilecek
 - Prompt versiyonlama ihtiyaci use case sayisi artinca tekrar degerlendirilecek
+- U2 UX iyilestirme notu: Duruş detayinda “son 30 gun benzer reason ornekleri”nin daha gorunur sunulmasi (liste/etiket).
+- AI Hub polish notu: ai_usage ile “Kullanim Istatistikleri” kartini aktive etme ve soft warning limit göstergesi (UI).
