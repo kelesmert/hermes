@@ -36,7 +36,7 @@ const listInsights = async ({ userId, useCase, machineId, downtimeId, source, li
   if (downtimeId) query.downtimeId = downtimeId;
   if (source) query.source = source;
 
-  const cappedLimit = Math.min(Math.max(Number(limit) || 20, 1), 100);
+  const cappedLimit = Math.min(Math.max(Number(limit) || 20, 1), 200);
 
   return AiInsight.find(query)
     .sort({ generatedAt: -1 })

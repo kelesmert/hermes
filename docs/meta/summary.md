@@ -50,7 +50,7 @@ Bu doküman, yeni bir geliştiricinin projeyi en kısa sürede kavraması için 
 5. **Yönetim UI**: Sidebar layout + izin bazlı guard’lar, kullanıcı/rol/izin yönetimi ve domain CRUD ekranları
 6. **Simülasyon Yönetimi**: `/simulations` sayfası ile `shift-sim`/`data-gen` ve `job-sim` başlat/durdur + log konsolu + shift-sim reset
 7. **AI U1 OEE Insight**: Reports ekranında AI Analizi kartı, cache + rate limit + stale uyarısı
-8. **AI Hub**: AI Asistanı sayfası (U1/U2/U3 kartları + son analiz listesi + kullanım placeholder)
+8. **AI Hub**: AI Asistanı sayfası (U1/U2/U3 kartları + KPI’lar + filtreli analiz tablosu + 7 gün özeti + on-demand stale kontrolü + kullanım placeholder)
 
 ## 5. Roadmap ve Eksikler
 

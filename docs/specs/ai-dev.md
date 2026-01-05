@@ -9,8 +9,8 @@ U2 icin post mortem analiz akisi backend ve downtime UI tarafinda uygulanmaya ba
 
 ## Dokuman Meta
 
-- Versiyon 1.2
-- Son guncelleme 2026-01-05
+- Versiyon 1.3
+- Son guncelleme 2026-01-07
 - Degisiklik ozeti
   - Dokuman iskeleti guclendirildi
   - Proje baglami ve dosya haritasi eklendi
@@ -44,6 +44,7 @@ U2 icin post mortem analiz akisi backend ve downtime UI tarafinda uygulanmaya ba
   - U2 icin telemetry pencereleri (oncesi 10 dk + durus boyunca) ve feature seti netlestirildi (durus boyunca last dahil)
   - U2 post mortem backend servisi ve promptu tamamlandi
   - Downtime UI icinde U2 AI Analiz dialogu eklendi (kapali durus)
+  - AI Hub MVP genislendi (KPI kartlari, filtreler, 7 gun ozet, on-demand stale kontrolu, 200/20 sayfalama, hizli aksiyonlar)
 
 ## Dokumanin Amaci
 
@@ -136,7 +137,7 @@ AI entegrasyon hedefi icin ilgili domainler
 - [x] Reports ekraninda AI Analizi karti eklendi
 - [x] Latest insight stale kontrolu (checkStale) eklendi
 - [x] U1 icin manuel dogrulama tamamlandi (cache hit, force refresh, stale uyarisi, rate limit)
-- [x] AI Hub sayfasi iskeleti eklendi (use case kartlari + son 20 analiz listesi + kullanim istatistikleri placeholder)
+- [x] AI Hub MVP eklendi (use case kartlari + KPI + filtreli analiz tablosu + 7 gun ozet + 200/20 sayfalama + stale kontrolu + hizli aksiyonlar + placeholder)
 - [x] U2 post mortem pattern analizi (kapali durus) backend servisi tamamlandi
 - [x] U2 AI Analiz dialogu downtime detay modalinda ve gecmis listesinde aktif
 
@@ -1148,11 +1149,11 @@ Crosscheck 2026-01-04
 
 **Durum:**
 
-- [x] Hub sayfasi iskeleti eklendi (kartlar + son 20 analiz + placeholder)
+- [x] Hub sayfasi MVP eklendi (kartlar + KPI + filtreli analiz tablosu + 7 gun ozet + 200/20 sayfalama + on-demand stale kontrolu + hizli aksiyonlar)
 - [ ] Kullanim istatistikleri (ai_usage) karti aktif edilecek
 - [ ] Rate limit soft warning UI entegre edilecek
 
-Not: Hub iskeleti Faz 2 ve Faz 3 tamamlanmadan once eklendi. U2 karti aktif, U3 karti "Hazirlaniyor" olarak gosteriliyor.
+Not: Hub MVP Faz 2 tamamlandiktan sonra genislendi. U2 karti aktif, U3 karti "Hazirlaniyor" olarak gosteriliyor.
 
 **Sonraki faza gecis:** MVP tamamlandi
 

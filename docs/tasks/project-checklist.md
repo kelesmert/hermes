@@ -137,7 +137,7 @@
 - [ ] CSV/Excel export butonları ve kullanıcı geri bildirimi
 - [ ] Audit log görüntüleme ekranı
 - [x] AI U1 OEE Insight (backend + reports UI) doğrulandı
-- [x] AI Hub sayfası (/ai): use case kartları + son 20 analiz + kullanım istatistikleri placeholder
+- [x] AI Hub sayfası (/ai): use case kartları + KPI’lar + filtreli analiz tablosu + 7 gün özeti + on-demand stale kontrolü + 200/20 sayfalama + kullanım placeholder
 - [x] AI U2 Post Mortem Duruş Pattern Analizi (backend servis + prompt + endpoint davranışı)
 - [x] U2 UI entegrasyonu: duruş geçmiş satırı + duruş detay modalı + AI Hub kartı
 - [ ] Opsiyonel çok dillilik altyapısına hazırlık

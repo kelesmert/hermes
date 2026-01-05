@@ -249,6 +249,14 @@ Bu dosya, projede alınan mimarî ve teknolojik kararları, gerekçelerini ve be
 - **Gerekçe:** U2/U3 öncesi ortak giriş noktası oluşturmak ve mevcut AI analiz geçmişini tek yerden görmek.
 - **Etki:** `frontend/src/features/ai/pages/ai-hub.jsx`, `frontend/src/constants/navigation.js`, `frontend/src/App.jsx`.
 
+### AI Hub Sayfası (MVP Genişletme)
+
+- **Tarih:** 2026-01-07
+- **Domain:** Frontend - ai
+- **Karar:** AI Hub MVP kapsamına KPI kartları (son 7 gün analiz sayısı, son analiz zamanı, kapsanan makine sayısı), filtreler (use case, makine, kaynak, tarih aralığı), 7 gün sayısal özet, 200/20 sayfalama ve on-demand stale kontrolü eklendi. Hızlı aksiyonlar yönlendirme olarak tutuldu.
+- **Gerekçe:** Supervisor için hızlı özet + filtrelenebilir geçmiş görünürlüğü ve “stale” durumunu kullanıcı kontrolünde doğrulama ihtiyacı.
+- **Etki:** `frontend/src/features/ai/pages/ai-hub.jsx`, `frontend/src/lib/api/ai-api.js` (mevcut endpoint’ler kullanıldı).
+
 ### U2 Duruş AI Analizi UI Entegrasyonu
 
 - **Tarih:** 2026-01-05
