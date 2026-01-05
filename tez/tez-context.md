@@ -94,19 +94,20 @@ Bu proje için **lisans bitirme tezi (mühendislik projesi raporu)** yazıyoruz.
 Her ana bölüm ayrı .md dosyasında:
 
 ```
-tez/
-├── bolum-yapisi.md      # Nihai yapı (referans)
-├── ekranlar.md          # Ekran görüntüsü rehberi
-├── yazim-rehberi.md     # Yazım kuralları
-├── rules.md             # Kısa yazım notları (hızlı hatırlatma)
-├── tez-context.md       # Bu dosya
-├── 1-giris.md           # (yazılacak)
-├── 2-kuramsal-cerceve.md
-├── 3-sistem-tasarimi-ve-teknolojiler.md
-├── 4-uygulama.md
-├── 5-bulgular.md
-├── 6-sonuc-ve-oneriler.md
-```
+	tez/
+	├── bolum-yapisi.md      # Nihai yapı (referans)
+	├── ekranlar.md          # Ekran görüntüsü rehberi
+	├── yazim-rehberi.md     # Yazım kuralları
+	├── rules.md             # Kısa yazım notları (hızlı hatırlatma)
+	├── tez-context.md       # Bu dosya
+	├── 1-giris.md           # (yazılacak)
+	├── 2-kuramsal-cerceve.md
+	├── 3-sistem-tasarimi-ve-teknolojiler.md
+	├── 4-uygulama.md
+	├── 4-uygulama-ekran-bilesenleri.md # UI ekran/bileşen detayları
+	├── 5-bulgular.md
+	├── 6-sonuc-ve-oneriler.md
+	```
 
 ---
 
@@ -119,6 +120,7 @@ tez/
 | `bolum-yapisi.md`  | Tüm bölüm yapısı, alt başlıklar | ✅ Kesin referans    |
 | `ekranlar.md`      | Hangi ekran hangi bölüme        | ✅ Kesin referans    |
 | `yazim-rehberi.md` | Yazım kuralları, checklist      | ✅ Kesin referans    |
+| `4-uygulama-ekran-bilesenleri.md` | 4. bölüm UI detay anlatımı      | ✅ Kesin referans    |
 | `rapor.md`         | Üniversite resmi şablonu        | ✅ %100 güvenilir    |
 | `ornek1.md`        | Sınıf arkadaşı örneği           | ⚠️ Genel fikir verir |
 | `ornek2.md`        | Sınıf arkadaşı örneği           | ⚠️ Genel fikir verir |

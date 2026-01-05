@@ -82,9 +82,13 @@ Bu modülde duraklatma davranışı, duruş yönetimiyle birlikte ele alınmış
 
 ### 4.3.3 Üretim Panosu (Board)
 
-Üretim Panosu (Board), üretim takibinin yönetsel görünürlüğünü artırmak amacıyla tasarlanmış özet bir izleme ekranıdır. Bu ekran, seçili time window içinde tüm makinelerin mevcut durumunu, duruşları ve devam eden iş emirlerini tek bir sayfada birleştirerek “sahada şu an ne oluyor?” sorusuna hızlı bir yanıt üretmeyi amaçlar. Bu nedenle Board, detaylı işlem ekranlarının yerine geçmekten ziyade; yönlendirme ve erken uyarı rolü üstlenir.
+Üretim Panosu (Board), uygulama açılışında kullanıcıyı karşılayan ve üretim operasyonunun güncel fotoğrafını sunan ana ekrandır. Bu ekran, seçili time window içinde tüm makinelerin mevcut durumunu, duruşları ve aktif üretim akışına ilişkin özet bilgileri tek bir sayfada birleştirerek “sahada şu an ne oluyor?” sorusuna hızlı bir yanıt üretmeyi amaçlar. Bu nedenle Board, detaylı işlem ekranlarının yerine geçmekten ziyade; triage ve yönlendirme rolü üstlenir.
 
-Board tasarımında iki boyut öne çıkar: time window ve veri kaynağı seçimi. Kullanıcı, shift window'a göre özetlenen bir görünüm üzerinden duruşların süresini ve etkisini değerlendirebilir; makine durum dağılımını grafiksel olarak izleyebilir ve arama/filtreleme ile sorunlu noktalara odaklanabilir. Bu yaklaşım, üretim takibini tekil kayıtlar üzerinden değil, “operasyon fotoğrafı” üzerinden okumayı mümkün kılarak karar verme süreçlerini destekler.
+Board tasarımında iki boyut öne çıkar: time window ve source seçimi. Kullanıcı, shift window üzerinden çalışırken ilgili tarihe göre window'ı sabitleyebilir ve veri bulunmadığında en güncel telemetry günü üzerinden otomatik bir bağlam oluşturabilir. Bu yaklaşım, özellikle demo ve simülasyon kaynaklı çalışmalarda farklı source'ların karışmasını engelleyerek, aynı bağlam içinde tutarlı bir değerlendirme yapılmasını destekler.
+
+Ekranın üst bölümünde sunulan summary card'lar ve status distribution görünümü, operasyonun genel durumunu hızlıca okunabilir hale getirir. Toplam makine sayısının yanı sıra “running/downtime/idle/unknown” kırılımları aynı bağlamda verilerek, sorun yoğunlaşmasının hangi statüde oluştuğu kolayca ayırt edilebilir. Böylece kullanıcı, tekil kayıtlara girmeden önce hangi alanın öncelikli olduğunu belirleyebilir.
+
+Board, özetin yanında “duruşlar” ve “makineler” listeleriyle pratik bir drill-down yüzeyi sağlar. Duruşlar tablosu süreye göre sıralı olacak şekilde sunularak en etkili kesintilerin öne çıkması hedeflenir; açık duruşlar ayrıca vurgulanır. Makineler tablosunda ise makine bazında as-of status, varsa açık duruş süresi ve son telemetry zamanı birlikte gösterilir; arama/filtreleme alanları ile sunum sırasında hedef makine veya duruş kaydına hızlı biçimde erişim mümkün hale gelir.
 
 **Görsel Önerileri**
 

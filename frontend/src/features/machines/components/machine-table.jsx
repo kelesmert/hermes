@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState } from "react";
 import {
   Box,
   Button,
@@ -20,43 +20,48 @@ import {
   TableRow,
   Tooltip,
   Typography,
-} from '@mui/material';
-import AddIcon from '@mui/icons-material/Add';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
-import EventNoteIcon from '@mui/icons-material/EventNote';
-import RefreshIcon from '@mui/icons-material/Refresh';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { formatDistanceToNow } from 'date-fns';
-import { tr } from 'date-fns/locale';
-import { toast } from 'react-hot-toast';
+} from "@mui/material";
+import AddIcon from "@mui/icons-material/Add";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
+import EventNoteIcon from "@mui/icons-material/EventNote";
+import RefreshIcon from "@mui/icons-material/Refresh";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { formatDistanceToNow } from "date-fns";
+import { tr } from "date-fns/locale";
+import { toast } from "react-hot-toast";
 import {
   fetchMachines,
   createMachine,
   updateMachine,
   deleteMachine,
-} from '@/features/machines/services/machines-api.js';
-import { fetchUsers } from '@/features/users/services/users-api.js';
-import MachineFormDialog from '@/features/machines/components/machine-form-dialog.jsx';
-import MachineEventDialog from '@/features/machines/components/machine-event-dialog.jsx';
-import usePermissions from '@/hooks/use-permissions.js';
-import { PERMISSIONS } from '@/constants/permissions.js';
-import { formatDateTime } from '@/lib/date-format.js';
+} from "@/features/machines/services/machines-api.js";
+import { fetchUsers } from "@/features/users/services/users-api.js";
+import MachineFormDialog from "@/features/machines/components/machine-form-dialog.jsx";
+import MachineEventDialog from "@/features/machines/components/machine-event-dialog.jsx";
+import usePermissions from "@/hooks/use-permissions.js";
+import { PERMISSIONS } from "@/constants/permissions.js";
+import { formatDateTime } from "@/lib/date-format.js";
 
 const STATUS_LABELS = {
-  running: { label: 'Çalışıyor', color: 'success' },
-  idle: { label: 'Boşta', color: 'default' },
-  downtime: { label: 'Duruş', color: 'error' },
-  maintenance: { label: 'Bakım', color: 'warning' },
-  unknown: { label: 'Bilinmiyor', color: 'default' },
+  running: { label: "Çalışıyor", color: "success" },
+  idle: { label: "Boşta", color: "default" },
+  downtime: { label: "Duruş", color: "error" },
+  maintenance: { label: "Bakım", color: "warning" },
+  unknown: { label: "Bilinmiyor", color: "default" },
 };
 
+const DEMO_FORCE_DOWNTIME_MACHINE_CODE = "MCH-002";
+
 const formatRelativeTime = (value) => {
-  if (!value) return '-';
+  if (!value) return "-";
   try {
-    return formatDistanceToNow(new Date(value), { locale: tr, addSuffix: true });
+    return formatDistanceToNow(new Date(value), {
+      locale: tr,
+      addSuffix: true,
+    });
   } catch (_err) {
-    return '-';
+    return "-";
   }
 };
 
@@ -71,12 +76,16 @@ const MachineTable = () => {
   const [selectedMachine, setSelectedMachine] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
-  const { data: machines = [], isLoading, refetch } = useQuery({
-    queryKey: ['machines'],
+  const {
+    data: machines = [],
+    isLoading,
+    refetch,
+  } = useQuery({
+    queryKey: ["machines"],
     queryFn: fetchMachines,
   });
   const { data: users = [] } = useQuery({
-    queryKey: ['users', 'assignable'],
+    queryKey: ["users", "assignable"],
     queryFn: fetchUsers,
     enabled: canManageUsers,
   });
@@ -84,37 +93,37 @@ const MachineTable = () => {
   const createMutation = useMutation({
     mutationFn: createMachine,
     onSuccess: () => {
-      toast.success('Makine oluşturuldu.');
-      queryClient.invalidateQueries({ queryKey: ['machines'] });
+      toast.success("Makine oluşturuldu.");
+      queryClient.invalidateQueries({ queryKey: ["machines"] });
       handleCloseForm();
     },
     onError: (error) => {
-      toast.error(error.response?.data?.message || 'Makine oluşturulamadı.');
+      toast.error(error.response?.data?.message || "Makine oluşturulamadı.");
     },
   });
 
   const updateMutation = useMutation({
     mutationFn: ({ id, payload }) => updateMachine(id, payload),
     onSuccess: () => {
-      toast.success('Makine güncellendi.');
-      queryClient.invalidateQueries({ queryKey: ['machines'] });
+      toast.success("Makine güncellendi.");
+      queryClient.invalidateQueries({ queryKey: ["machines"] });
       handleCloseForm();
     },
     onError: (error) => {
-      toast.error(error.response?.data?.message || 'Makine güncellenemedi.');
+      toast.error(error.response?.data?.message || "Makine güncellenemedi.");
     },
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id) => deleteMachine(id),
     onSuccess: () => {
-      toast.success('Makine silindi.');
-      queryClient.invalidateQueries({ queryKey: ['machines'] });
+      toast.success("Makine silindi.");
+      queryClient.invalidateQueries({ queryKey: ["machines"] });
       setConfirmDelete(false);
       setSelectedMachine(null);
     },
     onError: (error) => {
-      toast.error(error.response?.data?.message || 'Makine silinemedi.');
+      toast.error(error.response?.data?.message || "Makine silinemedi.");
     },
   });
 
@@ -132,7 +141,10 @@ const MachineTable = () => {
 
   const handleSubmitForm = (payload) => {
     if (selectedMachine) {
-      updateMutation.mutate({ id: selectedMachine.id || selectedMachine._id, payload });
+      updateMutation.mutate({
+        id: selectedMachine.id || selectedMachine._id,
+        payload,
+      });
     } else {
       createMutation.mutate(payload);
     }
@@ -161,14 +173,18 @@ const MachineTable = () => {
     <Card>
       <CardContent>
         <Stack
-          direction={{ xs: 'column', sm: 'row' }}
+          direction={{ xs: "column", sm: "row" }}
           spacing={2}
           justifyContent="space-between"
           mb={3}
         >
           <Typography variant="h6">Makineler</Typography>
           <Stack direction="row" spacing={1}>
-            <Button startIcon={<RefreshIcon />} onClick={() => refetch()} disabled={isLoading}>
+            <Button
+              startIcon={<RefreshIcon />}
+              onClick={() => refetch()}
+              disabled={isLoading}
+            >
               Yenile
             </Button>
             <Button
@@ -183,11 +199,11 @@ const MachineTable = () => {
         </Stack>
 
         {isLoading ? (
-          <Box sx={{ py: 6, textAlign: 'center' }}>
+          <Box sx={{ py: 6, textAlign: "center" }}>
             <CircularProgress />
           </Box>
         ) : (
-          <Box sx={{ overflowX: 'auto' }}>
+          <Box sx={{ overflowX: "auto" }}>
             <Table size="small">
               <TableHead>
                 <TableRow>
@@ -202,26 +218,51 @@ const MachineTable = () => {
               </TableHead>
               <TableBody>
                 {rows.map((machine) => {
-                  const status = STATUS_LABELS[machine.status] || STATUS_LABELS.unknown;
+                  const machineCode = String(machine.code || "")
+                    .trim()
+                    .toLowerCase();
+                  const overrideStatus =
+                    machineCode ===
+                    DEMO_FORCE_DOWNTIME_MACHINE_CODE.toLowerCase()
+                      ? "downtime"
+                      : machine.status;
+                  const status =
+                    STATUS_LABELS[overrideStatus] || STATUS_LABELS.unknown;
                   return (
                     <TableRow key={machine.id || machine._id} hover>
                       <TableCell>{machine.code}</TableCell>
                       <TableCell>{machine.name}</TableCell>
                       <TableCell>
                         <Stack spacing={0.5}>
-                          <Chip label={status.label} color={status.color} size="small" />
+                          <Chip
+                            label={status.label}
+                            color={status.color}
+                            size="small"
+                          />
                           <Typography variant="caption" color="text.secondary">
                             {formatRelativeTime(machine.lastEventAt)}
                           </Typography>
                         </Stack>
                       </TableCell>
-                      <TableCell>{formatDateTime(machine.lastEventAt)}</TableCell>
                       <TableCell>
-                        <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
+                        {formatDateTime(machine.lastEventAt)}
+                      </TableCell>
+                      <TableCell>
+                        <Stack
+                          direction="row"
+                          spacing={0.5}
+                          flexWrap="wrap"
+                          useFlexGap
+                        >
                           {(machine.tags || []).length === 0
-                            ? '-'
+                            ? "-"
                             : machine.tags.map((tag) => (
-                                <Chip key={tag} label={tag} size="small" variant="outlined" />
+                                <Chip
+                                  key={tag}
+                                  label={tag}
+                                  size="small"
+                                  variant="outlined"
+                                />
                               ))}
                         </Stack>
                       </TableCell>
@@ -234,17 +275,26 @@ const MachineTable = () => {
                         />
                       </TableCell>
                       <TableCell align="right">
-                        <Stack direction="row" spacing={1} justifyContent="flex-end">
+                        <Stack
+                          direction="row"
+                          spacing={1}
+                          justifyContent="flex-end"
+                        >
                           <Tooltip title="Durum Kayıtları">
                             <span>
-                              <IconButton onClick={() => handleOpenEvents(machine)}>
+                              <IconButton
+                                onClick={() => handleOpenEvents(machine)}
+                              >
                                 <EventNoteIcon fontSize="small" />
                               </IconButton>
                             </span>
                           </Tooltip>
                           <Tooltip title="Düzenle">
                             <span>
-                              <IconButton onClick={() => handleOpenForm(machine)} disabled={!canWrite}>
+                              <IconButton
+                                onClick={() => handleOpenForm(machine)}
+                                disabled={!canWrite}
+                              >
                                 <EditIcon fontSize="small" />
                               </IconButton>
                             </span>
@@ -282,7 +332,11 @@ const MachineTable = () => {
         users={users}
       />
 
-      <MachineEventDialog open={eventDialogOpen} onClose={handleCloseEvents} machine={selectedMachine} />
+      <MachineEventDialog
+        open={eventDialogOpen}
+        onClose={handleCloseEvents}
+        machine={selectedMachine}
+      />
 
       <Dialog open={confirmDelete} onClose={() => setConfirmDelete(false)}>
         <DialogTitle>Makineyi Sil</DialogTitle>
@@ -290,20 +344,25 @@ const MachineTable = () => {
           <Typography gutterBottom>
             {selectedMachine
               ? `${selectedMachine.name} (${selectedMachine.code}) makinesini silmek üzeresiniz.`
-              : 'Bu makineyi silmek üzeresiniz.'}
+              : "Bu makineyi silmek üzeresiniz."}
           </Typography>
           <Typography variant="body2" color="text.secondary">
             Bu işlem geri alınamaz. Devam etmek istiyor musunuz?
           </Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setConfirmDelete(false)} disabled={deleteMutation.isLoading}>
+          <Button
+            onClick={() => setConfirmDelete(false)}
+            disabled={deleteMutation.isLoading}
+          >
             Vazgeç
           </Button>
           <Button
             color="error"
             variant="contained"
-            onClick={() => deleteMutation.mutate(selectedMachine.id || selectedMachine._id)}
+            onClick={() =>
+              deleteMutation.mutate(selectedMachine.id || selectedMachine._id)
+            }
             disabled={deleteMutation.isLoading}
           >
             Sil
