@@ -19,15 +19,15 @@ Bu dosya, tez yazimi sirasinda uyulacak temel kaynaklari ve kisa hatirlatmalari 
 - Sekil 3.1: Istemci sunucu mimari diyagrami (genel, web client -> API server -> database akisi)
 - Sekil 3.2: Monorepo yapi diyagrami (projeye ozel, repo kokunde backend, frontend, docs, tez bloklari)
 
-## Ek yazim kurallari (Hermes odakli)
+## Ek yazim kurallari (akicilik odakli)
 
 - 1 paragraf = 1 ana iddia; ayni faydayi farkli cumlelerle tekrar etme
 - Soyut fayda cumlesi tek basina yazilmaz; kritikse somut mekanizma/isim eklenir
-- Hermes'e ozgu oge kullanimi zorunlu degil; akisi bolmeyecek sekilde, yalnizca gerekli yerlerde gecirilir
+- Proje-ozel terim kullanimi zorunlu degil; akisi bolmeyecek sekilde, yalnizca gerekli yerlerde gecirilir
 - Tekrar filtresi: ayni anahtar kelime 2. kez geliyorsa ya sil ya somut detayla degistir
-- Genel cumle -> Hermes cumlesi: sadece kritik noktalarda eklenir, her cumlede zorunlu degil
+- Genel cumle -> "bu proje" cumlesi: sadece kritik noktalarda eklenir, her cumlede zorunlu degil
 - Paragraf ritmi: 2-5 cumle, tek akista; dosya/route/env adlarini listeleme
-- Akademik ton: "Hermes" yerine "bu proje" / "bu calisma" kullan
+- Akademik ton: metinde "bu proje" / "bu calisma" tercih edilir (proje adi yalnizca zorunluysa)
 - Kod detayi filtresi: bu bolumlerde route/dosya/adim isimleri yalnizca kritikse anilir, aksi halde genel ifade kullanilir
 
 ## Ana yazim kurallari (tez anlati odakli)
@@ -43,3 +43,4 @@ Bu dosya, tez yazimi sirasinda uyulacak temel kaynaklari ve kisa hatirlatmalari 
 - Birlesik anlatim esastir; ayni katmandaki teknolojileri tek akista anlat
 - Okunabilirlik onceliklidir; metin katalog gibi degil, teknik ama akici olur
 - Her metin uretiminden sonra: varsa sekil/cizelge/grafik/resim (ekran goruntusu) onerilerini ayri olarak belirt
+- Bolum girizgahi: 2., 3., 4. gibi ana bolum basliklari alt basliklara gecmeden once kisa bir ozet paragrafiyla ne anlatilacagini belirtir; detaylar 3.1 gibi alt basliklarda verilir

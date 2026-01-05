@@ -59,7 +59,7 @@ Bu dosya, tez raporunda kullanılacak ekran görüntülerinin hangi bölüm alt�
 - **Dosya:** `frontend/src/features/machines/pages/machines.jsx`
 - **Route:** `/machines`
 - **Ekran Görüntüleri:**
-  1. Makine listesi tablosu (durum: running, idle, stopped)
+  1. Makine listesi tablosu (durum: running, idle, downtime, maintenance)
   2. Makine ekleme modalı
   3. Makine düzenleme modalı
 - **Açıklama:** Fabrika makine envanteri ve durum yönetimi
@@ -69,17 +69,17 @@ Bu dosya, tez raporunda kullanılacak ekran görüntülerinin hangi bölüm alt�
 - **Dosya:** `frontend/src/features/machines/pages/machines.jsx`
 - **Route:** `/machines`
 - **Ekran Görüntüleri:**
-  1. Makine detay görünümü (varsa)
-  2. Makine filtreleme/arama
-- **Açıklama:** Makine detaylı bilgi ekranları
+  1. Durum kayıtları penceresi (son durum değişimleri ve zaman bilgisi)
+  2. Aktif/pasif anahtarı ve etiket görünümü (liste üzerinde)
+- **Açıklama:** Detay inceleme ayrı sayfa yerine durum kayıtları üzerinden yapılır
 
 ### 4.2.3 Canlı İzleme (Monitoring)
 
 - **Dosya:** `frontend/src/features/monitoring/pages/monitoring.jsx`
 - **Route:** `/monitoring`
 - **Backend Kanıtı:**
-  - Endpoint: `GET /api/machines/:id/telemetry`
-  - Service: `backend/src/domains/machines/machines.service.js`
+  - Endpoint: `GET /api/board/machines/:id/telemetry`
+  - Service: `backend/src/domains/board/services/board-service.js`
 - **Ekran Görüntüleri:**
   1. Makine seçim dropdown ve kaynak seçimi (live/shift)
   2. Sinyal durumu kartı (son sinyal zamanı, timeout durumu)
@@ -96,7 +96,7 @@ Bu dosya, tez raporunda kullanılacak ekran görüntülerinin hangi bölüm alt�
 - **Dosya:** `frontend/src/features/parts/pages/parts.jsx`
 - **Route:** `/parts`
 - **Ekran Görüntüleri:**
-  1. Parça listesi tablosu (kategori, birim, varsayılan makine)
+  1. Parça listesi tablosu (kategori, birim, ideal çevrim, uyumlu makineler)
   2. Yeni parça ekleme modalı
   3. Parça düzenleme modalı
 - **Açıklama:** Üretilecek parça tanımları (fasteners, electronics, mechanical_plastics)
@@ -106,8 +106,8 @@ Bu dosya, tez raporunda kullanılacak ekran görüntülerinin hangi bölüm alt�
 - **Dosya:** `frontend/src/features/production/pages/job-orders.jsx`
 - **Route:** `/production`
 - **Backend Kanıtı:**
-  - Endpoints: `GET/POST /api/job-orders`, `PATCH /api/job-orders/:id/status`
-  - Service: `backend/src/domains/production/production.service.js`
+  - Endpoints: `GET/POST /api/production/job-orders`, `POST /api/production/job-orders/:id/start|pause|resume|complete|cancel|produce`
+  - Service: `backend/src/domains/production/services/job-order-service.js`
 - **Ekran Görüntüleri:**
   1. İş emri listesi (durum renk kodları: pending, in_progress, paused, completed)
   2. Yeni iş emri oluşturma formu
@@ -120,9 +120,11 @@ Bu dosya, tez raporunda kullanılacak ekran görüntülerinin hangi bölüm alt�
 - **Dosya:** `frontend/src/features/dashboard/pages/dashboard.jsx`
 - **Route:** `/dashboard` (kök URL `/` buraya redirect olur)
 - **Ekran Görüntüleri:**
-  1. Özet metrik kartları (aktif makine, toplam üretim, OEE)
-  2. Makine durum kartları grid görünümü
-  3. Kritik uyarılar bölümü
+  1. Operasyon filtreleri (kaynak + shift tarihi) ve pencere bilgisi
+  2. KPI kartları (toplam makine, çalışma/duruş/boşta/unknown dağılımı)
+  3. Durum dağılımı grafiği (pie)
+  4. Duruşlar tablosu (süre, tür, başlangıç/bitiş)
+  5. Makineler tablosu (as-of durum, açık duruş, son telemetry)
 - **Açıklama:** Giriş sonrası ana özet ekranı, shift bazlı operasyon özeti
 
 ---
@@ -131,11 +133,18 @@ Bu dosya, tez raporunda kullanılacak ekran görüntülerinin hangi bölüm alt�
 
 ### 4.4.1 OEE Hesaplama Algoritması
 
-- **Açıklama:** Kod ve algoritma açıklaması (ekran görüntüsü yok, formül/şema olabilir)
+- **Backend Kanıtı:**
+  - Endpoint: `GET /api/oee/stats`
+  - Service: `backend/src/domains/oee/services/oee-calculator-service.js`
+- **Ekran Görüntüleri:**
+  1. OEE formül/akış şeması (tez içinde şekil)
+- **Açıklama:** OEE hesaplama mantığı ve pencere modeli (shift/range)
 
 ### 4.4.2 Availability, Performance, Quality Hesaplamaları
 
-- **Açıklama:** Kod ve algoritma açıklaması (ekran görüntüsü yok, formül/şema olabilir)
+- **Ekran Görüntüleri:**
+  1. A/P/Q bileşen formülleri (tez içinde şekil)
+- **Açıklama:** A/P/Q bileşenlerinin yorumlanması (planlı süre, çalışma süresi, kalite)
 
 ### 4.4.3 OEE Dashboard
 
@@ -143,21 +152,22 @@ Bu dosya, tez raporunda kullanılacak ekran görüntülerinin hangi bölüm alt�
 - **Route:** `/reports`
 - **Ekran Görüntüleri:**
   1. OEE özet kartları (Availability, Performance, Quality, OEE yüzdesi)
-  2. Kayıp dağılımı grafiği (top 3 reason)
-- **Açıklama:** OEE metriklerinin özet görünümü
+  2. Planlı süre / çalışma süresi ve üretim adetleri (good/defect)
+  3. Operatör kırılımı tablosu (operatör bazlı A/P/Q/OEE)
+- **Açıklama:** OEE metriklerinin özet görünümü ve operatör kırılımı
 
 ### 4.4.4 OEE Raporları ve Grafikler
 
 - **Dosya:** `frontend/src/features/reports/pages/reports.jsx`
 - **Route:** `/reports`
 - **Backend Kanıtı:**
-  - Endpoint: `GET /api/oee/report`
-  - Service: `backend/src/domains/oee/oee.service.js`
+  - Endpoint: `GET /api/oee/stats`
+  - Service: `backend/src/domains/oee/services/oee-calculator-service.js`
 - **Ekran Görüntüleri:**
-  1. Tarih/makine/kaynak filtre alanları
-  2. OEE trend grafiği (Recharts)
-  3. Detaylı filtreli rapor görünümü
-- **Açıklama:** Verimlilik analizi ve detaylı raporlama
+  1. Tarih/makine/kaynak filtre alanları (shift/range)
+  2. Trend özeti + coverage bilgisi
+  3. OEE trend grafiği (Recharts)
+- **Açıklama:** Trend raporlama (haftalık/aylık) ve kapsama göstergesi
 
 ---
 
@@ -165,12 +175,12 @@ Bu dosya, tez raporunda kullanılacak ekran görüntülerinin hangi bölüm alt�
 
 ### 4.5.1 Planlı Duruş Tanımlama
 
-- **Dosya:** `frontend/src/features/downtime/` (planned downtime rules bölümü)
+- **Dosya:** `frontend/src/features/downtime/pages/downtimes.jsx` (Planlı sekmesi)
 - **Route:** `/downtimes`
 - **Ekran Görüntüleri:**
   1. Planlı duruş kuralları listesi (başlangıç/bitiş saati, tekrar)
   2. Yeni planlı duruş kuralı ekleme modalı
-  3. Planlı duruş çalıştırma geçmişi (runs)
+  3. Planlı duruş çalıştırma geçmişi (runs, filtreler ve durumlar)
 - **Açıklama:** Scheduler tabanlı planlı duruş yönetimi
 
 ### 4.5.2 Plansız Duruş Kayıt ve Takibi
@@ -178,13 +188,15 @@ Bu dosya, tez raporunda kullanılacak ekran görüntülerinin hangi bölüm alt�
 - **Dosya:** `frontend/src/features/downtime/pages/downtimes.jsx`
 - **Route:** `/downtimes`
 - **Backend Kanıtı:**
-  - Endpoints: `GET /api/downtimes`, `PATCH /api/downtimes/:id/classify`, `POST /api/downtimes/:id/split`
-  - Service: `backend/src/domains/downtime/downtime.service.js`
+  - Endpoints: `GET /api/downtimes`, `PATCH /api/downtimes/:id`, `POST /api/downtimes/:id/split`, `POST /api/downtimes/manual-start`, `POST /api/downtimes/:id/confirm`
+  - Service: `backend/src/domains/downtime/services/downtime-service.js`
 - **Ekran Görüntüleri:**
   1. Açık duruşlar listesi (planlı/plansız ayrımı)
   2. Kapalı duruşlar geçmişi (filtreleme)
-  3. Duruş sınıflandırma modalı (reason seçimi, 5dk edit kuralı)
-  4. Duruş split işlemi modalı
+  3. Duruş sınıflandırma/düzeltme penceresi (reason seçimi, düzeltme penceresi, split akışı)
+  4. Split ile reason değişimi (aynı pencerede, yeni kayıt üretimi)
+  5. Plansız duruş başlatma penceresi
+  6. Onay bekleyen kayıt etiketi ve onay aksiyonu
 - **Açıklama:** Plansız duruş yönetimi ve sınıflandırma
 
 ### 4.5.3 Duruş Analizi ve Raporlama
@@ -192,9 +204,10 @@ Bu dosya, tez raporunda kullanılacak ekran görüntülerinin hangi bölüm alt�
 - **Dosya:** `frontend/src/features/downtime/pages/downtimes.jsx`
 - **Route:** `/downtimes`
 - **Ekran Görüntüleri:**
-  1. Duruş özet istatistikleri (varsa)
-  2. Reason bazlı dağılım
-- **Açıklama:** Duruş verileri analizi
+  1. Geçmiş duruş filtreleri (tarih aralığı, kategori, reason)
+  2. Geçmiş duruş listesi (kayıtların makine/job bağlamı ile incelenmesi)
+  3. AI duruş analizi penceresi (kapalı plansız duruşlar için)
+- **Açıklama:** Filtrelenebilir geçmiş görünümü ve (opsiyonel) AI destekli değerlendirme
 
 ---
 
@@ -202,7 +215,7 @@ Bu dosya, tez raporunda kullanılacak ekran görüntülerinin hangi bölüm alt�
 
 ### 4.6.1 Simülasyon Saati (Simulation Clock)
 
-- **Açıklama:** Kod ve konsept açıklaması (ekran görüntüsü yok, şema olabilir)
+- **Açıklama:** Konsept açıklaması (ekran görüntüsü yok, genel şema/akış diyagramı uygun)
 
 ### 4.6.2 Vardiya ve Üretim Simülasyonu
 
@@ -212,8 +225,9 @@ Bu dosya, tez raporunda kullanılacak ekran görüntülerinin hangi bölüm alt�
   1. Simülasyon durum kartları (data-gen, shift-sim, job-sim)
   2. Başlat/Durdur kontrol butonları
   3. Log konsolu (gerçek zamanlı log akışı)
-  4. Simülasyon parametreleri
-- **Açıklama:** UI üzerinden simülasyon script yönetimi
+  4. shift-sim reset akışı (onay penceresi ve uyarı metni)
+  5. Log temizleme aksiyonu (+ opsiyonel: kontrol kapalı uyarısı `ENABLE_SIMULATION_CONTROL`)
+- **Açıklama:** UI üzerinden simülasyon süreçlerini (telemetri + üretim) başlatma/durdurma ve log takibi
 
 ---
 
@@ -225,7 +239,7 @@ Bu dosya, tez raporunda kullanılacak ekran görüntülerinin hangi bölüm alt�
 - **Route:** `/ai`
 - **Ekran Görüntüleri:**
   1. AI Hub ana sayfası
-  2. Use case kartları (U1, U2, U3 durumları: Aktif/Hazırlanıyor)
+  2. Use case kartları (U1, U2 + U3 prototip kartı)
   3. Son 20 analiz listesi
 - **Açıklama:** AI özelliklerinin merkezi hub sayfası
 
@@ -239,14 +253,14 @@ Bu dosya, tez raporunda kullanılacak ekran görüntülerinin hangi bölüm alt�
   3. Loading/error durumları
 - **Açıklama:** OpenAI destekli OEE açıklama asistanı
 
-### 4.7.3 Duruş Pattern Analizi (U2) - Opsiyonel
+### 4.7.3 Duruş Post-Mortem Analizi (U2)
 
-- **Dosya:** `frontend/src/features/downtime/`
+- **Dosya:** `frontend/src/features/downtime/pages/downtimes.jsx` + `frontend/src/features/downtime/components/downtime-ai-dialog.jsx`
 - **Route:** `/downtimes`
 - **Ekran Görüntüleri:**
-  1. Duruş AI analiz butonu
-  2. Pattern analiz sonuçları
-- **Açıklama:** Kapalı duruşlar için post-mortem AI analizi
+  1. Duruş detay/düzenleme penceresi (DialogActions içinde “AI Analiz”)
+  2. AI Duruş Analizi diyaloğu (özet + patternlar + aksiyonlar + uyarılar)
+- **Açıklama:** Kapatılmış plansız duruşlar için post-mortem AI analizi (açık duruşlarda çalışmaz)
 
 ---
 
@@ -309,9 +323,10 @@ Bu dosya, tez raporunda kullanılacak ekran görüntülerinin hangi bölüm alt�
 | 4.5.1 | Planlı Duruş              | 3             | Orta    |
 | 4.5.2 | Plansız Duruş             | 4             | Yüksek  |
 | 4.5.3 | Duruş Analizi             | 2             | Orta    |
-| 4.6.2 | Simülasyon                | 4             | Orta    |
+| 4.6.2 | Simülasyon                | 5             | Orta    |
 | 4.7.1 | AI Hub                    | 3             | Orta    |
 | 4.7.2 | OEE Insight (U1)          | 3             | Yüksek  |
+| 4.7.3 | Duruş AI Analizi (U2)     | 2             | Orta    |
 | Ek    | Layout                    | 3             | Düşük   |
 
 **Toplam tahmini görsel sayısı: ~50 adet**

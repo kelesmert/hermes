@@ -98,13 +98,14 @@ tez/
 ├── bolum-yapisi.md      # Nihai yapı (referans)
 ├── ekranlar.md          # Ekran görüntüsü rehberi
 ├── yazim-rehberi.md     # Yazım kuralları
+├── rules.md             # Kısa yazım notları (hızlı hatırlatma)
 ├── tez-context.md       # Bu dosya
 ├── 1-giris.md           # (yazılacak)
 ├── 2-kuramsal-cerceve.md
-├── 3-sistem-tasarimi.md
+├── 3-sistem-tasarimi-ve-teknolojiler.md
 ├── 4-uygulama.md
 ├── 5-bulgular.md
-├── 6-sonuc.md
+├── 6-sonuc-ve-oneriler.md
 ```
 
 ---
@@ -196,11 +197,10 @@ cd backend && npm run shift:sim
 
 ```
 1. GİRİŞ
-   1.1 Problemin Tanımı ve Motivasyon
-   1.2 Projenin Amacı
-   1.3 Projenin Kapsamı
-   1.4 Literatür Taraması
-   1.5 Raporun Organizasyonu
+   1.1 Problem Tanımı
+   1.2 Projenin Amacı ve Kapsamı
+   1.3 Literatür Taraması
+   1.4 Projenin Yapısı
 
 2. KURAMSAL ÇERÇEVE
    2.1 Üretim Yönetim Sistemleri (MES, Endüstri 4.0, ISA-95)
@@ -215,7 +215,7 @@ cd backend && npm run shift:sim
    3.4 Veritabanı Tasarımı
 
 4. UYGULAMA
-   4.1 Kullanıcı ve Erişim Yönetimi
+   4.1 Kullanıcı ve Erişim Yönetimi Modülü
    4.2 Makine Yönetimi (+ Monitoring)
    4.3 Üretim Takibi (+ Board)
    4.4 OEE Hesaplama ve Raporlama (Dashboard + Reports)
@@ -260,22 +260,13 @@ cd backend && npm run shift:sim
 | 1. Giriş            | ⏳ Bekliyor | -     |
 | 2. Kuramsal Çerçeve | ⏳ Bekliyor | -     |
 | 3. Sistem Tasarımı  | ⏳ Bekliyor | -     |
-| 4. Uygulama         | ⏳ Bekliyor | -     |
+| 4. Uygulama         | ✅ Başladı  | `tez/4-uygulama.md` |
 | 5. Bulgular         | ⏳ Bekliyor | -     |
 | 6. Sonuç            | ⏳ Bekliyor | -     |
 
 ### Sonraki Adım
 
-**Henüz belirlenmedi** - Kullanıcı hangi bölümden başlamak istediğini söyleyecek.
-
-Önerilen başlangıç sırası:
-
-1. **2. Kuramsal Çerçeve** - Araştırma gerektiriyor, projeye özgü değil
-2. **3. Sistem Tasarımı** - Kod bazlı, somut
-3. **4. Uygulama** - En hacimli bölüm
-4. **1. Giriş** - Diğerleri yazıldıktan sonra daha kolay
-5. **5. Bulgular** - Somut çıktılar
-6. **6. Sonuç** - En son
+Mevcut akış: **4. Uygulama** bölümünden ilerleniyor. Bir sonraki adım olarak `ekranlar.md` rehberine göre **4.2 Makine Yönetimi Modülü** yazılabilir.
 
 ---
 
@@ -293,5 +284,5 @@ cd backend && npm run shift:sim
 ## 8. SON GÜNCELLEME
 
 **Tarih:** 2026-01-05  
-**Durum:** Hazırlık tamamlandı, yazıma başlanmadı  
-**Son İşlem:** Context dosyası güncellendi (route/yapı hataları düzeltildi)
+**Durum:** Hazırlık tamamlandı, yazıma başlandı  
+**Son İşlem:** `tez/4-uygulama.md` içinde 4.1 modülü yazıldı

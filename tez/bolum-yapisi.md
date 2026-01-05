@@ -27,11 +27,10 @@
 
 ### 1. GİRİŞ
 
-- 1.1 Problemin Tanımı ve Motivasyon
-- 1.2 Projenin Amacı
-- 1.3 Projenin Kapsamı
-- 1.4 Literatür Taraması
-- 1.5 Raporun Organizasyonu
+- 1.1 Problem Tanımı
+- 1.2 Projenin Amacı ve Kapsamı
+- 1.3 Literatür Taraması
+- 1.4 Projenin Yapısı
 
 ---
 
@@ -100,10 +99,11 @@
   - 4.5.3 Duruş Analizi ve Raporlama
 - 4.6 Simülasyon Sistemi
   - 4.6.1 Simülasyon Saati (Simulation Clock)
-  - 4.6.2 Vardiya ve Üretim Simülasyonu
+  - 4.6.2 Vardiya ve Üretim Simülasyonu (shift sim,data gen,job sim gerekirse ayri ayri olacak)
 - 4.7 AI Destekli Analiz Modülü
   - 4.7.1 LLM Entegrasyonu
   - 4.7.2 OEE Insight Özelliği
+  - 4.7.3 Duruş Post-Mortem Analizi (U2)
 
 ---
 
