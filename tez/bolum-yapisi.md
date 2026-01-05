@@ -60,11 +60,10 @@
   - 3.1.1 Monorepo Yapısı
   - 3.1.2 İstemci-Sunucu Mimarisi
 - 3.2 Backend Tasarımı ve Teknolojileri
-  - 3.2.1 Node.js ve Express.js
-  - 3.2.2 Domain-Driven Design Yaklaşımı
-  - 3.2.3 RESTful API Tasarımı
-  - 3.2.4 MongoDB ve Mongoose
-  - 3.2.5 Kimlik Doğrulama (JWT)
+  - 3.2.1 Web/API Katmanı (Node.js, Express.js)
+  - 3.2.2 Alan Modülleri ve API Organizasyonu (Domain tabanlı yapı, Router)
+  - 3.2.3 Veri Katmanı (MongoDB, Mongoose)
+  - 3.2.4 Kimlik Doğrulama ve Yetkilendirme (JWT, Guard yapısı)
 - 3.3 Frontend Tasarımı ve Teknolojileri
   - 3.3.1 React ve Vite
   - 3.3.2 Feature-Based Yapı
