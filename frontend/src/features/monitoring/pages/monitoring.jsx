@@ -3,9 +3,16 @@ import { useQuery } from "@tanstack/react-query";
 import {
   Alert,
   Box,
+  Button,
   Card,
   CardContent,
+  Chip,
   CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Divider,
   FormControl,
   Grid,
   InputLabel,
@@ -28,6 +35,7 @@ import {
   fetchMachineTelemetrySeries,
 } from "@/features/dashboard/services/board-api.js";
 import { formatDateTime, formatTime } from "@/lib/date-format.js";
+import { createAnomalyRiskInsight } from "@/lib/api/ai-api.js";
 
 const LINES = [
   { id: "line-alpha", label: "Line Alpha (placeholder)" },
@@ -64,6 +72,7 @@ const MonitoringPage = () => {
   const [selectedMachineId, setSelectedMachineId] = useState("");
   const [selectedLineId, setSelectedLineId] = useState(LINES[0]?.id || "");
   const [telemetrySource, setTelemetrySource] = useState("auto");
+  const [anomalyDialogOpen, setAnomalyDialogOpen] = useState(false);
 
   const machinesQuery = useQuery({
     queryKey: ["machines", "monitoring"],
@@ -111,6 +120,30 @@ const MonitoringPage = () => {
     enabled: Boolean(selectedMachineId),
     refetchInterval: TELEMETRY_POLL_INTERVAL_MS,
   });
+
+  const anomalyQuery = useQuery({
+    queryKey: ["monitoringAnomalyRisk", selectedMachineId, telemetrySource],
+    queryFn: () =>
+      createAnomalyRiskInsight({
+        machineId: selectedMachineId,
+        source: telemetrySource,
+      }),
+    enabled: Boolean(selectedMachineId),
+    refetchInterval: 10000,
+  });
+
+  const anomalyInsight = anomalyQuery.data?.insight || null;
+  const anomalyOutput = anomalyInsight?.output || {};
+  const anomalyMetrics = Array.isArray(anomalyOutput.affectedMetrics)
+    ? anomalyOutput.affectedMetrics
+    : [];
+  const anomalyRiskLevel = anomalyOutput.riskLevel || "medium";
+  const anomalyTone =
+    anomalyRiskLevel === "high"
+      ? "error"
+      : anomalyRiskLevel === "medium"
+      ? "warning"
+      : "info";
 
   const trendData = useMemo(
     () => (telemetryQuery.data?.series || []).map(normalizeTrendPoint),
@@ -218,6 +251,48 @@ const MonitoringPage = () => {
           </Stack>
         </CardContent>
       </Card>
+
+      {anomalyQuery.isError ? (
+        <Alert severity="error">
+          Anomali analizi alınamadı:{" "}
+          {anomalyQuery.error?.response?.data?.message ||
+            anomalyQuery.error?.message}
+        </Alert>
+      ) : anomalyInsight ? (
+        <Alert
+          severity={anomalyTone}
+          action={
+            <Button
+              color="inherit"
+              size="small"
+              onClick={() => setAnomalyDialogOpen(true)}
+            >
+              Detay
+            </Button>
+          }
+        >
+          <Stack spacing={1}>
+            <Typography variant="subtitle2">
+              Anomali Riski — {anomalyOutput.riskLevel || "medium"}
+            </Typography>
+            <Typography variant="body2">
+              {anomalyOutput.summary || "Makinede olasi anomali riski tespit edildi."}
+            </Typography>
+            {anomalyMetrics.length ? (
+              <Stack direction="row" spacing={1} flexWrap="wrap">
+                {anomalyMetrics.map((metric, index) => (
+                  <Chip
+                    key={`${metric.metric}-${index}`}
+                    size="small"
+                    label={`${metric.metric} (z=${metric.zScore})`}
+                    variant="outlined"
+                  />
+                ))}
+              </Stack>
+            ) : null}
+          </Stack>
+        </Alert>
+      ) : null}
 
       <Grid container spacing={3}>
         <Grid item xs={12} md={4}>
@@ -460,6 +535,93 @@ const MonitoringPage = () => {
           </Card>
         </Grid>
       </Grid>
+
+      <Dialog
+        open={anomalyDialogOpen}
+        onClose={() => setAnomalyDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>Anomali Risk Detayi</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2}>
+            <Stack direction="row" spacing={1} alignItems="center">
+              <Typography variant="subtitle2">Risk seviyesi</Typography>
+              <Chip
+                size="small"
+                label={anomalyOutput.riskLevel || "medium"}
+                color={anomalyTone}
+              />
+            </Stack>
+            <Typography variant="body2">
+              {anomalyOutput.summary || "Ozet bulunamadi."}
+            </Typography>
+            <Divider />
+            <Stack spacing={1}>
+              <Typography variant="subtitle2">Etkilenen metrikler</Typography>
+              {anomalyMetrics.length ? (
+                anomalyMetrics.map((metric, index) => (
+                  <Stack key={`${metric.metric}-${index}`} spacing={0.5}>
+                    <Typography variant="body2">
+                      {metric.metric}: value {metric.value ?? "-"}, z {metric.zScore ?? "-"}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      baseline mean {metric.baselineMean ?? "-"} / std {metric.baselineStd ?? "-"}
+                    </Typography>
+                  </Stack>
+                ))
+              ) : (
+                <Typography variant="body2">Veri yok.</Typography>
+              )}
+            </Stack>
+            {Array.isArray(anomalyOutput.actions) &&
+            anomalyOutput.actions.length ? (
+              <>
+                <Divider />
+                <Stack spacing={1}>
+                  <Typography variant="subtitle2">Onerilen aksiyonlar</Typography>
+                  {anomalyOutput.actions.map((action, index) => (
+                    <Typography key={index} variant="body2">
+                      • {action.title || "Aksiyon"} — {action.reason || "gerekce yok"}
+                    </Typography>
+                  ))}
+                </Stack>
+              </>
+            ) : null}
+            {Array.isArray(anomalyOutput.warnings) &&
+            anomalyOutput.warnings.length ? (
+              <>
+                <Divider />
+                <Stack spacing={1}>
+                  <Typography variant="subtitle2">Uyarilar</Typography>
+                  {anomalyOutput.warnings.map((warning, index) => (
+                    <Typography key={index} variant="body2">
+                      • {warning}
+                    </Typography>
+                  ))}
+                </Stack>
+              </>
+            ) : null}
+            {anomalyOutput.qualityNote ? (
+              <>
+                <Divider />
+                <Stack spacing={1}>
+                  <Typography variant="subtitle2">Kalite notu</Typography>
+                  <Typography variant="body2">{anomalyOutput.qualityNote}</Typography>
+                </Stack>
+              </>
+            ) : null}
+            {anomalyInsight?.generatedAt ? (
+              <Typography variant="caption" color="text.secondary">
+                Analiz tarihi: {formatDateTime(anomalyInsight.generatedAt)}
+              </Typography>
+            ) : null}
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setAnomalyDialogOpen(false)}>Kapat</Button>
+        </DialogActions>
+      </Dialog>
     </Stack>
   );
 };

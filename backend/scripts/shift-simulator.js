@@ -55,6 +55,13 @@ const AFTERNOON_UNPLANNED_WINDOW_START = '14:30';
 const AFTERNOON_UNPLANNED_WINDOW_END = '16:30';
 const AFTERNOON_UNPLANNED_MIN_MINUTES = 60;
 const AFTERNOON_UNPLANNED_MAX_MINUTES = 120;
+const ANOMALY_WINDOW_START = '10:00';
+const ANOMALY_WINDOW_END = '13:00';
+const ANOMALY_SPIKE = {
+  temperatureC: 5,
+  torqueNm: 20,
+  energyKwh: 0.6,
+};
 const FINAL_IDLE_INTERVAL_MS = 1;
 
 const METRIC_PROFILES = {
@@ -352,7 +359,41 @@ const buildScheduleSegments = ({
   return segments.length ? segments : [{ startOffsetMs: 0, endOffsetMs: totalMs, signal: 1 }];
 };
 
+const buildAnomalyWindow = ({ totalMinutes, shiftStartTime } = {}) => {
+  const normalizedTotalMinutes = Math.max(0, Math.round(totalMinutes));
+  if (!normalizedTotalMinutes) return null;
+
+  const shiftStartMinutes = parseTimeToMinutes(shiftStartTime);
+  const windowStartMinutes = parseTimeToMinutes(ANOMALY_WINDOW_START);
+  const windowEndMinutes = parseTimeToMinutes(ANOMALY_WINDOW_END);
+
+  if (
+    shiftStartMinutes === null ||
+    windowStartMinutes === null ||
+    windowEndMinutes === null ||
+    windowEndMinutes <= windowStartMinutes
+  ) {
+    return null;
+  }
+
+  const windowStartOffset = windowStartMinutes - shiftStartMinutes;
+  const windowEndOffset = windowEndMinutes - shiftStartMinutes;
+
+  if (windowStartOffset < 0 || windowStartOffset >= normalizedTotalMinutes) {
+    return null;
+  }
+
+  const endOffsetMin = Math.min(windowEndOffset, normalizedTotalMinutes);
+  if (endOffsetMin <= windowStartOffset) return null;
+
+  return {
+    startOffsetMs: windowStartOffset * 60 * 1000,
+    endOffsetMs: endOffsetMin * 60 * 1000,
+  };
+};
+
 let scheduleSegments = [];
+let anomalyWindow = null;
 
 const getSignalForOffsetMs = (offsetMs) => {
   for (const segment of scheduleSegments) {
@@ -386,6 +427,14 @@ const computeMetrics = (state, mode) => {
   };
 };
 
+const applyAnomalyMetrics = (metrics) => {
+  return {
+    temperatureC: Number((metrics.temperatureC + ANOMALY_SPIKE.temperatureC).toFixed(2)),
+    torqueNm: Number((metrics.torqueNm + ANOMALY_SPIKE.torqueNm).toFixed(2)),
+    energyKwh: Number((metrics.energyKwh + ANOMALY_SPIKE.energyKwh).toFixed(2)),
+  };
+};
+
 const generateTelemetryPayload = (machine, timestamp, runId) => {
   const state = ensureMachineState(machine);
   const machineKey = machine.id || machine._id.toString();
@@ -397,10 +446,20 @@ const generateTelemetryPayload = (machine, timestamp, runId) => {
   const scheduleSignal = getSignalForOffsetMs(offsetMs);
   const signalValue = isPlannedStopped ? 0 : hasRunningJob ? scheduleSignal : 0;
 
-  const metrics =
+  let metrics =
     isPlannedStopped || signalValue === 0
       ? computeMetrics(state, isPlannedStopped ? 'planned' : 'idle')
       : computeMetrics(state, mode);
+
+  const shouldApplyAnomaly =
+    Boolean(anomalyWindow) &&
+    signalValue === 1 &&
+    offsetMs >= anomalyWindow.startOffsetMs &&
+    offsetMs < anomalyWindow.endOffsetMs;
+
+  if (shouldApplyAnomaly) {
+    metrics = applyAnomalyMetrics(metrics);
+  }
 
   if (isPlannedStopped) {
     return {
@@ -563,11 +622,16 @@ const startSimulator = async () => {
   const speed = shiftDurationMs / (REAL_DURATION_SECONDS * 1000);
   const runId = runContext.simulationRunId;
   const resumeAt = runContext.nextCursorAt;
+  const shiftStartTime = runContext.state?.shiftStart || process.env.SHIFT_SIM_SHIFT_START;
 
   scheduleSegments = buildScheduleSegments({
     totalMinutes: shiftDurationMs / 60000,
     runId,
-    shiftStartTime: runContext.state?.shiftStart || process.env.SHIFT_SIM_SHIFT_START,
+    shiftStartTime,
+  });
+  anomalyWindow = buildAnomalyWindow({
+    totalMinutes: shiftDurationMs / 60000,
+    shiftStartTime,
   });
 
   console.log(`[shift-sim] --- START ${new Date().toISOString()} run=${runId} ---`);

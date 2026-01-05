@@ -3,6 +3,7 @@ const AppError = require('../../../utils/app-error');
 const aiInsightService = require('../services/ai-insight-service');
 const oeeInsightService = require('../services/oee-insight-service');
 const downtimeReasonService = require('../services/downtime-reason-service');
+const anomalyRiskService = require('../services/anomaly-risk-service');
 const openaiClient = require('../services/openai-client');
 
 const getHealth = asyncHandler(async (req, res) => {
@@ -119,8 +120,19 @@ const createDowntimeReason = asyncHandler(async (req, res) => {
   res.json(result);
 });
 
-const createAnomalyRisk = asyncHandler(async () => {
-  throw new AppError('Bu endpoint henüz aktif değil.', 501);
+const createAnomalyRisk = asyncHandler(async (req, res) => {
+  const userId = req.auth?.userId;
+  const { machineId, source, timezone, forceRefresh } = req.body || {};
+
+  const result = await anomalyRiskService.generateAnomalyRiskInsight({
+    userId,
+    machineId,
+    source,
+    timezone,
+    forceRefresh: Boolean(forceRefresh),
+  });
+
+  res.json(result);
 });
 
 module.exports = {

@@ -918,6 +918,47 @@ Crosscheck 2026-01-04
 - Riskler ve alinacak onlemler
   - Cache ve stale kontrolu yanlis eslesme riski
     - Hash standardi ve windowKey ile kontrol edilecek
+
+Crosscheck 2026-01-07
+
+- Use case U2 (post mortem durus pattern analizi)
+- Durum adim 1-6 tamamlandi
+- Etkilenen domainler
+  - AI
+  - Downtime
+  - Machines
+  - Production
+  - OEE (telemetry penceresi)
+- Okunan dosyalar
+  - `docs/specs/ai-dev.md`
+  - `docs/specs/downtime-design-v2.md`
+  - `backend/src/domains/ai/services/downtime-reason-service.js`
+  - `backend/src/domains/ai/prompts/downtime-reason.js`
+  - `backend/src/domains/ai/controllers/ai-controller.js`
+  - `backend/src/domains/ai/routes/ai-routes.js`
+  - `backend/src/domains/machines/models/machine-event-model.js`
+  - `backend/src/domains/machines/models/machine-telemetry-model.js`
+  - `backend/src/domains/oee/services/oee-dashboard-service.js`
+  - `frontend/src/features/downtime/pages/downtimes.jsx`
+  - `frontend/src/features/downtime/components/downtime-ai-dialog.jsx`
+  - `frontend/src/features/downtime/components/downtime-edit-dialog.jsx`
+  - `frontend/src/features/ai/pages/ai-hub.jsx`
+- Etkilenen dosyalar
+  - `backend/src/domains/ai/services/downtime-reason-service.js`
+  - `backend/src/domains/ai/prompts/downtime-reason.js`
+  - `frontend/src/features/downtime/components/downtime-ai-dialog.jsx`
+  - `frontend/src/features/downtime/pages/downtimes.jsx`
+- Riskler ve alinacak onlemler
+  - Acik duruslarda analiz tetiklenmesi
+    - endedAt olmayan kayitlarda `skipped: open_downtime` donuyor
+  - reasonCode yoksa veya `unplanned_stop` ise analiz anlamsiz
+    - `skipped: missing_reason` ile durduruluyor
+  - Telemetry penceresi tutarsizligi
+    - oee-dashboard-service telemetryWindowMs (10 dk) ortak kullaniliyor
+  - Cache eslesme riski
+    - hash icinde downtimeId + durationMinutes + currentReason + telemetry ozetleri var
+  - Kaynak karisikligi
+    - simulationSource normalize ediliyor, mock-batch/shift-sim ayrimi korunuyor
   - Loss breakdown ve OEE stats penceresi uyumsuzlugu riski
     - MachineEvent aggregation source ve shift window ile filtrelenecek
   - Rate limit soft warning UI uyari senkronu

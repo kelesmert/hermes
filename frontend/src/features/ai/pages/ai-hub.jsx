@@ -55,7 +55,7 @@ const USE_CASE_ROUTE = {
 const USE_CASE_STATUS = {
   'oee-insight': { label: 'Aktif', tone: 'primary' },
   'downtime-reason': { label: 'Aktif', tone: 'success' },
-  'anomaly-risk': { label: 'Hazirlaniyor', tone: 'info' },
+  'anomaly-risk': { label: 'Aktif', tone: 'warning' },
 };
 
 const buildWindowLabel = (window) => {
