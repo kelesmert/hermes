@@ -102,7 +102,7 @@ Her ana bölüm ayrı .md dosyasında:
 	├── tez-context.md       # Bu dosya
 	├── 1-giris.md           # (yazılacak)
 	├── 2-kuramsal-cerceve.md
-	├── 3-sistem-tasarimi-ve-teknolojiler.md
+	├── 3-sistem-tasarimi-ve-teknolojiler.md # (3.1–3.4 yazıldı)
 	├── 4-uygulama.md
 	├── 4-uygulama-ekran-bilesenleri.md # UI ekran/bileşen detayları
 	├── 5-bulgular.md
@@ -120,6 +120,7 @@ Her ana bölüm ayrı .md dosyasında:
 | `bolum-yapisi.md`  | Tüm bölüm yapısı, alt başlıklar | ✅ Kesin referans    |
 | `ekranlar.md`      | Hangi ekran hangi bölüme        | ✅ Kesin referans    |
 | `yazim-rehberi.md` | Yazım kuralları, checklist      | ✅ Kesin referans    |
+| `3-sistem-tasarimi-ve-teknolojiler.md` | 3. bölüm teknik anlatımı (3.1–3.4) | ✅ Kesin referans |
 | `4-uygulama-ekran-bilesenleri.md` | 4. bölüm UI detay anlatımı      | ✅ Kesin referans    |
 | `rapor.md`         | Üniversite resmi şablonu        | ✅ %100 güvenilir    |
 | `ornek1.md`        | Sınıf arkadaşı örneği           | ⚠️ Genel fikir verir |

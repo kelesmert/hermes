@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from 'react';
-import { NavLink } from 'react-router-dom';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useEffect, useMemo, useState } from "react";
+import { NavLink } from "react-router-dom";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Alert,
   Box,
@@ -25,50 +25,50 @@ import {
   TableRow,
   TextField,
   Typography,
-} from '@mui/material';
-import { alpha } from '@mui/material/styles';
-import AutoAwesomeOutlinedIcon from '@mui/icons-material/AutoAwesomeOutlined';
-import InsightsOutlinedIcon from '@mui/icons-material/InsightsOutlined';
-import PauseCircleOutlineIcon from '@mui/icons-material/PauseCircleOutline';
-import SensorsOutlinedIcon from '@mui/icons-material/SensorsOutlined';
+} from "@mui/material";
+import { alpha } from "@mui/material/styles";
+import AutoAwesomeOutlinedIcon from "@mui/icons-material/AutoAwesomeOutlined";
+import InsightsOutlinedIcon from "@mui/icons-material/InsightsOutlined";
+import PauseCircleOutlineIcon from "@mui/icons-material/PauseCircleOutline";
+import SensorsOutlinedIcon from "@mui/icons-material/SensorsOutlined";
 import {
   createDowntimeReasonInsight,
   createOeeInsight,
   fetchAiInsights,
   fetchLatestAiInsight,
-} from '@/lib/api/ai-api.js';
-import { fetchMachines } from '@/features/machines/services/machines-api.js';
-import { formatDate, formatDateTime } from '@/lib/date-format.js';
+} from "@/lib/api/ai-api.js";
+import { fetchMachines } from "@/features/machines/services/machines-api.js";
+import { formatDate, formatDateTime } from "@/lib/date-format.js";
 
 const USE_CASE_LABELS = {
-  'oee-insight': 'OEE Insight',
-  'downtime-reason': 'Durus Pattern',
-  'anomaly-risk': 'Anomali Risk',
+  "oee-insight": "OEE Insight",
+  "downtime-reason": "Durus Pattern",
+  "anomaly-risk": "Anomali Risk",
 };
 
 const USE_CASE_ROUTE = {
-  'oee-insight': '/reports',
-  'downtime-reason': '/downtimes',
-  'anomaly-risk': '/monitoring',
+  "oee-insight": "/reports",
+  "downtime-reason": "/downtimes",
+  "anomaly-risk": "/monitoring",
 };
 
 const USE_CASE_STATUS = {
-  'oee-insight': { label: 'Aktif', tone: 'primary' },
-  'downtime-reason': { label: 'Aktif', tone: 'success' },
-  'anomaly-risk': { label: 'Aktif', tone: 'warning' },
+  "oee-insight": { label: "Aktif", tone: "primary" },
+  "downtime-reason": { label: "Aktif", tone: "success" },
+  "anomaly-risk": { label: "Aktif", tone: "warning" },
 };
 
 const buildWindowLabel = (window) => {
-  if (!window) return '-';
-  if (window.mode === 'shift') {
-    return `Shift ${window.shiftDateYmd || '-'}`;
+  if (!window) return "-";
+  if (window.mode === "shift") {
+    return `Shift ${window.shiftDateYmd || "-"}`;
   }
-  if (window.mode === 'range') {
-    const fromLabel = window.fromMs ? formatDate(new Date(window.fromMs)) : '-';
-    const toLabel = window.toMs ? formatDate(new Date(window.toMs)) : '-';
+  if (window.mode === "range") {
+    const fromLabel = window.fromMs ? formatDate(new Date(window.fromMs)) : "-";
+    const toLabel = window.toMs ? formatDate(new Date(window.toMs)) : "-";
     return `${fromLabel} -> ${toLabel}`;
   }
-  return '-';
+  return "-";
 };
 
 const buildMachineMap = (machines) => {
@@ -107,21 +107,31 @@ const buildDailyCounts = (insights) => {
 
   const bucketMap = new Map(buckets.map((item) => [item.key, item]));
   (insights || []).forEach((insight) => {
-    const key = insight.generatedAt ? new Date(insight.generatedAt).toISOString().slice(0, 10) : null;
+    const key = insight.generatedAt
+      ? new Date(insight.generatedAt).toISOString().slice(0, 10)
+      : null;
     const bucket = key ? bucketMap.get(key) : null;
     if (bucket) bucket.count += 1;
   });
   return buckets;
 };
 
-const UseCaseCard = ({ title, description, latestLabel, route, icon: Icon, tone, statusLabel }) => (
+const UseCaseCard = ({
+  title,
+  description,
+  latestLabel,
+  route,
+  icon: Icon,
+  tone,
+  statusLabel,
+}) => (
   <Card
     sx={{
       borderRadius: 2,
-      border: '1px solid',
+      border: "1px solid",
       borderColor: (theme) => alpha(theme.palette.divider, 0.6),
-      boxShadow: 'none',
-      height: '100%',
+      boxShadow: "none",
+      height: "100%",
     }}
   >
     <CardContent>
@@ -132,8 +142,8 @@ const UseCaseCard = ({ title, description, latestLabel, route, icon: Icon, tone,
               width: 44,
               height: 44,
               borderRadius: 2,
-              display: 'grid',
-              placeItems: 'center',
+              display: "grid",
+              placeItems: "center",
               bgcolor: (theme) => alpha(theme.palette[tone].main, 0.15),
               color: (theme) => theme.palette[tone].main,
             }}
@@ -144,14 +154,19 @@ const UseCaseCard = ({ title, description, latestLabel, route, icon: Icon, tone,
             <Typography variant="subtitle1" fontWeight={600}>
               {title}
             </Typography>
-            <Chip size="small" label={statusLabel} color={tone} variant="outlined" />
+            <Chip
+              size="small"
+              label={statusLabel}
+              color={tone}
+              variant="outlined"
+            />
           </Box>
         </Stack>
         <Typography variant="body2" color="text.secondary">
           {description}
         </Typography>
         <Typography variant="caption" color="text.secondary">
-          Son analiz: {latestLabel || 'Kayit yok'}
+          Son analiz: {latestLabel || "Kayit yok"}
         </Typography>
         <Button
           component={NavLink}
@@ -159,7 +174,7 @@ const UseCaseCard = ({ title, description, latestLabel, route, icon: Icon, tone,
           variant="contained"
           color={tone}
           size="small"
-          sx={{ alignSelf: 'flex-start' }}
+          sx={{ alignSelf: "flex-start" }}
         >
           Sayfaya Git
         </Button>
@@ -172,41 +187,55 @@ const AiHubPage = () => {
   const [page, setPage] = useState(1);
   const pageSize = 20;
   const listLimit = 200;
-  const [useCaseFilter, setUseCaseFilter] = useState('all');
-  const [machineFilter, setMachineFilter] = useState('all');
-  const [sourceFilter, setSourceFilter] = useState('all');
-  const [fromDate, setFromDate] = useState('');
-  const [toDate, setToDate] = useState('');
+  const [useCaseFilter, setUseCaseFilter] = useState("all");
+  const [machineFilter, setMachineFilter] = useState("all");
+  const [sourceFilter, setSourceFilter] = useState("all");
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
   const [staleById, setStaleById] = useState({});
   const [staleLoadingId, setStaleLoadingId] = useState(null);
 
   const queryClient = useQueryClient();
 
   const insightsQuery = useQuery({
-    queryKey: ['aiInsights', 'latest', listLimit],
+    queryKey: ["aiInsights", "latest", listLimit],
     queryFn: () => fetchAiInsights({ limit: listLimit }),
     staleTime: 15000,
   });
 
   const machinesQuery = useQuery({
-    queryKey: ['machines', 'ai-hub'],
+    queryKey: ["machines", "ai-hub"],
     queryFn: fetchMachines,
     staleTime: 60000,
   });
 
-  const machineMap = useMemo(() => buildMachineMap(machinesQuery.data), [machinesQuery.data]);
+  const machineMap = useMemo(
+    () => buildMachineMap(machinesQuery.data),
+    [machinesQuery.data]
+  );
 
   const insights = insightsQuery.data || [];
   const isLoading = insightsQuery.isLoading || machinesQuery.isLoading;
   const hasError = insightsQuery.isError || machinesQuery.isError;
   const filteredInsights = useMemo(() => {
-    const { startMs, endMs } = buildDateRangeMs({ start: fromDate, end: toDate });
+    const { startMs, endMs } = buildDateRangeMs({
+      start: fromDate,
+      end: toDate,
+    });
     return insights.filter((insight) => {
-      if (useCaseFilter !== 'all' && insight.useCase !== useCaseFilter) return false;
-      if (machineFilter !== 'all' && String(insight.machineId || '') !== machineFilter) return false;
-      if (sourceFilter !== 'all' && insight.source !== sourceFilter) return false;
+      if (useCaseFilter !== "all" && insight.useCase !== useCaseFilter)
+        return false;
+      if (
+        machineFilter !== "all" &&
+        String(insight.machineId || "") !== machineFilter
+      )
+        return false;
+      if (sourceFilter !== "all" && insight.source !== sourceFilter)
+        return false;
       if (startMs || endMs) {
-        const createdMs = insight.generatedAt ? new Date(insight.generatedAt).getTime() : 0;
+        const createdMs = insight.generatedAt
+          ? new Date(insight.generatedAt).getTime()
+          : 0;
         if (startMs && createdMs < startMs) return false;
         if (endMs && createdMs > endMs) return false;
       }
@@ -217,7 +246,7 @@ const AiHubPage = () => {
   const totalPages = Math.max(1, Math.ceil(filteredInsights.length / pageSize));
   const pagedInsights = useMemo(
     () => filteredInsights.slice((page - 1) * pageSize, page * pageSize),
-    [filteredInsights, page, pageSize],
+    [filteredInsights, page, pageSize]
   );
 
   const lastSevenDays = useMemo(() => {
@@ -227,13 +256,24 @@ const AiHubPage = () => {
     start.setDate(start.getDate() - 6);
     const startMs = start.getTime();
     const recent = insights.filter((insight) => {
-      const generatedMs = insight.generatedAt ? new Date(insight.generatedAt).getTime() : 0;
+      const generatedMs = insight.generatedAt
+        ? new Date(insight.generatedAt).getTime()
+        : 0;
       return generatedMs >= startMs && generatedMs <= now;
     });
 
-    const machineSet = new Set(recent.map((item) => item.machineId).filter(Boolean).map(String));
+    const machineSet = new Set(
+      recent
+        .map((item) => item.machineId)
+        .filter(Boolean)
+        .map(String)
+    );
     const latestGeneratedAt = recent.length
-      ? new Date(Math.max(...recent.map((item) => new Date(item.generatedAt).getTime())))
+      ? new Date(
+          Math.max(
+            ...recent.map((item) => new Date(item.generatedAt).getTime())
+          )
+        )
       : null;
 
     return {
@@ -256,16 +296,18 @@ const AiHubPage = () => {
 
   const refreshOeeMutation = useMutation({
     mutationFn: createOeeInsight,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['aiInsights'] }),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["aiInsights"] }),
   });
 
   const refreshDowntimeMutation = useMutation({
     mutationFn: createDowntimeReasonInsight,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['aiInsights'] }),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["aiInsights"] }),
   });
 
   const handleStaleCheck = async (insight) => {
-    if (!insight || insight.useCase !== 'oee-insight') return;
+    if (!insight || insight.useCase !== "oee-insight") return;
     setStaleLoadingId(insight._id);
     try {
       const window = insight.window || {};
@@ -282,7 +324,12 @@ const AiHubPage = () => {
       };
       const latest = await fetchLatestAiInsight(params);
       if (!latest) return;
-      const status = latest._id !== insight._id ? 'newer' : latest.isStale ? 'stale' : 'fresh';
+      const status =
+        latest._id !== insight._id
+          ? "newer"
+          : latest.isStale
+          ? "stale"
+          : "fresh";
       setStaleById((prev) => ({
         ...prev,
         [insight._id]: {
@@ -297,7 +344,7 @@ const AiHubPage = () => {
 
   const handleRefreshInsight = (insight) => {
     if (!insight) return;
-    if (insight.useCase === 'oee-insight') {
+    if (insight.useCase === "oee-insight") {
       const window = insight.window || {};
       return refreshOeeMutation.mutate({
         machineId: insight.machineId,
@@ -309,7 +356,7 @@ const AiHubPage = () => {
         forceRefresh: true,
       });
     }
-    if (insight.useCase === 'downtime-reason') {
+    if (insight.useCase === "downtime-reason") {
       return refreshDowntimeMutation.mutate({
         downtimeId: insight.downtimeId,
         forceRefresh: true,
@@ -328,27 +375,33 @@ const AiHubPage = () => {
 
   const useCaseOptions = useMemo(
     () => [
-      { value: 'all', label: 'Tumu' },
-      ...Object.entries(USE_CASE_LABELS).map(([value, label]) => ({ value, label })),
+      { value: "all", label: "Tumu" },
+      ...Object.entries(USE_CASE_LABELS).map(([value, label]) => ({
+        value,
+        label,
+      })),
     ],
-    [],
+    []
   );
 
   const machineOptions = useMemo(() => {
     const items = machinesQuery.data || [];
     return [
-      { value: 'all', label: 'Tum makineler' },
+      { value: "all", label: "Tum makineler" },
       ...items.map((machine) => ({
         value: String(machine.id || machine._id),
-        label: machine.name || machine.code || String(machine.id || machine._id),
+        label:
+          machine.name || machine.code || String(machine.id || machine._id),
       })),
     ];
   }, [machinesQuery.data]);
 
   const sourceOptions = useMemo(() => {
-    const sources = Array.from(new Set(insights.map((item) => item.source).filter(Boolean)));
+    const sources = Array.from(
+      new Set(insights.map((item) => item.source).filter(Boolean))
+    );
     return [
-      { value: 'all', label: 'Tum kaynaklar' },
+      { value: "all", label: "Tum kaynaklar" },
       ...sources.map((value) => ({ value, label: value })),
     ];
   }, [insights]);
@@ -363,23 +416,37 @@ const AiHubPage = () => {
               AI Asistani
             </Typography>
           </Stack>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-            Toplam 200 analize kadar listelenir. Sayfa basina 20 analiz gosterilir.
-          </Typography>
         </Box>
 
         <Stack direction="row" spacing={2} flexWrap="wrap">
-          <Button component={NavLink} to="/reports" variant="contained" color="primary">
+          <Button
+            component={NavLink}
+            to="/reports"
+            variant="contained"
+            color="primary"
+          >
             OEE Insight Uret
           </Button>
-          <Button component={NavLink} to="/downtimes" variant="outlined" color="primary">
+          <Button
+            component={NavLink}
+            to="/downtimes"
+            variant="outlined"
+            color="primary"
+          >
             Son Kapanan Durusu Analiz Et
           </Button>
         </Stack>
 
         <Grid container spacing={2}>
           <Grid item xs={12} md={4}>
-            <Card sx={{ borderRadius: 2, border: '1px solid', borderColor: 'divider', boxShadow: 'none' }}>
+            <Card
+              sx={{
+                borderRadius: 2,
+                border: "1px solid",
+                borderColor: "divider",
+                boxShadow: "none",
+              }}
+            >
               <CardContent>
                 <Typography variant="caption" color="text.secondary">
                   Son 7 gun AI analiz sayisi
@@ -391,19 +458,35 @@ const AiHubPage = () => {
             </Card>
           </Grid>
           <Grid item xs={12} md={4}>
-            <Card sx={{ borderRadius: 2, border: '1px solid', borderColor: 'divider', boxShadow: 'none' }}>
+            <Card
+              sx={{
+                borderRadius: 2,
+                border: "1px solid",
+                borderColor: "divider",
+                boxShadow: "none",
+              }}
+            >
               <CardContent>
                 <Typography variant="caption" color="text.secondary">
                   Son analiz zamani
                 </Typography>
                 <Typography variant="h6" fontWeight={600} sx={{ mt: 0.5 }}>
-                  {lastSevenDays.latestGeneratedAt ? formatDateTime(lastSevenDays.latestGeneratedAt) : '-'}
+                  {lastSevenDays.latestGeneratedAt
+                    ? formatDateTime(lastSevenDays.latestGeneratedAt)
+                    : "-"}
                 </Typography>
               </CardContent>
             </Card>
           </Grid>
           <Grid item xs={12} md={4}>
-            <Card sx={{ borderRadius: 2, border: '1px solid', borderColor: 'divider', boxShadow: 'none' }}>
+            <Card
+              sx={{
+                borderRadius: 2,
+                border: "1px solid",
+                borderColor: "divider",
+                boxShadow: "none",
+              }}
+            >
               <CardContent>
                 <Typography variant="caption" color="text.secondary">
                   Kapsanan makine sayisi (7 gun)
@@ -423,11 +506,13 @@ const AiHubPage = () => {
               description="OEE ozetleri, kayip analizi ve operator yorumu."
               route="/reports"
               icon={InsightsOutlinedIcon}
-              statusLabel={USE_CASE_STATUS['oee-insight'].label}
-              tone={USE_CASE_STATUS['oee-insight'].tone}
+              statusLabel={USE_CASE_STATUS["oee-insight"].label}
+              tone={USE_CASE_STATUS["oee-insight"].tone}
               latestLabel={
-                latestByUseCase.get('oee-insight')
-                  ? formatDateTime(latestByUseCase.get('oee-insight').generatedAt)
+                latestByUseCase.get("oee-insight")
+                  ? formatDateTime(
+                      latestByUseCase.get("oee-insight").generatedAt
+                    )
                   : null
               }
             />
@@ -438,17 +523,19 @@ const AiHubPage = () => {
               description="Kapanmis duruslar icin post mortem pattern analizi."
               route="/downtimes"
               icon={PauseCircleOutlineIcon}
-              statusLabel={USE_CASE_STATUS['downtime-reason'].label}
-              tone={USE_CASE_STATUS['downtime-reason'].tone}
+              statusLabel={USE_CASE_STATUS["downtime-reason"].label}
+              tone={USE_CASE_STATUS["downtime-reason"].tone}
               latestLabel={
-                latestByUseCase.get('downtime-reason')
-                  ? formatDateTime(latestByUseCase.get('downtime-reason').generatedAt)
+                latestByUseCase.get("downtime-reason")
+                  ? formatDateTime(
+                      latestByUseCase.get("downtime-reason").generatedAt
+                    )
                   : null
               }
             />
           </Grid>
           <Grid item xs={12} md={4}>
-            <UseCaseCard
+            {/* <UseCaseCard
               title="U3 - Anomali Risk"
               description="Canli izleme icin risk uyarisi ve anomali tespiti."
               route="/monitoring"
@@ -460,14 +547,25 @@ const AiHubPage = () => {
                   ? formatDateTime(latestByUseCase.get('anomaly-risk').generatedAt)
                   : null
               }
-            />
+            /> */}
           </Grid>
         </Grid>
 
-        <Card sx={{ borderRadius: 2, boxShadow: 'none', border: '1px solid', borderColor: 'divider' }}>
+        <Card
+          sx={{
+            borderRadius: 2,
+            boxShadow: "none",
+            border: "1px solid",
+            borderColor: "divider",
+          }}
+        >
           <CardContent>
             <Stack spacing={2}>
-              <Stack direction="row" justifyContent="space-between" alignItems="center">
+              <Stack
+                direction="row"
+                justifyContent="space-between"
+                alignItems="center"
+              >
                 <Typography variant="h6">Son AI Analizleri</Typography>
                 <Chip label={`${filteredInsights.length} kayit`} size="small" />
               </Stack>
@@ -589,37 +687,53 @@ const AiHubPage = () => {
                     <TableBody>
                       {pagedInsights.map((insight) => {
                         const machineLabel = insight.machineId
-                          ? machineMap.get(String(insight.machineId)) || String(insight.machineId)
-                          : 'Makine yok';
+                          ? machineMap.get(String(insight.machineId)) ||
+                            String(insight.machineId)
+                          : "Makine yok";
                         const staleStatus = staleById[insight._id]?.status;
                         const staleLabel =
-                          staleStatus === 'stale'
-                            ? 'Stale'
-                            : staleStatus === 'newer'
-                              ? 'Yeni Analiz Var'
-                              : staleStatus === 'fresh'
-                                ? 'Guncel'
-                                : 'Kontrol edilmedi';
+                          staleStatus === "stale"
+                            ? "Stale"
+                            : staleStatus === "newer"
+                            ? "Yeni Analiz Var"
+                            : staleStatus === "fresh"
+                            ? "Guncel"
+                            : "Kontrol edilmedi";
                         const staleColor =
-                          staleStatus === 'stale'
-                            ? 'warning'
-                            : staleStatus === 'newer'
-                              ? 'info'
-                              : staleStatus === 'fresh'
-                                ? 'success'
-                                : 'default';
+                          staleStatus === "stale"
+                            ? "warning"
+                            : staleStatus === "newer"
+                            ? "info"
+                            : staleStatus === "fresh"
+                            ? "success"
+                            : "default";
 
                         return (
                           <TableRow key={insight._id}>
-                            <TableCell>{USE_CASE_LABELS[insight.useCase] || insight.useCase}</TableCell>
-                            <TableCell>{machineLabel}</TableCell>
-                            <TableCell>{insight.source || '-'}</TableCell>
-                            <TableCell>{buildWindowLabel(insight.window)}</TableCell>
-                            <TableCell>{formatDateTime(insight.generatedAt)}</TableCell>
                             <TableCell>
-                              {insight.useCase === 'oee-insight' ? (
-                                <Stack direction="row" spacing={1} alignItems="center">
-                                  <Chip size="small" label={staleLabel} color={staleColor} />
+                              {USE_CASE_LABELS[insight.useCase] ||
+                                insight.useCase}
+                            </TableCell>
+                            <TableCell>{machineLabel}</TableCell>
+                            <TableCell>{insight.source || "-"}</TableCell>
+                            <TableCell>
+                              {buildWindowLabel(insight.window)}
+                            </TableCell>
+                            <TableCell>
+                              {formatDateTime(insight.generatedAt)}
+                            </TableCell>
+                            <TableCell>
+                              {insight.useCase === "oee-insight" ? (
+                                <Stack
+                                  direction="row"
+                                  spacing={1}
+                                  alignItems="center"
+                                >
+                                  <Chip
+                                    size="small"
+                                    label={staleLabel}
+                                    color={staleColor}
+                                  />
                                   <Button
                                     size="small"
                                     variant="text"
@@ -630,16 +744,24 @@ const AiHubPage = () => {
                                   </Button>
                                 </Stack>
                               ) : (
-                                <Chip size="small" label="N/A" variant="outlined" />
+                                <Chip
+                                  size="small"
+                                  label="N/A"
+                                  variant="outlined"
+                                />
                               )}
                             </TableCell>
                             <TableCell align="right">
-                              <Stack direction="row" spacing={1} justifyContent="flex-end">
+                              <Stack
+                                direction="row"
+                                spacing={1}
+                                justifyContent="flex-end"
+                              >
                                 <Button
                                   size="small"
                                   variant="outlined"
                                   component={NavLink}
-                                  to={USE_CASE_ROUTE[insight.useCase] || '/'}
+                                  to={USE_CASE_ROUTE[insight.useCase] || "/"}
                                 >
                                   Sayfaya Git
                                 </Button>
@@ -648,7 +770,7 @@ const AiHubPage = () => {
                                   variant="contained"
                                   onClick={() => handleRefreshInsight(insight)}
                                   disabled={
-                                    insight.useCase === 'anomaly-risk' ||
+                                    insight.useCase === "anomaly-risk" ||
                                     refreshOeeMutation.isPending ||
                                     refreshDowntimeMutation.isPending
                                   }
@@ -682,14 +804,16 @@ const AiHubPage = () => {
         <Card
           sx={{
             borderRadius: 2,
-            boxShadow: 'none',
-            border: '1px dashed',
+            boxShadow: "none",
+            border: "1px dashed",
             borderColor: (theme) => alpha(theme.palette.text.primary, 0.2),
             opacity: 0.6,
           }}
         >
           <CardContent>
-            <Typography variant="h6">Kullanim Istatistikleri (Yakinda)</Typography>
+            <Typography variant="h6">
+              Kullanim Istatistikleri (Yakinda)
+            </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
               Token kullanimi ve limit durumu daha sonra eklenecek.
             </Typography>
