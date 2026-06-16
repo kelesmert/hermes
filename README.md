@@ -1,14 +1,4 @@
-# Hermes MES MVP
-
-## Güncelleme Kuralları
-
-**Ne zaman güncellenir:** Proje durumu değiştiğinde, büyük milestone tamamlandığında, teknoloji stack'i değiştiğinde.
-
-**Format:** Durum bölümü (✅/📋), teknoloji tablosu, kurulum adımları.
-
-**Önemli:** Bu dosya projenin "vitrini"dir. Kısa, öz ve yeni geliştiriciler için ilk okuma kaynağı olmalı.
-
----
+# Hermes MES 
 
 Hermes, mezuniyet projesi kapsamında geliştirilen hafif bir Manufacturing Execution System (MES) MVP'sidir. Amaç; Node.js/Express tabanlı backend, React tabanlı frontend ve MongoDB veritabanıyla kullanıcı kimlik doğrulaması, rol/izin yönetimi, makine izleme, raporlama ve AI destekli içgörüleri içeren modüler bir çözüm sunmaktır.
 
